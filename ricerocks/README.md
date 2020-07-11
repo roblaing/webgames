@@ -15,22 +15,61 @@ I found the original course a great introduction to object-oriented programming,
 disenchanted with and am attempting to apply <a href="https://en.wikipedia.org/wiki/Event-driven_programming">
 event-driven programming</a>.
 
-For this style of programming, our basic building block is 
+For this style of programming with JavaScript, our basic building block is 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener">
-target.addEventListener(type, listener [, options]);</a>
+target.addEventListener(type, listener [, options]);</a> and the first thing to think of is what the user inputs are
+going to be.
+
+In RiceRocks, a simple version of the old arcade game Asteroids, the user presses arrow keys to maneuver
+and the space bar to shoot. (ArrowDown does nothing). The limited number of events to handle make it a nice introduction.
+
+So the <em>event type</em> whe are interested in are 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keydown_event">keydown</a> and
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keyup_event">keyup</a>.
+
+Something I discovered is that the keyCode attribute for 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent">keyboad events</a> is deprecated,
+which is good because figuring out which numbers go with which keys makes unreadable code.
 
 ```javascript
     //add the listener to the main, window object, and update the states
     window.addEventListener('keydown', function (event) {
-        if (event.keyCode === 37) { // left
-            inputStates.left = true;
-        } else if (event.keyCode === 38) { // up
-            inputStates.up = true;
-        } else if (event.keyCode === 39) { // right
-            inputStates.right = true;
-        } else if (event.keyCode === 32) { // space
-            inputStates.space = true;
-        }
+      switch (event.key) {
+        case "ArrowLeft":
+          inputStates.left = true;
+          break;
+        case "ArrowUp":
+          inputStates.up = true;
+          break;
+        case "ArrowRight":
+          inputStates.right = true;
+          break;
+        case " ":
+          inputStates.space = true;
+          break;
+        default: // do nothing
+          return;
+      }
+    }, false);
+
+    //if the key will be released, change the states object
+    window.addEventListener('keyup', function (event) {
+      switch (event.key) {
+        case "ArrowLeft":
+          inputStates.left = false;
+          break;
+        case "ArrowUp":
+          inputStates.up = false;
+          break;
+        case "ArrowRight":
+          inputStates.right = false;
+          break;
+        case " ":
+          inputStates.space = false;
+          break;
+        default: // do nothing
+          return;
+      }
     }, false);
 ```
 
