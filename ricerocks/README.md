@@ -36,9 +36,11 @@ At time of writing, this now equates to <code>addEventListener(type, listener, {
 where <em>{passive: false}</em> is the default, so could be ommitted.
 
 This game only involves responding to four keys (arrows except for down, and space), and in my original code
-I used several <em>if...</em> statements for my pattern-action expressions, which worked fine, but I decided 
-switch would be prettier, which broke everything if a key other than the four with case statements was selected.
+I used several <em>if...</em> statements for my pattern-action expressions, which worked fine, until I decided 
+<em>switch</em> would be prettier, which broke everything if a key other than the four with case statements was selected.
 
+Getting <em>default</em> to work led me down the usual JavaScript rabitt hole of lots of waffle via Google, 
+but no clear explanations. 
 
 So the <em>event type</em> whe are interested in are 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keydown_event">keydown</a> and
