@@ -1,4 +1,4 @@
-
+<h1>Game 1: RiceRocks</h1>
 
 This game comes from a Mooc I did several years ago, Rice University's 
 <a href="https://www.coursera.org/learn/interactive-python-1">Interactive Python</a> which I translated into
@@ -15,13 +15,16 @@ I found the original course a great introduction to object-oriented programming,
 disenchanted with and am attempting to apply <a href="https://en.wikipedia.org/wiki/Event-driven_programming">
 event-driven programming</a>.
 
+Broadly, I've based my JavaScript on the W3C's <a href="https://courses.edx.org/courses/course-v1:W3Cx+HTML5.2x+4T2015/course/">
+HTML5 Part 2</a> whose second week is titled "Game Programming with HTML5" which I've used to structure my notes on.
+
 For this style of programming with JavaScript, our basic building block is 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener">
 target.addEventListener(type, listener [, options]);</a> and the first thing to think of is what the user inputs are
 going to be.
 
 In RiceRocks, a simple version of the old arcade game Asteroids, the user presses arrow keys to maneuver
-and the space bar to shoot. (ArrowDown does nothing). The limited number of events to handle make it a nice introduction.
+and the space bar to shoot. The limited number of events to handle make it a nice introduction.
 
 So the <em>event type</em> whe are interested in are 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keydown_event">keydown</a> and
@@ -31,26 +34,39 @@ Something I discovered is that the keyCode attribute for
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent">keyboad events</a> is deprecated,
 which is good because figuring out which numbers go with which keys makes unreadable code.
 
+This code dates back to when addEventListener was required to have a third argument, which was usually false.
+Now this is an optional parameter <code>useCapture</code> which defaults to false. Including the paramater
+<code>capture</code> would set it to true.
+
+New code looks like <code>addEventListener('touchstart', handler, {passive: true});</code>
+
+Check if setting to true fixes bug in switch?
+
+capture or noneCapture
+
+passive or nonePassive
+
+https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault
+
+
 ```javascript
-    //add the listener to the main, window object, and update the states
-    window.addEventListener('keydown', function (event) {
-      switch (event.key) {
-        case "ArrowLeft":
-          inputStates.left = true;
-          break;
-        case "ArrowUp":
-          inputStates.up = true;
-          break;
-        case "ArrowRight":
-          inputStates.right = true;
-          break;
-        case " ":
-          inputStates.space = true;
-          break;
-        default: // do nothing
-          return;
+    function keylistener(Bool, event) {
+      if (event.key === "ArrowLeft") {
+        inputStates.left = Bool;
       }
-    }, false);
+      if (event.key === "ArrowUp") {
+        inputStates.up = Bool;
+      }
+      if (event.key === "ArrowRight") {
+        inputStates.right = Bool;
+      }
+      if (event.key === " ") {
+        inputStates.space = Bool;
+      }
+    }
+    
+    //add the listener to the main, window object, and update the states
+    window.addEventListener('keydown', keylistener(true));
 
     //if the key will be released, change the states object
     window.addEventListener('keyup', function (event) {
@@ -72,4 +88,8 @@ which is good because figuring out which numbers go with which keys makes unread
       }
     }, false);
 ```
+
+
+https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
+
 
