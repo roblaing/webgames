@@ -37,11 +37,10 @@ hard to read or change code. I've found getting to grips with the
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model">DOM</a> provided by browsers confusing
 enough without cluttering it up further.
 
-<h3>What is the event type?</h3>
+<h3>What is the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">event type</a>?</h3>
 
-The bewilderingly long <a hreh="https://developer.mozilla.org/en-US/docs/Web/Events">full list</a> is provided by Mozilla,
-along with a description of an <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">event object</a> and its
-attributes.
+The bewilderingly long <a href="https://developer.mozilla.org/en-US/docs/Web/Events">full list</a> is provided by Mozilla,
+and this is intertwined with our choice of event target above.
 
 In RiceRocks, a simple version of the old arcade game Asteroids, the user presses arrow keys to maneuver
 and the space bar to shoot. The limited number of events to handle make it a nice introduction.
