@@ -16,7 +16,7 @@ disenchanted with and am attempting to apply <a href="https://en.wikipedia.org/w
 event-driven programming</a>.
 
 Broadly, I've based my JavaScript on the W3C's <a href="https://courses.edx.org/courses/course-v1:W3Cx+HTML5.2x+4T2015/course/">
-HTML5 Part 2</a> whose second week is titled "Game Programming with HTML5" which I've used to structure my notes on.
+HTML5 Part 2</a> Mooc whose second week is titled "Game Programming with HTML5" which I've used to structure my notes on.
 
 <h2>Events</h2>
 
@@ -25,7 +25,7 @@ The first thing to think of is user interaction, which makes your starting point
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener">
 target.addEventListener(type, listener [, options]);</a> 
  
-so you start in a maze of twisty little passages, all alike.
+placing you in a maze of twisty little passages, all alike.
 
 <h3>What is the <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget">event target?</a></h3>
 
@@ -50,10 +50,10 @@ and the space bar to shoot. The limited number of events to handle make it a nic
 For this simple example, we only need 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keydown_event">keydown</a> and
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keyup_event">keyup</a>, which are in
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document#Events">document's list</a>.
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document#Events">document's list</a> of events it handles.
 
-A snag I hit was that while I had not problem handling the arrow and space bar, pressing any letter on the keyboard
-would cause further presses of the arrow and space bar to get ignored. I'll explain how I fixed that now.
+A snag I hit was that while I had not problem handling the arrow and space bar, pressing any other key
+would cause further presses of the arrow and space bar to be ignored. I'll explain how I fixed that now.
 
 <h3>What is the listener?</h3>
 
@@ -108,6 +108,7 @@ and the solution was counter-intuitively making
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault">Event.preventDefault()</a>
 the default for switch.
 
+<h3>What are the options?</h3>
 
 A common gripe against JavaScript is, that if like me you only revisit it every few years, everything
 keeps changing from last time. 
@@ -117,69 +118,19 @@ When I first wrote this code, addEventListener had three arguments, and the thir
 At time of writing, this now equates to <code>addEventListener(type, listener, {passive: false});</code>
 where <em>{passive: false}</em> is the default, so could be ommitted.
 
-This game only involves responding to four keys (arrows except for down, and space), and in my original code
-I used several <em>if...</em> statements for my pattern-action expressions, which worked fine, until I decided 
-<em>switch</em> would be prettier, which broke everything if a key other than the four with case statements was selected.
+I initially tried to fix the bug of browser no longer listening to the keyboard if a "wrong key" is pressed 
+by playing with <em>{capture: true}</em> or <em>{capture: false}</em>, but that got me nowhere.
 
-Getting <em>default</em> to work led me down the usual JavaScript rabitt hole of lots of waffle via Google, 
-but no clear explanations. 
+Truth is, I don't really know what setting these various options does, and Googling just led down a rabbit hole of waffle,
+so just left this third parameter out
 
-
-
-This code dates back to when addEventListener was required to have a third argument, which was usually false.
-Now this is an optional parameter <code>useCapture</code> which defaults to false. Including the paramater
-<code>capture</code> would set it to true.
-
-New code looks like 
-
-Check if setting to true fixes bug in switch?
-
-capture or noneCapture
-
-passive or nonePassive
-
-https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault
-
+To recap, my two event listeners so far look like this:
 
 ```javascript
-    function keylistener(Bool, event) {
-      if (event.key === "ArrowLeft") {
-        inputStates.left = Bool;
-      }
-      if (event.key === "ArrowUp") {
-        inputStates.up = Bool;
-      }
-      if (event.key === "ArrowRight") {
-        inputStates.right = Bool;
-      }
-      if (event.key === " ") {
-        inputStates.space = Bool;
-      }
-    }
-    
-    //add the listener to the main, window object, and update the states
-    window.addEventListener('keydown', keylistener(true));
-
-    //if the key will be released, change the states object
-    window.addEventListener('keyup', function (event) {
-      switch (event.key) {
-        case "ArrowLeft":
-          inputStates.left = false;
-          break;
-        case "ArrowUp":
-          inputStates.up = false;
-          break;
-        case "ArrowRight":
-          inputStates.right = false;
-          break;
-        case " ":
-          inputStates.space = false;
-          break;
-        default: // do nothing
-          return;
-      }
-    }, false);
+document.addEventListener('keydown', (event) => key_listener(true,  event));
+document.addEventListener('keyup',   (event) => key_listener(false, event));
 ```
+
 
 
 https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
