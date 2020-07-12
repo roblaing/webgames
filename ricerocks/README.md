@@ -20,15 +20,38 @@ HTML5 Part 2</a> whose second week is titled "Game Programming with HTML5" which
 
 <h2>Events</h2>
 
-The first thing to think of is user interaction, which makes our basic building block 
+The first thing to think of is user interaction, which makes your starting point 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener">
-target.addEventListener(type, listener [, options]);</a>.
+target.addEventListener(type, listener [, options]);</a> &mdash; 
+so you start in a maze of twisty little passages, all alike.
 
-<a hreh="https://developer.mozilla.org/en-US/docs/Web/Events">event types</a>
+<h3>What is the <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget">event target?</a></h3>
 
+In my first iteration, I chose <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window">window</a>
+as my <em>target</em> (ie object) to attach addEventListener, but after running into a bug I'll explain now, I switched
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document">document</a>. This didn't fix the bug, but seems
+to be the more appropriate choice, since it gets keyboard events, whereas they only "bubble up" to window.
+
+My first version of this game had lots of classes &mdash; board, pieces, game... &mdash; leading to very verbose,
+hard to read or change code. I've found getting to grips with the 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model">DOM</a> provided by browsers confusing
+enough without cluttering it up further.
+
+<h3>What is the event type?</h3>
+
+The bewilderingly long <a hreh="https://developer.mozilla.org/en-US/docs/Web/Events">full list</a> is provided by Mozilla,
+along with a description of an <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">event object</a> and its
+attributes.
 
 In RiceRocks, a simple version of the old arcade game Asteroids, the user presses arrow keys to maneuver
 and the space bar to shoot. The limited number of events to handle make it a nice introduction.
+
+For this simple example, we only need 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keydown_event">keydown</a> and
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keyup_event">keyup</a>, which are in
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document#Events">document's list</a>.
+
+
 
 A common frustration with JavaScript is, that if like me you only revisit it every few years, everything
 keeps changing from last time. 
@@ -45,9 +68,6 @@ I used several <em>if...</em> statements for my pattern-action expressions, whic
 Getting <em>default</em> to work led me down the usual JavaScript rabitt hole of lots of waffle via Google, 
 but no clear explanations. 
 
-So the <em>event type</em> whe are interested in are 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keydown_event">keydown</a> and
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keyup_event">keyup</a>.
 
 Something I discovered is that the keyCode attribute for 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent">keyboad events</a> is deprecated,
