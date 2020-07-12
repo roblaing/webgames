@@ -163,6 +163,56 @@ an argument in the loop function, with its new value passed when it recursively 
 This is because Erlang doesn't allow variables to be overwritten with new values &mdash; making parallelism easier &mdash; 
 whereas with Javascript the state can be a compound data structure available as a global variable.
 
+<h2>Painting the canvas</h2>
+
+A key part of the game loop is constantly redrawing the screen, which is quite a convoluted process in JavaScript,
+which I blame for the gazillion frameworks which supposedly simply this. Since I'm ideologically opposed
+to frameworks, a first step is to create a function to draw a sprite out of plain vanilla browser builtins.
+
+A snag here is that it involves the <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">
+CanvasRenderingContext2D</a> object (instantiated as ctx) and its many methods, of which we need at least 5 to handle rotating
+space objects:
+
+<ol>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/save">ctx.save();</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/translate">ctx.translate(x, y);</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rotate">ctx.rotate(angle);</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage">
+ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/restore">ctx.restore();</a></li>
+</ol>
+
+This function then needs to be applied iteratively over a list of sprites to create the illusion of concurrency.
+
+This part is often called the <a href="https://en.wikipedia.org/wiki/Physics_engine">physics engine</a> since it involves
+some arithmetic and trigonometry.
+
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage">
+ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);</a>
+
+has nine parameters which have to be unpacked carefully.
+
+<dl>
+  <dt>image</dt><dd>This is an instantiated image object such as <em>spaceship</em> after 
+    <code>const spaceship = new Image(); spaceship.src = "double_ship.png";</code> has been called.<br>
+    A gotcha is that if the file hasn't been downloaded completely by the browser, no image will appear.
+    </dd>
+  <dt>sx</dt><dd>Top left corner of the source file. The only complex sprite sheet in this example is explosion 
+    which has 24 images which are 128 pixels wide each. To get the first image, sx = 0, the second, sx = 128, ...</dd>
+  <dt>sy</dt><dd>Top left corner of the source file. None of the sprite sheets in this game have more than one row. 
+    If they did, sy would need to be incremented the same way as sx. Computer graphic ys differ from the Cartesian 
+    plain in that down is positive.</dd>
+  <dt>sWidth</dt><dd>Source width: For explosion, 128, for the spaceship with rocket on or off, 90.</dd>
+  <dt>sHeight</dt><dd>Source height (measured downward from zero)</dd>
+  <dt>dx</dt><dd>Where to draw the image on the canvas. The gotcha here is that what typically store the position
+   of our sprite by its centre, and this needs to be converted to its top left corner.</dd>
+  <dt>dy</dt><dd>As dx</dd>
+  <dt>dWidth</dt><dd>This isn't necessarily the same as sWidth since we often need to scale it.</dd>
+  <dt>sHeight</dt><dd>Dito.</dd>
+</dl>
+
+
+
 <h3>Initialising the game state</h3>
 
 When to start? Luckily, there's an event for that. In fact, there's a confusing choice, so I'm semi-randomly picking one:
@@ -226,45 +276,6 @@ digressing into responsive design.
 </tr>
 </table>
 
-<h2>Painting the canvas</h2>
-
-The object here is <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">
-CanvasRenderingContext2D</a> (instantiated as ctx) and its many methods.
-
-To complicate things further, our sprites spin, which involves 5 steps: 
-
-<ol>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/save">ctx.save();</a></li>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/translate">ctx.translate(x, y);</a></li>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rotate">ctx.rotate(angle);</a></li>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage">
-ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);</a></li>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/restore">ctx.restore();</a></li>
-</ol>
-
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage">
-ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);</a>
-
-has nine parameters which have to be unpacked carefully.
-
-<dl>
-  <dt>image</dt><dd>This is an instantiated image object such as <em>spaceship</em> after 
-    <code>const spaceship = new Image(); spaceship.src = "double_ship.png";</code> has been called.<br>
-    A gotcha is that if the file hasn't been downloaded completely by the browser, no image will appear.
-    </dd>
-  <dt>sx</dt><dd>Top left corner of the source file. The only complex sprite sheet in this example is explosion 
-    which has 24 images which are 128 pixels wide each. To get the first image, sx = 0, the second, sx = 128, ...</dd>
-  <dt>sy</dt><dd>Top left corner of the source file. None of the sprite sheets in this game have more than one row. 
-    If they did, sy would need to be incremented the same way as sx. Computer graphic ys differ from the Cartesian 
-    plain in that down is positive.</dd>
-  <dt>sWidth</dt><dd>Source width: For explosion, 128, for the spaceship with rocket on or off, 90.</dd>
-  <dt>sHeight</dt><dd>Source height (measured downward from zero)</dd>
-  <dt>dx</dt><dd>Where to draw the image on the canvas. The gotcha here is that what typically store the position
-   of our sprite by its centre, and this needs to be converted to its top left corner.</dd>
-  <dt>dy</dt><dd>As dx</dd>
-  <dt>dWidth</dt><dd>This isn't necessarily the same as sWidth since we often need to scale it.</dd>
-  <dt>sHeight</dt><dd>Dito.</dd>
-</dl>
 
 
 So one of the tasks to do in the init function is load each of those image files into its corresponding object.
