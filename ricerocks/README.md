@@ -131,8 +131,47 @@ document.addEventListener('keydown', (event) => key_listener(true,  event));
 document.addEventListener('keyup',   (event) => key_listener(false, event));
 ```
 
+So we now have a simple framework whereby, if we want to make the game more complex, we can add more case statements to
+handle other keys. The number of events that need to be handled tend to proliferate, so using them as the starting point
+for the various components makes keeping the overall design clean much simpler.
 
+<h2>The game loop</h2>
 
-https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
+Video games are a great way of learning concurrent programming because seeing lots of things happening on a screen simultaniously
+makes otherwise dry and abstract theory easy to visualise.
 
+In the case of JavaScript &mdash; which at time of writing doesn't support parallelism because it is single threaded &mdash; 
+concurrency is an optical illusion created by looping through sequential steps over-and-over very rapidly.
+
+To avoid a snag old video games suffer from in that they became unplayable as hardware got faster, we use
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame">Window.requestAnimationFrame(callback)</a>
+to set the loop speed to 60/second irrespective of the hardware.
+
+We create or infinite game loop according to this basic template:
+
+```javascript
+function loop() {
+  ...
+  window.requestAnimationFrame(loop);
+}
+
+window.requestAnimationFrame(loop);
+```
+
+Much of my thinking on concurreny programming has been shaped by learning Erlang, where the <em>state</em> is kept as
+an argument in the loop function, with its new value passed when it recursively calls itself at the end of each loop cycle. 
+This is because Erlang doesn't allow variables to be overwritten with new values &mdash; making parallelism easier &mdash; 
+whereas with Javascript the state can be a compound data structure available as a global variable.
+
+<h3>Initialising the game state</h3>
+
+Here is probably a good time to run through what in game programming jargon are known as graphical <em>assets</em>, and
+digressing into responsive design.
+
+<table>
+<tr>
+<td><a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/nebula_blue.f2014.png">Background</a></td>
+<td>800 × 600 pixels<td>
+</tr>
+</table>
 
