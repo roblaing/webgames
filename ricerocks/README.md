@@ -20,15 +20,18 @@ HTML5 Part 2</a> whose second week is titled "Game Programming with HTML5" which
 
 <h2>Events</h2>
 
-The first thing to think of is user interaction. 
+The first thing to think of is user interaction, which makes our basic building block 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener">
+target.addEventListener(type, listener [, options]);</a>.
+
+<a hreh="https://developer.mozilla.org/en-US/docs/Web/Events">event types</a>
+
 
 In RiceRocks, a simple version of the old arcade game Asteroids, the user presses arrow keys to maneuver
 and the space bar to shoot. The limited number of events to handle make it a nice introduction.
 
 A common frustration with JavaScript is, that if like me you only revisit it every few years, everything
-keeps changing from last time. This applies to our basic building block, 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener">
-target.addEventListener(type, listener [, options]);</a>.
+keeps changing from last time. 
 
 When I first wrote this code, addEventListener had three arguments, and the third was usually set to <code>false</code>.
 
