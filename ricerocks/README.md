@@ -165,6 +165,33 @@ whereas with Javascript the state can be a compound data structure available as 
 
 <h3>Initialising the game state</h3>
 
+When to start? Luckily, there's an event for that. In fact, there's a confusing choice, so I'm semi-randomly picking one:
+
+```javascript
+window.addEventListener("DOMContentLoaded", init);
+```
+
+Here I'm not bothering with <code>(event) => init(event)</code> since
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event">DOMContentLoaded</a>
+has no properties to read. It's a common idiom in Erlang among other to call the function that sets up the initial
+state <code>init()</code>.
+
+Before diving into the init function, lets look at the global constants I've defined at the top of the 
+<a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/game1.js">game1.js</a> file:
+
+```javascript
+const canvas = document.querySelector("#board");
+const ctx = canvas.getContext("2d");
+const audio_ctx = new window.AudioContext() || new window.webkitAudioContext();
+const background = new Image();
+const spaceship = new Image();
+const asteroid = new Image();
+const explosion = new Image();
+const splash = new Image();
+const missile = new Image();
+const debris = new Image();
+```
+
 Here is probably a good time to run through what in game programming jargon are known as graphical <em>assets</em>, and
 digressing into responsive design.
 
@@ -199,13 +226,70 @@ digressing into responsive design.
 </tr>
 </table>
 
-In my initial version of this game, I hard coded my canvase to be the size of the background image. Thanks to doing
+<h2>Painting the canvas</h2>
+
+The key function here
+
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage">
+ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);</a>
+
+has nine parameters which have to be unpacked carefully.
+
+<dl>
+  <dt>image</dt><dd>This is an instantiated image object such as <em>spaceship</em> after 
+    <code>const spaceship = new Image(); spaceship.src = "double_ship.png";</code> has been called.<br>
+    A gotcha is that if the file hasn't been downloaded completely by the browser, no image will appear.
+    </dd>
+  <dt>sx</dt><dd>Top left corner of the source file. The only complex sprite sheet in this example is explosion 
+    which has 24 images which are 128 pixels wide each. To get the first image, sx = 0, the second, sx = 128, ...</dd>
+  <dt>sy</dt><dd>Top left corner of the source file. None of the sprite sheets in this game have more than one row. 
+    If they did, sy would need to be incremented the same way as sx. Computer graphic ys differ from the Cartesian 
+    plain in that down is positive.</dd>
+  <dt>sWidth</dt><dd>Source width: For explosion, 128, for the spaceship with rocket on or off, 90.</dd>
+  <dt>sHeight</dt><dd>Source height (measured downward from zero)</dd>
+  <dt>dx</dt><dd>Where to draw the image on the canvas. The gotcha here is that what typically store the position
+   of our sprite by its centre, and this needs to be converted to its top left corner.</dd>
+  <dt>dy</dt><dd>As dx</dd>
+  <dt>dWidth</dt><dd>This isn't necessarily the same as sWidth since we often need to scale it.</dd>
+  <dt>sHeight</dt><dd>Dito.</dd>
+</dl>
+
+
+So one of the tasks to do in the init function is load each of those image files into its corresponding object.
+
+```javascript
+function init() {
+  background.src = "nebula_blue.f2014.png";
+  spaceship.src = "double_ship.png";
+  asteroid.src = "asteroid_blue.png";
+  splash.src = "splash.png";
+  missile.src = "shot2.png";
+  explosion.src = "explosion_alpha.png";
+  debris.src = "debris2_blue.png";
+  ...
+}
+
+In my initial version of this game, I hard coded my canvas to be the size of the background image. Thanks to doing
 Udacity's <a href="https://classroom.udacity.com/courses/ud893/">Responsive Design</a> and its associated
 <a href="https://classroom.udacity.com/courses/ud882/">Responsive Images</a> Moocs, I've been enlightened that
-you can't assume whoever is playing your webgame is using the same screen as you are.
+you can't assume whoever is playing your webgame is using the same screen as you are. 
 
-Since RiceRacks uses keyboard inputs, it doesn't lend itself to mobile phone play. But to lay the groundwork for future games,
-it's important to make the most of the available screen realestate from the outset, and not assume landscape or portrait orientation.
+A drawback with RiceRocks using the keyboard to maneuver the spaceship is it isn't mobile phone friendly, but since
+idea here is to lay the groundwork for more complex games, it's good practice not to make assumptions about the size or
+orientation of the screen.
+
+The DOM's window object has two important attributes to help us use all available screen realestate, 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/innerWidth">window.innerWidth</a> and
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/innerHeight">window.innerHeight</a>.
+
+Users can change the size of their browsers, triggering a "resize" window event, which we can use to redraw the game to a new scale.
+This is an example of how there tend to be more types of events to handle than one can initially envision, ratifying my
+belief in "event first" design.
+
+The <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API">canvas</a> object has attributes width and height
+which can be set from values read from the window. One of the variables in the state needs to be a float, scale, to keep 
+the other images correctly sized.
+
 
 This involves adding more event handlers to the initial two above:
 
@@ -213,5 +297,6 @@ This involves adding more event handlers to the initial two above:
 window.addEventListener("DOMContentLoaded", init);
 window.addEventListener("resize", resize);
 ```
+
 
 
