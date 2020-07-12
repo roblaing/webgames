@@ -52,9 +52,64 @@ For this simple example, we only need
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keyup_event">keyup</a>, which are in
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document#Events">document's list</a>.
 
+A snag I hit was that while I had not problem handling the arrow and space bar, pressing any letter on the keyboard
+would cause further presses of the arrow and space bar to get ignored. I'll explain how I fixed that now.
+
+<h3>What is the listener?</h3>
+
+My own convention goes like so:
+
+```javascript
+target.addEventListener(type, (event) => my_listener(Arg1, Arg2, ..., event));
+```
+
+This circumvents two frustrations I have with beginner tutorials on this subject: they either disregard the
+<em>event</em> object by writing a callback with no arguments in examples which don't illustrate much, or put
+<code>function (event) {... lines and lines of code ...}</code> as the second argument.
+
+<code>my_listener(Arg1, Arg2, ..., event)</code> will typically be a <em>dispatcher</em> &mdash; which in 
+JavaScript usually means a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch">
+switch</a> block &mdash; which handles different cases of an event object attribute, modifying the <em>game state</em> 
+which is a key concept I'll get to shortly.
+
+In this example, <code>key_listener</code> is nearly identical for "keydown" and "keyup", only requiring one boolean
+argument to differentiate them.
+
+```javascript
+function key_listener(Bool, event) {
+  switch (event.key) {
+    case "ArrowLeft":
+      inputStates.left = Bool;
+      break;
+    case "ArrowUp":
+      inputStates.up = Bool;
+      break;
+    case "ArrowRight":
+      inputStates.right = Bool;
+      break;
+    case " ":
+      inputStates.space = Bool;
+      break;
+    default:
+      event.preventDefault();
+  }
+}
+```
+
+Something I discovered refactoring my old code is that the keyCode attribute for 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent">keyboad events</a> is deprecated,
+which is good because figuring out which numbers go with which keys makes unreadable code. 
+
+The current ways is to use 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key">KeyboardEvent.key</a> as above.
+
+It took several frustrating hours to discover the magic incantation to stop other keys from breaking the game,
+and the solution was counter-intuitively making
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault">Event.preventDefault()</a>
+the default for switch.
 
 
-A common frustration with JavaScript is, that if like me you only revisit it every few years, everything
+A common gripe against JavaScript is, that if like me you only revisit it every few years, everything
 keeps changing from last time. 
 
 When I first wrote this code, addEventListener had three arguments, and the third was usually set to <code>false</code>.
@@ -70,9 +125,6 @@ Getting <em>default</em> to work led me down the usual JavaScript rabitt hole of
 but no clear explanations. 
 
 
-Something I discovered is that the keyCode attribute for 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent">keyboad events</a> is deprecated,
-which is good because figuring out which numbers go with which keys makes unreadable code.
 
 This code dates back to when addEventListener was required to have a third argument, which was usually false.
 Now this is an optional parameter <code>useCapture</code> which defaults to false. Including the paramater
