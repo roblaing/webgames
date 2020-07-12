@@ -280,6 +280,7 @@ function init() {
   debris.src = "debris2_blue.png";
   ...
 }
+```
 
 In my initial version of this game, I hard coded my canvas to be the size of the background image. Thanks to doing
 Udacity's <a href="https://classroom.udacity.com/courses/ud893/">Responsive Design</a> and its associated
