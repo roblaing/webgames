@@ -21,14 +21,16 @@ HTML5 Part 2</a> whose second week is titled "Game Programming with HTML5" which
 <h2>Events</h2>
 
 The first thing to think of is user interaction, which makes your starting point 
+
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener">
-target.addEventListener(type, listener [, options]);</a> &mdash; 
+target.addEventListener(type, listener [, options]);</a> 
+ 
 so you start in a maze of twisty little passages, all alike.
 
 <h3>What is the <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget">event target?</a></h3>
 
 In my first iteration, I chose <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window">window</a>
-as my <em>target</em> (ie object) to attach addEventListener, but after running into a bug I'll explain now, I switched
+as my <em>target</em> (ie object) to attach addEventListener, but after running into a bug I'll explain now, I switched to
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document">document</a>. This didn't fix the bug, but seems
 to be the more appropriate choice, since it gets keyboard events, whereas they only "bubble up" to window.
 
