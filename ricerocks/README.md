@@ -171,7 +171,47 @@ digressing into responsive design.
 <table>
 <tr>
 <td><a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/nebula_blue.f2014.png">Background</a></td>
-<td>800 × 600 pixels<td>
+<td>1 x 800 × 600 pixels</td>
+</tr>
+<tr>
+<td><a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/double_ship.png">Spaceship</a></td>
+<td>2 x 90 × 90 pixels</td>
+</tr>
+<tr>
+<td><a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/asteroid_blue.png">Asteroid</a></td>
+<td>1 x 90 × 90 pixels</td>
+</tr>
+<tr>
+<td><a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/explosion_alpha.png">Explosion</a></td>
+<td>24 x 128 x 128 pixels</td>
+</tr>
+<tr>
+<td><a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/splash.png">Splash</a></td>
+<td>1 x 400 x 300 pixels</td>
+</tr>
+<tr>
+<td><a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/shot2.png">Shot</a></td>
+<td>1 x 10 x 10 pixels</td>
+</tr>
+<tr>
+<td><a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/debris2_blue.png">Debris</a></td>
+<td>1 x 640 x 480 pixels</td>
 </tr>
 </table>
+
+In my initial version of this game, I hard coded my canvase to be the size of the background image. Thanks to doing
+Udacity's <a href="https://classroom.udacity.com/courses/ud893/">Responsive Design</a> and its associated
+<a href="https://classroom.udacity.com/courses/ud882/">Responsive Images</a> Moocs, I've been enlightened that
+you can't assume whoever is playing your webgame is using the same screen as you are.
+
+Since RiceRacks uses keyboard inputs, it doesn't lend itself to mobile phone play. But to lay the groundwork for future games,
+it's important to make the most of the available screen realestate from the outset, and not assume landscape or portrait orientation.
+
+This involves adding more event handlers to the initial two above:
+
+```javascript
+window.addEventListener("DOMContentLoaded", init);
+window.addEventListener("resize", resize);
+```
+
 
