@@ -149,7 +149,7 @@ Video games are a great way of learning concurrent programming because seeing lo
 makes otherwise dry and abstract theory easy to visualise.
 
 In the case of JavaScript &mdash; which at time of writing doesn't support parallelism because it is single threaded &mdash; 
-concurrency is largely optical illusion created by looping through sequential steps over-and-over very rapidly, though
+concurrency is largely an optical illusion created by looping through sequential steps over-and-over very rapidly, though
 you still get race conditions which I'll get to shortly.
 
 To avoid the old video games problem of becoming unplayable as hardware gets faster, we use
@@ -163,9 +163,8 @@ const canvas = document.querySelector("#board");
 const ctx = canvas.getContext("2d");
 
 function loop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
   ...
-  window.requestAnimationFrame(loop); % recursive call to create infinite loop.
+  window.requestAnimationFrame(loop); % recursive call creating an infinite loop.
 }
 
 function init() {
@@ -181,11 +180,8 @@ window.addEventListener("DOMContentLoaded", init);
 In the template above I've introduced another event, <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event">DOMContentLoaded</a>. 
 
 Here I'm not bothering with <code>(event) => init(event)</code> since this event has no properties to read. 
-It's a common idiom in Erlang among other "concurrency oriented programming" languages to call the function that 
-sets up the initial state and starts the listening loop <code>init()</code>.
-
-At the start of each loop, <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clearRect">
-ctx.clearRect(0, 0, canvas.width, canvas.height);</a> creates a blank slate to redraw the background and sprites on.
+It's a common idiom in "concurrency-oriented programming" language Erlang to call the function that 
+sets up the initial state and starts the listening loop <code>init()</code>, so I'll stick with it here.
 
 Much of my thinking on concurreny programming has been shaped by learning Erlang, where the <em>state</em> is kept as
 an argument in the loop function, with its new value passed when it recursively calls itself at the end of each loop cycle. 
@@ -272,6 +268,7 @@ lets us simplify the guts of our loop to a simple list iteration:
 
 ```javascript
 function loop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   ...
   sprite_list.forEach(sprite => {
     draw_sprite(sprite); 
@@ -281,6 +278,9 @@ function loop() {
   ...
 }
 ```
+
+At the start of each loop, <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clearRect">
+ctx.clearRect(0, 0, canvas.width, canvas.height);</a> creates a blank slate to redraw the background and sprites on.
 
 Irrespective of whether the sprite is the player controlled spaceship, an asteroid, a missile, or an explosion, provided
 we standarise keynames, the same 5 

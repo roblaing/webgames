@@ -130,7 +130,6 @@ function loop() {
   window.requestAnimationFrame(loop);
 }
 
-
 function key_listener(Bool, event) {
   switch (event.key) {
     case "ArrowLeft":
