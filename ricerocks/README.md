@@ -257,8 +257,17 @@ This is an example of how one tends to encounter ever more events to handle, rat
 While a video game may not look like a spreadsheet, abstractly it consists of a list of sprites (which we can think of as rows),
 each of which is a compound data structure whose properties or attributes can be thought of as slotting into columns.
 
-All the components of our game boil down to <code>[{key1:val11, key2:val12,...}, {key1:val21, key2:val22, ...}, ...]</code>, ie
-one set of square brackets containing an arbitrary number of curly brackets which in turn contain any number of key-value pairs.
+All the components of our game boil down to 
+
+<code><pre>
+[ {keyA:valA1, keyB:valB1, keyC:valC1, ...}
+, {keyA:valA2, keyB:valB2, keyC:valC2, ...} 
+, {keyA:valA3, keyB:valB3, keyC:valC3, ...} 
+...
+]
+</pre></code>
+
+ie, one set of square brackets containing an arbitrary number of curly brackets which in turn contain any number of key-value pairs.
 
 Curly bracketed key-value sets are called different things in different programming languages &mdash; Python calls them 
 dictionaries, JavaScript calls them objects, Awk calls them associative arrays, Erlang calls them maps...
