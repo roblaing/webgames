@@ -1,9 +1,5 @@
 <h1>Game 1: RiceRocks</h1>
 
-https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial
-
-/home/roblaing/tuts/games/img/bandit-attack.png
-
 This game comes from a Mooc I did several years ago, Rice University's 
 <a href="https://www.coursera.org/learn/interactive-python-1">Interactive Python</a> which I translated into
 JavaScript.
@@ -22,6 +18,15 @@ event-driven programming</a>.
 Broadly, I've based my JavaScript on the W3C's <a href="https://courses.edx.org/courses/course-v1:W3Cx+HTML5.2x+4T2015/course/">
 HTML5 Part 2</a> Mooc whose second week is titled "Game Programming with HTML5" which I've used to structure my notes on.
 
+In RiceRocks, a simple version of the old arcade game Asteroids, the user presses arrow keys to maneuver
+and the space bar to shoot. The limited number of events to handle make it a nice introduction.
+
+For this simple example, we only need 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keydown_event">keydown</a> and
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keyup_event">keyup</a>, which are in
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document#Events">document's list</a> of events it handles.
+
+
 <h2>Events</h2>
 
 The first thing to think of is user interaction, which makes your starting point 
@@ -34,12 +39,15 @@ placing you in a maze of twisty little passages, all alike.
 <h3>What is the <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget">event target?</a></h3>
 
 In my first iteration, I chose <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window">window</a>
-as my <em>target</em> (ie object) to attach addEventListener, but after running into a bug I'll explain now, I switched to
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document">document</a>. This didn't fix the bug, but seems
+as my <em>target</em> (ie object) for keyboard events.
+
+A snag I hit was that while I had not problem handling the arrow and space bar, pressing any other key
+would cause further presses of the arrow and space bar to be ignored. Switching the target to
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document">document</a> didn't fix the bug, but seems
 to be the more appropriate choice, since it gets keyboard events, whereas they only "bubble up" to window.
 
-My first version of this game had lots of classes &mdash; board, pieces, game... &mdash; leading to very verbose,
-hard to read or change code. I've found getting to grips with the 
+My first version of this game, written in Python, had lots of classes &mdash; board, pieces, game... &mdash; leading to 
+very verbose, hard to read or change code. I've found getting to grips with the 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model">DOM</a> provided by browsers confusing
 enough without cluttering it up further.
 
@@ -48,16 +56,6 @@ enough without cluttering it up further.
 The bewilderingly long <a href="https://developer.mozilla.org/en-US/docs/Web/Events">full list</a> is provided by Mozilla,
 and this is intertwined with our choice of event target above.
 
-In RiceRocks, a simple version of the old arcade game Asteroids, the user presses arrow keys to maneuver
-and the space bar to shoot. The limited number of events to handle make it a nice introduction.
-
-For this simple example, we only need 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keydown_event">keydown</a> and
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keyup_event">keyup</a>, which are in
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document#Events">document's list</a> of events it handles.
-
-A snag I hit was that while I had not problem handling the arrow and space bar, pressing any other key
-would cause further presses of the arrow and space bar to be ignored. I'll explain how I fixed that now.
 
 <h3>What is the listener?</h3>
 
@@ -351,4 +349,5 @@ digressing into responsive design.
 </tr>
 </table>
 
+https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial
 
