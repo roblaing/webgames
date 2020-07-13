@@ -1,5 +1,9 @@
 <h1>Game 1: RiceRocks</h1>
 
+https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial
+
+/home/roblaing/tuts/games/img/bandit-attack.png
+
 This game comes from a Mooc I did several years ago, Rice University's 
 <a href="https://www.coursera.org/learn/interactive-python-1">Interactive Python</a> which I translated into
 JavaScript.
@@ -108,6 +112,9 @@ and the solution was counter-intuitively making
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault">Event.preventDefault()</a>
 the default for switch.
 
+A snag this introduces is it breaks pressing F12 to get the browser's debugging screen up, so that needs to be done before
+launching the server.
+
 <h3>What are the options?</h3>
 
 A common gripe against JavaScript is, that if like me you only revisit it every few years, everything
@@ -150,26 +157,107 @@ to set the loop speed to 60/second irrespective of the hardware.
 We create or infinite game loop according to this basic template:
 
 ```javascript
+const canvas = document.querySelector("#board");
+const ctx = canvas.getContext("2d");
+
 function loop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   ...
   window.requestAnimationFrame(loop);
 }
 
-window.requestAnimationFrame(loop);
+function init() {
+  ...
+  window.requestAnimationFrame(loop);
+}
+
+window.addEventListener("DOMContentLoaded", init);
 ```
+
+<h3>Initialising the game state and starting the loop</h3>
+
+In the template above I've introduced another event, <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event">DOMContentLoaded</a>. 
+
+Here I'm not bothering with <code>(event) => init(event)</code> since this event has no properties to read. 
+It's a common idiom in Erlang among other "concurrency oriented programming" languages to call the function that 
+sets up the initial state and starts the listening loop <code>init()</code>.
+
+At the start of each loop, <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clearRect">
+ctx.clearRect(0, 0, canvas.width, canvas.height);</a> creates a blank slate to redraw the background and sprites on.
 
 Much of my thinking on concurreny programming has been shaped by learning Erlang, where the <em>state</em> is kept as
 an argument in the loop function, with its new value passed when it recursively calls itself at the end of each loop cycle. 
 This is because Erlang doesn't allow variables to be overwritten with new values &mdash; making parallelism easier &mdash; 
-whereas with Javascript the state can be a compound data structure available as a global variable.
+whereas with Javascript its easiest to think of the state as global variables.
 
-<h2>Painting the canvas</h2>
+In my initial version of this game, I hard coded my canvas to be the size of the background image. Thanks to doing
+Udacity's <a href="https://classroom.udacity.com/courses/ud893/">Responsive Design</a> and its associated
+<a href="https://classroom.udacity.com/courses/ud882/">Responsive Images</a> Moocs, I've been enlightened that
+you can't assume whoever is playing your webgame is using the same screen as you are. 
 
-A key part of the game loop is constantly redrawing the screen, which is quite a convoluted process in JavaScript,
-which I blame for the gazillion frameworks which supposedly simply this. Since I'm ideologically opposed
-to frameworks, a first step is to create a function to draw a sprite out of plain vanilla browser builtins.
+A drawback with RiceRocks using the keyboard to maneuver the spaceship is it isn't mobile phone friendly, but since
+idea here is to lay the groundwork for more complex games, it's good practice not to make assumptions about the size or
+orientation of the screen.
 
-A snag here is that it involves the <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">
+The DOM's window object has two important attributes to help us use all available screen realestate, 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/innerWidth">window.innerWidth</a> and
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/innerHeight">window.innerHeight</a>.
+
+I wrote the following function to get a scale for my images, constrained by the width or height of the window.
+
+```javascript
+function get_scale() {
+  if (window.innerWidth/window.innerHeight < background.width/background.height) {
+    return 0.98 * (window.innerWidth/background.width);
+  } else {
+    return 0.98 * (window.innerHeight/background.height);
+  }
+}
+```
+
+The scale is made slightly smaller (98%) than the window size to avoid scroll bars appearing.
+
+Calling this function before <code>background.src = "nebula_blue.f2014.png";</code> has completed loading the png file
+caused me to trip over a common problem in concurrent programming known as a
+<a href="https://en.wikipedia.org/wiki/Race_condition">race condition</a> caused by the code getting processed
+sequentially, using garbage values for <code>background.width</code> and <code>background.height</code>.
+
+The solution is again thinking <em>events</em>, which for image objects is usually written this way:
+
+```javascript
+  background.onload = function() {
+    ...
+  }
+```
+
+The <code>Image.onload</code> property is shorthand, syntactic sugar, for <code>background.addEventListener("load", callback);</code>
+which though more verbose, I find keeps my code style more consistent, easier to read, and part of my dogmatic adherence to
+event-driven programming.
+
+Within this callback, I've created yet another event listener <code>window.addEventListener("resize", resize);</code> with
+an associated function which sets a global variable, <code>scale</code>, and resets the canvas size.
+
+```javascript
+function resize() {
+  scale = get_scale();
+  canvas.width = scale * background.width;
+  canvas.height = scale * background.height;
+}
+```
+
+Users can change the size of their browsers, triggering a "resize" window event, which we can use to redraw the game to a new scale.
+This is an example of how one tends to encounter ever more events to handle, ratifying my belief in event-oriented programming.
+
+<h3>Generalising sprites</h3>
+
+https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial
+
+
+<q>If you have a procedure with 10 parameters, you probably missed some.</q> &mdash; <a href="http://pu.inf.uni-tuebingen.de/users/klaeren/epigrams.html">Alan J. Perlis</a>.
+
+We need a compound data structure to store lots of stuff for each sprite. 
+
+Drawing involves the <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">
 CanvasRenderingContext2D</a> object (instantiated as ctx) and its many methods, of which we need at least 5 to handle rotating
 space objects:
 
@@ -212,19 +300,6 @@ has nine parameters which have to be unpacked carefully.
 </dl>
 
 
-
-<h3>Initialising the game state</h3>
-
-When to start? Luckily, there's an event for that. In fact, there's a confusing choice, so I'm semi-randomly picking one:
-
-```javascript
-window.addEventListener("DOMContentLoaded", init);
-```
-
-Here I'm not bothering with <code>(event) => init(event)</code> since
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event">DOMContentLoaded</a>
-has no properties to read. It's a common idiom in Erlang among other to call the function that sets up the initial
-state <code>init()</code>.
 
 Before diving into the init function, lets look at the global constants I've defined at the top of the 
 <a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/game1.js">game1.js</a> file:
@@ -275,52 +350,5 @@ digressing into responsive design.
 <td>1 x 640 x 480 pixels</td>
 </tr>
 </table>
-
-
-
-So one of the tasks to do in the init function is load each of those image files into its corresponding object.
-
-```javascript
-function init() {
-  background.src = "nebula_blue.f2014.png";
-  spaceship.src = "double_ship.png";
-  asteroid.src = "asteroid_blue.png";
-  splash.src = "splash.png";
-  missile.src = "shot2.png";
-  explosion.src = "explosion_alpha.png";
-  debris.src = "debris2_blue.png";
-  ...
-}
-```
-
-In my initial version of this game, I hard coded my canvas to be the size of the background image. Thanks to doing
-Udacity's <a href="https://classroom.udacity.com/courses/ud893/">Responsive Design</a> and its associated
-<a href="https://classroom.udacity.com/courses/ud882/">Responsive Images</a> Moocs, I've been enlightened that
-you can't assume whoever is playing your webgame is using the same screen as you are. 
-
-A drawback with RiceRocks using the keyboard to maneuver the spaceship is it isn't mobile phone friendly, but since
-idea here is to lay the groundwork for more complex games, it's good practice not to make assumptions about the size or
-orientation of the screen.
-
-The DOM's window object has two important attributes to help us use all available screen realestate, 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/innerWidth">window.innerWidth</a> and
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/innerHeight">window.innerHeight</a>.
-
-Users can change the size of their browsers, triggering a "resize" window event, which we can use to redraw the game to a new scale.
-This is an example of how there tend to be more types of events to handle than one can initially envision, ratifying my
-belief in "event first" design.
-
-The <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API">canvas</a> object has attributes width and height
-which can be set from values read from the window. One of the variables in the state needs to be a float, scale, to keep 
-the other images correctly sized.
-
-
-This involves adding more event handlers to the initial two above:
-
-```javascript
-window.addEventListener("DOMContentLoaded", init);
-window.addEventListener("resize", resize);
-```
-
 
 
