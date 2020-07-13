@@ -254,18 +254,38 @@ function resize() {
 Users can change the size of their browsers, triggering a "resize" window event, which we can use to redraw the game to a new scale.
 This is an example of how one tends to encounter ever more events to handle, ratifying my belief in event-oriented programming.
 
-<h3>Generalising sprites</h3>
+<h3>Thinking in tables rather objects</h3>
 
 <q>If you have a procedure with 10 parameters, you probably missed some.</q> &mdash; <a href="http://pu.inf.uni-tuebingen.de/users/klaeren/epigrams.html">Alan J. Perlis</a>.
 
-What I want to do is distill the spaceship, rocks, missiles, explosions and stuff for games I haven't written yet to a list
-of compound data structures for the loop to iterate through each pass.
+While a video game may not look like a spreadsheet, abstractly it consists of a list of sprites (which we can think of as rows),
+each of which is a compound data structure whose properties or attributes we can think of as columns.
 
-A snag here is that there's a lot of parameters, and that's before getting to sound effects later.
+All the components of our game boil down to <code>[{key1:val11, key2:val12,...}, {key1:val21, key2:val22, ...}, ...]</code>, ie
+one set of square brackets containing an arbitrary number of curly brackets which in turn contain any number of key-value pairs.
 
-Drawing involves the <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">
-CanvasRenderingContext2D</a> object (instantiated as ctx) and its many methods, of which we need at least 5 to handle rotating
-space objects:
+Curly bracketed key-value sets are called different things in different programming languages &mdash; Python calls them 
+dictionaries, JavaScript calls them objects, Awk calls them associative arrays, Erlang calls them maps...
+
+Whatever you want to call them, thinking in terms of rows (ie elements in a list) containing columns (or relations in SQL jargon)
+lets us simplify the guts of our loop to a simple list iteration:
+
+```javascript
+function loop() {
+  ...
+  sprite_list.forEach(sprite => {
+    draw_sprite(sprite); 
+    update_sprite(sprite);
+    ...
+  });
+  ...
+}
+```
+
+Irrespective of whether the sprite is the player controlled spaceship, an asteroid, a missile, or an explosion, provided
+we standarise keynames, the same 5 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">
+CanvasRenderingContext2D</a> methods are used:
 
 <ol>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/save">ctx.save();</a></li>
@@ -279,14 +299,6 @@ ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);</a></li>
 A thing to note is that whereas it's easier to think of the position of sprites as their centre, the draw functions work
 from the top left corner. To get rotation right, we need to move the origin to the centre of the sprite with
 <code>ctx.translate(x_centre, y_centre);</code>, then rotate in radians where clockwise is positive.
-
-https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial
-
-
-This function then needs to be applied iteratively over a list of sprites to create the illusion of concurrency.
-
-This part is often called the <a href="https://en.wikipedia.org/wiki/Physics_engine">physics engine</a> since it involves
-some arithmetic and trigonometry.
 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage">
 ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);</a>

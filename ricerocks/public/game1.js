@@ -10,9 +10,9 @@ const explosion = new Image();
 const splash = new Image();
 const missile = new Image();
 const debris = new Image();
-let scale = 1.0;
 const inputStates = {};
 const sprite_list = [];
+let scale = 1.0;
 
 function get_scale() {
   if (window.innerWidth/window.innerHeight < background.width/background.height) {
@@ -46,26 +46,22 @@ function draw_sprite(sprite) {
 }
 
 function update_sprite(sprite) {
+  // space is toroidal
+  if (sprite.x_centre < 0) {
+    sprite.x_centre = canvas.width;
+  }
+  if (sprite.x_centre > canvas.width) {
+    sprite.x_centre = 0;
+  }
+  if (sprite.y_centre < 0) {
+    sprite.y_centre = canvas.height;
+  }
+  if (sprite.y_centre > canvas.height) {
+    sprite.y_centre = 0;
+  }
   switch (sprite.type) {
     case "spaceship":
-      if (inputStates.up) {
-        sprite.column = 1;
-      } else {
-        sprite.column = 0;
-      }
-      if (inputStates.right) {
-        sprite.angle = sprite.angle + Math.PI/120;  // + clockwise
-      } 
-      if (inputStates.left) {
-        sprite.angle = sprite.angle - Math.PI/120;  // + clockwise
-      }
-      /*
-      if (inputStates.space) {
-        my_ship.shoot();
-      } else {
-        my_ship.loaded = true;
-      }
-      */
+      update_spaceship(sprite);
       break;
     case "asteroid":
       // sprite.angle = sprite.angle - Math.PI/120;
@@ -73,6 +69,31 @@ function update_sprite(sprite) {
     default:
       // sprite.angle = sprite.angle - Math.PI/120;
   }
+}
+
+function update_spaceship(spaceship) {
+  spaceship.x_centre = spaceship.x_centre + spaceship.x_velocity;
+  spaceship.y_centre = spaceship.y_centre + spaceship.y_velocity;
+  if (inputStates.up) {
+    spaceship.column = 1;
+    spaceship.x_velocity = spaceship.x_velocity + (0.1 * scale * Math.cos(spaceship.angle));
+    spaceship.y_velocity = spaceship.y_velocity + (0.1 * scale * Math.sin(spaceship.angle));
+  } else {
+    spaceship.column = 0;
+  }
+  if (inputStates.right) {
+    spaceship.angle = spaceship.angle + Math.PI/90;
+  } 
+  if (inputStates.left) {
+    spaceship.angle = spaceship.angle - Math.PI/90;
+  }
+      /*
+      if (inputStates.space) {
+        my_ship.shoot();
+      } else {
+        my_ship.loaded = true;
+      }
+      */
 }
 
 function init() {
@@ -85,14 +106,16 @@ function init() {
   debris.src = "debris2_blue.png";
   background.addEventListener("load", (event) => {
     resize();
-    sprite_list.unshift({ type: "spaceship"
-                        , image: spaceship
-                        , width: 90, height: 90
-                        , x_centre: canvas.width/2, y_centre: canvas.height/2
-                        , row: 0
-                        , column: 0 // 1 for burn
-                        , angle: -Math.PI/2 // facing up
-                        });
+    sprite_list.push({ type: "spaceship"
+                     , image: spaceship
+                     , width: 90, height: 90
+                     , x_centre: canvas.width/2, y_centre: canvas.height/2
+                     , x_velocity: 0, y_velocity: 0
+                     , row: 0
+                     , column: 0 // 1 for burn
+                     , angle: -Math.PI/2 // facing up
+                     , radius: 35
+                     });
     window.addEventListener("resize", resize);
     window.requestAnimationFrame(loop);
   });
