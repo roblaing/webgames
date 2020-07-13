@@ -112,13 +112,14 @@ and the solution was counter-intuitively making
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault">Event.preventDefault()</a>
 the default for switch.
 
-A snag this introduces is it breaks pressing F12 to get the browser's debugging screen up, so that needs to be done before
-launching the server.
+A snag this introduced was breaking pressing F12 to get the browser's debugging screen up, and the code
+above kinda fixes that (if you ignore the error messages and that a mouse click is needed for focus to return
+from the debug console to the game).
 
 <h3>What are the options?</h3>
 
 A common gripe against JavaScript is, that if like me you only revisit it every few years, everything
-keeps changing from last time. 
+changed from last time. 
 
 When I first wrote this code, addEventListener had three arguments, and the third was usually set to <code>false</code>.
 
@@ -148,13 +149,14 @@ Video games are a great way of learning concurrent programming because seeing lo
 makes otherwise dry and abstract theory easy to visualise.
 
 In the case of JavaScript &mdash; which at time of writing doesn't support parallelism because it is single threaded &mdash; 
-concurrency is an optical illusion created by looping through sequential steps over-and-over very rapidly.
+concurrency is largely optical illusion created by looping through sequential steps over-and-over very rapidly, though
+you still get race conditions which I'll get to shortly.
 
-To avoid a snag old video games suffer from in that they became unplayable as hardware got faster, we use
+To avoid the old video games problem of becoming unplayable as hardware gets faster, we use
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame">Window.requestAnimationFrame(callback)</a>
 to set the loop speed to 60/second irrespective of the hardware.
 
-We create or infinite game loop according to this basic template:
+We use it to create an infinite game loop along the lines of this basic template:
 
 ```javascript
 const canvas = document.querySelector("#board");
@@ -163,12 +165,12 @@ const ctx = canvas.getContext("2d");
 function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ...
-  window.requestAnimationFrame(loop);
+  window.requestAnimationFrame(loop); % recursive call to create infinite loop.
 }
 
 function init() {
   ...
-  window.requestAnimationFrame(loop);
+  window.requestAnimationFrame(loop); % start infinite loop.
 }
 
 window.addEventListener("DOMContentLoaded", init);
@@ -190,12 +192,16 @@ an argument in the loop function, with its new value passed when it recursively 
 This is because Erlang doesn't allow variables to be overwritten with new values &mdash; making parallelism easier &mdash; 
 whereas with Javascript its easiest to think of the state as global variables.
 
+Keyboard, mouse, whatever events change the state by overwriting global variables, 
+and the loop reads whatever the current value is during each pass. (Luckily, games aren't that mission critical, so
+all this very bad practice gets allowed here).
+
 In my initial version of this game, I hard coded my canvas to be the size of the background image. Thanks to doing
 Udacity's <a href="https://classroom.udacity.com/courses/ud893/">Responsive Design</a> and its associated
 <a href="https://classroom.udacity.com/courses/ud882/">Responsive Images</a> Moocs, I've been enlightened that
 you can't assume whoever is playing your webgame is using the same screen as you are. 
 
-A drawback with RiceRocks using the keyboard to maneuver the spaceship is it isn't mobile phone friendly, but since
+Among the drawbacks of RiceRocks using the keyboard to maneuver the spaceship is it isn't mobile phone friendly, but since
 idea here is to lay the groundwork for more complex games, it's good practice not to make assumptions about the size or
 orientation of the screen.
 
@@ -250,12 +256,12 @@ This is an example of how one tends to encounter ever more events to handle, rat
 
 <h3>Generalising sprites</h3>
 
-https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial
-
-
 <q>If you have a procedure with 10 parameters, you probably missed some.</q> &mdash; <a href="http://pu.inf.uni-tuebingen.de/users/klaeren/epigrams.html">Alan J. Perlis</a>.
 
-We need a compound data structure to store lots of stuff for each sprite. 
+What I want to do is distill the spaceship, rocks, missiles, explosions and stuff for games I haven't written yet to a list
+of compound data structures for the loop to iterate through each pass.
+
+A snag here is that there's a lot of parameters, and that's before getting to sound effects later.
 
 Drawing involves the <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">
 CanvasRenderingContext2D</a> object (instantiated as ctx) and its many methods, of which we need at least 5 to handle rotating
@@ -269,6 +275,13 @@ space objects:
 ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/restore">ctx.restore();</a></li>
 </ol>
+
+A thing to note is that whereas it's easier to think of the position of sprites as their centre, the draw functions work
+from the top left corner. To get rotation right, we need to move the origin to the centre of the sprite with
+<code>ctx.translate(x_centre, y_centre);</code>, then rotate in radians where clockwise is positive.
+
+https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial
+
 
 This function then needs to be applied iteratively over a list of sprites to create the illusion of concurrency.
 
