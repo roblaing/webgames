@@ -175,7 +175,7 @@ function init() {
 window.addEventListener("DOMContentLoaded", init);
 ```
 
-<h3>Initialising the game state and starting the loop</h3>
+<h2>Initialising the game state and starting the loop</h2>
 
 In the template above I've introduced another event, <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event">DOMContentLoaded</a>. 
 
@@ -250,12 +250,12 @@ function resize() {
 Users can change the size of their browsers, triggering a "resize" window event, which we can use to redraw the game to a new scale.
 This is an example of how one tends to encounter ever more events to handle, ratifying my belief in event-oriented programming.
 
-<h3>Thinking in tables rather objects</h3>
+<h2>Thinking in tables (rows and columns) rather than objects</h2>
 
 <q>If you have a procedure with 10 parameters, you probably missed some.</q> &mdash; <a href="http://pu.inf.uni-tuebingen.de/users/klaeren/epigrams.html">Alan J. Perlis</a>.
 
 While a video game may not look like a spreadsheet, abstractly it consists of a list of sprites (which we can think of as rows),
-each of which is a compound data structure whose properties or attributes we can think of as columns.
+each of which is a compound data structure whose properties or attributes can be thought of as slotting into columns.
 
 All the components of our game boil down to <code>[{key1:val11, key2:val12,...}, {key1:val21, key2:val22, ...}, ...]</code>, ie
 one set of square brackets containing an arbitrary number of curly brackets which in turn contain any number of key-value pairs.
