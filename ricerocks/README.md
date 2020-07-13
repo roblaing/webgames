@@ -16,16 +16,16 @@ disenchanted with and am attempting to apply <a href="https://en.wikipedia.org/w
 event-driven programming</a> <q>in which the flow of the program is determined by events such as user actions 
 (mouse clicks, key presses)...</q>.
 
+My first version, written in Python, had lots of classes &mdash; board, pieces, game... everything was an object &mdash; 
+leading to very verbose, hard to read or change code. I've found getting to grips with JavaScript's 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model">DOM</a> provided by browsers confusing
+enough without cluttering it up further with home-made objects.
+
 Broadly, I've based my JavaScript on the W3C's <a href="https://courses.edx.org/courses/course-v1:W3Cx+HTML5.2x+4T2015/course/">
 HTML5 Part 2</a> Mooc whose second week is titled "Game Programming with HTML5" which I've used to structure my notes on.
 
 In RiceRocks, a simple version of the old arcade game Asteroids, the user presses arrow keys to maneuver
 and the space bar to shoot. The limited number of events to handle make it a nice introduction.
-
-For this simple example, we only need 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keydown_event">keydown</a> and
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keyup_event">keyup</a>, which are in
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document#Events">document's list</a> of events it handles.
 
 <h2>Events</h2>
 
@@ -41,21 +41,20 @@ placing you in a maze of twisty little passages, all alike.
 In my first iteration, I chose <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window">window</a>
 as my <em>target</em> (ie object) for keyboard events.
 
-A snag I hit was that while I had not problem handling the arrow and space bar, pressing any other key
+A snag I hit was that while the arrows and space bar worked, pressing any other key
 would cause further presses of the arrow and space bar to be ignored. Switching the target to
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document">document</a> didn't fix the bug, but seems
 to be the more appropriate choice, since it gets keyboard events, whereas they only "bubble up" to window.
-
-My first version of this game, written in Python, had lots of classes &mdash; board, pieces, game... &mdash; leading to 
-very verbose, hard to read or change code. I've found getting to grips with the 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model">DOM</a> provided by browsers confusing
-enough without cluttering it up further.
 
 <h3>What is the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">event type</a>?</h3>
 
 The bewilderingly long <a href="https://developer.mozilla.org/en-US/docs/Web/Events">full list</a> is provided by Mozilla,
 and this is intertwined with our choice of event target above.
 
+For this simple example, we only initially need 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keydown_event">keydown</a> and
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keyup_event">keyup</a>, which are in
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document#Events">document's list</a> of events it handles.
 
 <h3>What is the listener?</h3>
 
@@ -66,7 +65,7 @@ target.addEventListener(type, (event) => my_listener(Arg1, Arg2, ..., event));
 ```
 
 This circumvents two frustrations I have with beginner tutorials on this subject: they either disregard the
-<em>event</em> object by writing a callback with no arguments in examples which don't illustrate much, or put
+<em>event</em> object by writing a callback without access to the event object, or put
 <code>function (event) {... lines and lines of code ...}</code> as the second argument.
 
 <code>my_listener(Arg1, Arg2, ..., event)</code> will typically be a <em>dispatcher</em> &mdash; which in 
@@ -91,6 +90,9 @@ function key_listener(Bool, event) {
       break;
     case " ":
       inputStates.space = Bool;
+      break;
+    case "F12":  // allows togling to debug screen, needs mouseclick for game to regain keyboard.
+      document.dispatchEvent(event);
       break;
     default:
       event.preventDefault();
@@ -348,6 +350,8 @@ digressing into responsive design.
 <td>1 x 640 x 480 pixels</td>
 </tr>
 </table>
+
+https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events
 
 https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial
 

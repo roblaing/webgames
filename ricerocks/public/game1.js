@@ -64,6 +64,9 @@ function key_listener(Bool, event) {
     case " ":
       inputStates.space = Bool;
       break;
+    case "F12":  // allows togling to debug screen, needs mouseclick for game to regain keyboard.
+      document.dispatchEvent(event);
+      break;
     default:
       event.preventDefault();
   }
