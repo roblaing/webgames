@@ -13,7 +13,8 @@ subdirectory I'll put everything in. In future, more complex projects, I'll star
 
 I found the original course a great introduction to object-oriented programming, an idiom I've subsequently become
 disenchanted with and am attempting to apply <a href="https://en.wikipedia.org/wiki/Event-driven_programming">
-event-driven programming</a>.
+event-driven programming</a> <q>in which the flow of the program is determined by events such as user actions 
+(mouse clicks, key presses)...</q>.
 
 Broadly, I've based my JavaScript on the W3C's <a href="https://courses.edx.org/courses/course-v1:W3Cx+HTML5.2x+4T2015/course/">
 HTML5 Part 2</a> Mooc whose second week is titled "Game Programming with HTML5" which I've used to structure my notes on.
@@ -25,7 +26,6 @@ For this simple example, we only need
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keydown_event">keydown</a> and
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keyup_event">keyup</a>, which are in
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document#Events">document's list</a> of events it handles.
-
 
 <h2>Events</h2>
 
