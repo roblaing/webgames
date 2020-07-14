@@ -11,7 +11,8 @@ const splash = new Image();
 const missile = new Image();
 const debris = new Image();
 const inputStates = {};
-const sprite_list = [];
+const sprites = [];
+const new_sprites = [];
 let scale = 1.0;
 
 function get_scale() {
@@ -27,7 +28,7 @@ function resize() {
   canvas.width = scale * background.width;
   canvas.height = scale * background.height;
   /* Doesn't work
-  sprite_list.forEach(sprite => {
+  sprites.forEach(sprite => {
     sprite.x_centre = scale * sprite.x_centre;
     sprite.y_centre = scale * sprite.y_centre;
   });
@@ -66,6 +67,9 @@ function update_sprite(sprite) {
     case "asteroid":
       // sprite.angle = sprite.angle - Math.PI/120;
       break;
+    case "missile":
+      update_missile(sprite);
+      break;
     default:
       // sprite.angle = sprite.angle - Math.PI/120;
   }
@@ -87,13 +91,26 @@ function update_spaceship(spaceship) {
   if (inputStates.left) {
     spaceship.angle = spaceship.angle - Math.PI/90;
   }
-      /*
-      if (inputStates.space) {
-        my_ship.shoot();
-      } else {
-        my_ship.loaded = true;
-      }
-      */
+  if (inputStates.space) {
+    new_sprites.push({ type: "missile"
+                     , image: missile
+                     , width: 10, height: 10
+                     , x_centre: spaceship.x_centre + (scale * spaceship.radius/2 * Math.cos(spaceship.angle))
+                     , y_centre: spaceship.y_centre + (scale * spaceship.radius/2 * Math.sin(spaceship.angle));
+                     , x_velocity: 0.5 * scale * Math.cos(spaceship.angle)
+                     , y_velocity: 0.5 * scale * Math.sin(spaceship.angle)
+                     , row: 0
+                     , column: 0 // 1 for burn
+                     , angle: spaceship.angle
+                     , radius: 3
+                     });
+
+  }
+}
+
+function update_missile(missile) {
+  missile.x_centre = missile.x_centre + missile.x_velocity;
+  missile.y_centre = missile.y_centre + missile.y_velocity;
 }
 
 function init() {
@@ -106,7 +123,7 @@ function init() {
   debris.src = "debris2_blue.png";
   background.addEventListener("load", (event) => {
     resize();
-    sprite_list.push({ type: "spaceship"
+    sprites.push({ type: "spaceship"
                      , image: spaceship
                      , width: 90, height: 90
                      , x_centre: canvas.width/2, y_centre: canvas.height/2
@@ -124,8 +141,10 @@ function init() {
 function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(background, 0, 0, background.width, background.height, 0, 0, canvas.width, canvas.height);
-  // spaceship, asteroids, missiles...
-  sprite_list.forEach(sprite => {draw_sprite(sprite); update_sprite(sprite);});
+  new_sprites = [];
+  sprites.forEach(sprite => {draw_sprite(sprite); update_sprite(sprite);});
+  // filter dead sprites from list here
+  sprites = sprites.concat(new_sprites);
   ctx.drawImage(debris, 0, 0, debris.width, debris.height, 0, 0, canvas.width, canvas.height);
   window.requestAnimationFrame(loop);
 }
