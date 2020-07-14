@@ -71,6 +71,8 @@ In this example, <code>key_listener</code> is nearly identical for "keydown" and
 argument to differentiate them.
 
 ```javascript
+const inputStates = {loaded: true}; // global container for mutable key-value pairs
+
 function key_listener(Bool, event) {
   switch (event.key) {
     case "ArrowLeft":
@@ -209,9 +211,11 @@ Some key-value pairs will only be needed by certain types of sprites, but we can
 all to use the same draw and update functions.
 
 ```javascript
+let sprites = []; // global list of sprites, has to be let (not const) for concatenation and filter
+
 function loop() {
   ...
-  sprite_list.forEach(sprite => { draw(sprite); update(sprite); });
+  sprites.forEach(sprite => { draw(sprite); update(sprite); });
   ...
 }
 ```
@@ -251,8 +255,53 @@ proper sprite sheet in this game is for explosions which run through 24 pictures
 and what size, we want to place it on the canvas.
 
 In this game I'm assuming all images get scaled the same amount &mdash; using a global variable <em>scale</em> which
-I'll explain next &mdash; but in future games I'll probably want to add an additional attribute to sprite to size for
+I'll explain shortly &mdash; but in future games I'll probably want to add an additional attribute to sprite to size for
 perspective or whatever. 
+
+<h3>Updating sprites</h3>
+
+Writing a simple <a href="https://en.wikipedia.org/wiki/Physics_engine">physics engine</a> brings otherwise dry subjects
+such as trigonometry and vectors to life. My goal with this game was to stick to the bare bones of the original
+teaching example, but I found it hard not to tinker, and the potential for variations is endless.
+
+One of the basic decisions of a video game is will the world be toroidal as I've done here &mdash; things that move off the side
+reapear on the other side &mdash; or should there be walls. Moving things that are about to move off the edge to the other side
+is general to all sprites, so I've put code to do that to whatever sprite at the top. But the rest is a dispatcher which
+gives each type of sprite its own update function so each can be moved or transformed in a unique way.
+
+```javascript
+function update_sprite(sprite) {
+  // space is toroidal
+  if (sprite.x_centre < 0) {
+    sprite.x_centre = canvas.width;
+  }
+  if (sprite.x_centre > canvas.width) {
+    sprite.x_centre = 0;
+  }
+  if (sprite.y_centre < 0) {
+    sprite.y_centre = canvas.height;
+  }
+  if (sprite.y_centre > canvas.height) {
+    sprite.y_centre = 0;
+  }
+  switch (sprite.type) {
+    case "spaceship":
+      update_spaceship(sprite);
+      break;
+    case "asteroid":
+      update_asteroid(sprite);
+      break;
+    case "missile":
+      update_missile(sprite);
+      break;
+    case "explosion":
+      update_explosion(sprite);
+      break;
+    default:
+      return;
+  }
+}
+```
 
 <h2>Size and resize are events too</h2>
 
