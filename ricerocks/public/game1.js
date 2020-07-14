@@ -10,9 +10,9 @@ const explosion = new Image();
 const splash = new Image();
 const missile = new Image();
 const debris = new Image();
-const inputStates = {};
-const sprites = [];
-const new_sprites = [];
+const inputStates = {loaded: true};
+let sprites = [];
+let new_sprites = [];
 let scale = 1.0;
 
 function get_scale() {
@@ -35,7 +35,30 @@ function resize() {
   */
 }
 
-function draw_sprite(sprite) {
+function collision(x1, y1, r1, x2, y2, r2) {
+  return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)) <= r1 + r2;
+}
+
+function spawn_asteroid() {
+  let x = Math.floor(Math.random() * (canvas.width + 1));
+  let y = Math.floor(Math.random() * (canvas.height + 1));
+  let ang = Math.random() * 2 * Math.PI;
+  let vel = Math.random() - 0.5;
+  return { type: "asteroid"
+         , image: asteroid
+         , width: 90, height: 90
+         , x_centre: x
+         , y_centre: y
+         , x_velocity: vel * Math.cos(ang)
+         , y_velocity: vel * Math.sin(ang)
+         , row: 0
+         , column: 0
+         , angle: ang
+         , radius: 35
+         };
+}
+
+function draw(sprite) {
   ctx.save();
   ctx.translate(sprite.x_centre, sprite.y_centre);
   ctx.rotate(sprite.angle);
@@ -65,7 +88,7 @@ function update_sprite(sprite) {
       update_spaceship(sprite);
       break;
     case "asteroid":
-      // sprite.angle = sprite.angle - Math.PI/120;
+      update_asteroid(sprite);
       break;
     case "missile":
       update_missile(sprite);
@@ -91,26 +114,37 @@ function update_spaceship(spaceship) {
   if (inputStates.left) {
     spaceship.angle = spaceship.angle - Math.PI/90;
   }
-  if (inputStates.space) {
+  if (inputStates.space && inputStates.loaded) {
     new_sprites.push({ type: "missile"
                      , image: missile
                      , width: 10, height: 10
-                     , x_centre: spaceship.x_centre + (scale * spaceship.radius/2 * Math.cos(spaceship.angle))
-                     , y_centre: spaceship.y_centre + (scale * spaceship.radius/2 * Math.sin(spaceship.angle));
-                     , x_velocity: 0.5 * scale * Math.cos(spaceship.angle)
-                     , y_velocity: 0.5 * scale * Math.sin(spaceship.angle)
+                     , x_centre: spaceship.x_centre + (scale * spaceship.height/2 * Math.cos(spaceship.angle))
+                     , y_centre: spaceship.y_centre + (scale * spaceship.height/2 * Math.sin(spaceship.angle))
+                     , x_velocity: spaceship.x_velocity + (4 * scale * Math.cos(spaceship.angle))
+                     , y_velocity: spaceship.y_velocity + (4 * scale * Math.sin(spaceship.angle))
                      , row: 0
-                     , column: 0 // 1 for burn
+                     , column: 0
                      , angle: spaceship.angle
                      , radius: 3
+                     , tick: 0
+                     , lifespan: 120
                      });
-
+    inputStates.loaded = false;
+  }
+  if (!inputStates.space) {
+    inputStates.loaded = true;
   }
 }
 
+function update_asteroid(asteroid) {
+  asteroid.x_centre = asteroid.x_centre + asteroid.x_velocity;
+  asteroid.y_centre = asteroid.y_centre + asteroid.y_velocity;
+}
+
 function update_missile(missile) {
-  missile.x_centre = missile.x_centre + missile.x_velocity;
-  missile.y_centre = missile.y_centre + missile.y_velocity;
+  missile.x_centre = missile.x_centre + (scale * missile.x_velocity);
+  missile.y_centre = missile.y_centre + (scale * missile.y_velocity);
+  missile.tick = missile.tick + 1;
 }
 
 function init() {
@@ -124,26 +158,41 @@ function init() {
   background.addEventListener("load", (event) => {
     resize();
     sprites.push({ type: "spaceship"
-                     , image: spaceship
-                     , width: 90, height: 90
-                     , x_centre: canvas.width/2, y_centre: canvas.height/2
-                     , x_velocity: 0, y_velocity: 0
-                     , row: 0
-                     , column: 0 // 1 for burn
-                     , angle: -Math.PI/2 // facing up
-                     , radius: 35
-                     });
+                 , image: spaceship
+                 , width: 90, height: 90
+                 , x_centre: canvas.width/2, y_centre: canvas.height/2
+                 , x_velocity: 0, y_velocity: 0
+                 , row: 0
+                 , column: 0 // 1 for burn
+                 , angle: -Math.PI/2 // facing up
+                 , radius: 35
+                 });
+    //for (let 
+    sprites.push(spawn_asteroid());
     window.addEventListener("resize", resize);
     window.requestAnimationFrame(loop);
   });
+}
+
+function dead(sprite) {
+  switch (sprite.type) {
+    case "missile":
+      if (sprite.tick >= sprite.lifespan) {
+        return false;
+      } else {
+        return true;
+      }
+    default:
+      return true;
+  }
 }
 
 function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(background, 0, 0, background.width, background.height, 0, 0, canvas.width, canvas.height);
   new_sprites = [];
-  sprites.forEach(sprite => {draw_sprite(sprite); update_sprite(sprite);});
-  // filter dead sprites from list here
+  sprites.forEach(sprite => {draw(sprite); update_sprite(sprite);});
+  sprites = sprites.filter(sprite => dead(sprite));
   sprites = sprites.concat(new_sprites);
   ctx.drawImage(debris, 0, 0, debris.width, debris.height, 0, 0, canvas.width, canvas.height);
   window.requestAnimationFrame(loop);
