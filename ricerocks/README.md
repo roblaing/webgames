@@ -16,25 +16,23 @@ disenchanted with and am attempting to apply <a href="https://en.wikipedia.org/w
 event-driven programming</a> <q>in which the flow of the program is determined by events such as user actions 
 (mouse clicks, key presses)...</q>.
 
-My first version, written in Python, had lots of classes &mdash; board, pieces, game... everything was an object &mdash; 
-leading to very verbose, hard to read or change code. I've found getting to grips with JavaScript's 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model">DOM</a> provided by browsers confusing
-enough without cluttering it up further with home-made objects.
-
-Broadly, I've based my JavaScript on the W3C's <a href="https://courses.edx.org/courses/course-v1:W3Cx+HTML5.2x+4T2015/course/">
-HTML5 Part 2</a> Mooc whose second week is titled "Game Programming with HTML5" which I've used to structure my notes on.
-
 In RiceRocks, a simple version of the old arcade game Asteroids, the user presses arrow keys to maneuver
 and the space bar to shoot. The limited number of events to handle make it a nice introduction.
 
 <h2>Events</h2>
 
-The first thing to think of is user interaction, which makes your starting point 
+As is common with JavaScript, there are  
+<a href="https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Event_handlers">several APIs</a> of various vintages.
+
+<q>Get into a rut early: Do the same processes the same way. Accumulate idioms. Standardize.</q>  &mdash; <a href="http://pu.inf.uni-tuebingen.de/users/klaeren/epigrams.html">Alan J. Perlis</a>.
+
+Following this advice, I'm going to settle on 
 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener">
 target.addEventListener(type, listener [, options]);</a> 
  
-placing you in a maze of twisty little passages, all alike.
+which itself has <em>old</em> syntax where the third argument was usually set to <em>false</em> and <em>new</em>
+syntax where it's an object which can usually be ignored (as I'll do).
 
 <h3>What is the <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget">event target?</a></h3>
 
@@ -148,11 +146,11 @@ for the various components makes keeping the overall design clean much simpler.
 Video games are a great way of learning concurrent programming because seeing lots of things happening on a screen simultaniously
 makes otherwise dry and abstract theory easy to visualise.
 
-In the case of JavaScript &mdash; which at time of writing doesn't support parallelism because it is single threaded &mdash; 
-concurrency is largely an optical illusion created by looping through sequential steps over-and-over very rapidly, though
-you still get race conditions which I'll get to shortly.
+JavaScript has started supporting parallelism via <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API">
+workers</a>, but browser support at time of writing seems limited, so here concurrency is largely an optical illusion created by looping through sequential steps over-and-over very rapidly.
 
-To avoid the old video games problem of becoming unplayable as hardware gets faster, we use
+Again, JavaScript has <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_animations"> several
+ways</a> to make something that should be easy confusing, so I'm settling on 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame">Window.requestAnimationFrame(callback)</a>
 to set the loop speed to 60/second irrespective of the hardware.
 
@@ -191,6 +189,77 @@ whereas with Javascript its easiest to think of the state as global variables.
 Keyboard, mouse, whatever events change the state by overwriting global variables, 
 and the loop reads whatever the current value is during each pass. (Luckily, games aren't that mission critical, so
 all this very bad practice gets allowed here).
+
+<h2>Thinking in tables (rows and columns) rather than objects</h2>
+
+While a video game may not look like a spreadsheet, abstractly it consists of a list of sprites (which we can think of as rows),
+each of which is a compound data structure whose properties or attributes can be thought of as slotting into columns.
+
+All the components of our game boil down to 
+
+<code><pre>
+[ {keyA:valA1, keyB:valB1, keyC:valC1, ...}
+, {keyA:valA2, keyB:valB2, keyC:valC2, ...} 
+, {keyA:valA3, keyB:valB3, keyC:valC3, ...} 
+...
+]
+</pre></code>
+
+ie, one set of square brackets containing an arbitrary number of curly bracketed <em>things</em> 
+&mdash; Python calls them dictionaries, Awk calls them associative arrays, Erlang calls them maps,
+and JavaScript calls them objects (jargon I like since it cuts through a lot of the OOP bull) &mdash; 
+which in turn contain any number of key-value pairs.
+
+Some key-value pairs will only be needed by certain types of sprites, but we can generalise them enough for
+all to use the same draw and update functions.
+
+```javascript
+function loop() {
+  ...
+  sprite_list.forEach(sprite => { draw(sprite); update(sprite); });
+  ...
+}
+```
+
+<h3>Drawing sprites</h3>
+
+Here our key API is <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">
+CanvasRenderingContext2D</a>, going through these five steps:
+
+<ol>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/save">ctx.save();</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/translate">ctx.translate(x, y);</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rotate">ctx.rotate(angle);</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage">
+ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/restore">ctx.restore();</a></li>
+</ol>
+
+A thing to note is that whereas it's easier to think of the position of sprites as their centre, the draw functions work
+from the top left corner. To get rotation right, we need to move the origin to the centre of the sprite with
+<code>ctx.translate(x_centre, y_centre);</code>, then rotate in radians where clockwise is positive.
+
+```javascript
+function draw(sprite) {
+  ctx.save();
+  ctx.translate(sprite.x_centre, sprite.y_centre);
+  ctx.rotate(sprite.angle);
+  ctx.drawImage(sprite.image, sprite.column * sprite.width, sprite.row * sprite.height, 
+    sprite.width, sprite.height, 
+    -(scale * sprite.width)/2, -(scale * sprite.height)/2, 
+    scale * sprite.width, scale * sprite.height);
+  ctx.restore();
+}
+```
+A bewildering number of parameters are required to get which part of the source image file we want &mdash; the only
+proper sprite sheet in this game is for explosions which run through 24 pictures &mdash; and then where, at which angle
+and what size, we want to place it on the canvas.
+
+In this game I'm assuming all images get scaled the same amount &mdash; using a global variable <em>scale</em> which
+I'll explain next &mdash; but in future games I'll probably want to add an additional attribute to sprite to size for
+perspective or whatever. 
+
+<h2>Size and resize are events too</h2>
 
 In my initial version of this game, I hard coded my canvas to be the size of the background image. Thanks to doing
 Udacity's <a href="https://classroom.udacity.com/courses/ud893/">Responsive Design</a> and its associated
@@ -250,89 +319,6 @@ function resize() {
 Users can change the size of their browsers, triggering a "resize" window event, which we can use to redraw the game to a new scale.
 This is an example of how one tends to encounter ever more events to handle, ratifying my belief in event-oriented programming.
 
-<h2>Thinking in tables (rows and columns) rather than objects</h2>
-
-<q>If you have a procedure with 10 parameters, you probably missed some.</q> &mdash; <a href="http://pu.inf.uni-tuebingen.de/users/klaeren/epigrams.html">Alan J. Perlis</a>.
-
-While a video game may not look like a spreadsheet, abstractly it consists of a list of sprites (which we can think of as rows),
-each of which is a compound data structure whose properties or attributes can be thought of as slotting into columns.
-
-All the components of our game boil down to 
-
-<code><pre>
-[ {keyA:valA1, keyB:valB1, keyC:valC1, ...}
-, {keyA:valA2, keyB:valB2, keyC:valC2, ...} 
-, {keyA:valA3, keyB:valB3, keyC:valC3, ...} 
-...
-]
-</pre></code>
-
-ie, one set of square brackets containing an arbitrary number of curly brackets which in turn contain any number of key-value pairs.
-
-Curly bracketed key-value sets are called different things in different programming languages &mdash; Python calls them 
-dictionaries, JavaScript calls them objects, Awk calls them associative arrays, Erlang calls them maps...
-
-Whatever you want to call them, thinking in terms of rows (ie elements in a list) containing columns (or relations in SQL jargon)
-lets us simplify the guts of our loop to a simple list iteration:
-
-```javascript
-function loop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ...
-  sprite_list.forEach(sprite => {
-    draw_sprite(sprite); 
-    update_sprite(sprite);
-    ...
-  });
-  ...
-}
-```
-
-At the start of each loop, <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clearRect">
-ctx.clearRect(0, 0, canvas.width, canvas.height);</a> creates a blank slate to redraw the background and sprites on.
-
-Irrespective of whether the sprite is the player controlled spaceship, an asteroid, a missile, or an explosion, provided
-we standarise keynames, the same 5 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">
-CanvasRenderingContext2D</a> methods are used:
-
-<ol>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/save">ctx.save();</a></li>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/translate">ctx.translate(x, y);</a></li>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rotate">ctx.rotate(angle);</a></li>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage">
-ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);</a></li>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/restore">ctx.restore();</a></li>
-</ol>
-
-A thing to note is that whereas it's easier to think of the position of sprites as their centre, the draw functions work
-from the top left corner. To get rotation right, we need to move the origin to the centre of the sprite with
-<code>ctx.translate(x_centre, y_centre);</code>, then rotate in radians where clockwise is positive.
-
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage">
-ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);</a>
-
-has nine parameters which have to be unpacked carefully.
-
-<dl>
-  <dt>image</dt><dd>This is an instantiated image object such as <em>spaceship</em> after 
-    <code>const spaceship = new Image(); spaceship.src = "double_ship.png";</code> has been called.<br>
-    A gotcha is that if the file hasn't been downloaded completely by the browser, no image will appear.
-    </dd>
-  <dt>sx</dt><dd>Top left corner of the source file. The only complex sprite sheet in this example is explosion 
-    which has 24 images which are 128 pixels wide each. To get the first image, sx = 0, the second, sx = 128, ...</dd>
-  <dt>sy</dt><dd>Top left corner of the source file. None of the sprite sheets in this game have more than one row. 
-    If they did, sy would need to be incremented the same way as sx. Computer graphic ys differ from the Cartesian 
-    plain in that down is positive.</dd>
-  <dt>sWidth</dt><dd>Source width: For explosion, 128, for the spaceship with rocket on or off, 90.</dd>
-  <dt>sHeight</dt><dd>Source height (measured downward from zero)</dd>
-  <dt>dx</dt><dd>Where to draw the image on the canvas. The gotcha here is that what typically store the position
-   of our sprite by its centre, and this needs to be converted to its top left corner.</dd>
-  <dt>dy</dt><dd>As dx</dd>
-  <dt>dWidth</dt><dd>This isn't necessarily the same as sWidth since we often need to scale it.</dd>
-  <dt>sHeight</dt><dd>Dito.</dd>
-</dl>
-
 
 
 Before diving into the init function, lets look at the global constants I've defined at the top of the 
@@ -388,4 +374,37 @@ digressing into responsive design.
 https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events
 
 https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial
+
+My first version, written in Python, had lots of classes &mdash; board, pieces, game... everything was an object &mdash; 
+leading to very verbose, hard to read or change code. I've found getting to grips with JavaScript's 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model">DOM</a> provided by browsers confusing
+enough without cluttering it up further with home-made objects.
+
+Broadly, I've based my JavaScript on the W3C's <a href="https://courses.edx.org/courses/course-v1:W3Cx+HTML5.2x+4T2015/course/">
+HTML5 Part 2</a> Mooc whose second week is titled "Game Programming with HTML5" which I've used to structure my notes on.
+
+
+<q>If you have a procedure with 10 parameters, you probably missed some.</q> &mdash; <a href="http://pu.inf.uni-tuebingen.de/users/klaeren/epigrams.html">Alan J. Perlis</a>.
+
+In RiceRocks and most other video games, the size of the sprite list is constantly changing as the spaceship fires missiles and asteroids explode and regenerate.
+
+
+Curly bracketed key-value sets are called different things in different programming languages 
+
+Whatever you want to call them, thinking in terms of rows (ie elements in a list) containing columns (or relations in SQL jargon)
+lets us simplify the guts of our loop to a simple list iteration:
+
+```javascript
+function loop() {
+  ...
+  sprite_list.forEach(sprite => {
+    draw_sprite(sprite); 
+    update_sprite(sprite);
+  });
+  ...
+}
+```
+
+At the start of each loop, <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clearRect">
+ctx.clearRect(0, 0, canvas.width, canvas.height);</a> creates a blank slate to redraw the background and sprites on.
 
