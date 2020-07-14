@@ -21,23 +21,19 @@ and the space bar to shoot. The limited number of events to handle make it a nic
 
 <h2>Events</h2>
 
-As is common with JavaScript, there are  
-<a href="https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Event_handlers">several APIs</a> of various vintages.
+As is common with JavaScript, there are <a href="https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Event_handlers">
+several APIs</a> of various vintages.
 
 <q>Get into a rut early: Do the same processes the same way. Accumulate idioms. Standardize.</q>  &mdash; <a href="http://pu.inf.uni-tuebingen.de/users/klaeren/epigrams.html">Alan J. Perlis</a>.
 
-Following this advice, I'm going to settle on 
-
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener">
-target.addEventListener(type, listener [, options]);</a> 
- 
-which itself has <em>old</em> syntax where the third argument was usually set to <em>false</em> and <em>new</em>
-syntax where it's an object which can usually be ignored (as I'll do).
+Following this advice, I'm going to settle on <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener">
+target.addEventListener(type, listener [, options]);</a> which itself has <em>old</em> syntax where the third argument was 
+usually set to <em>false</em> and <em>new</em> syntax where it's an object which can usually be ignored (as I'll do).
 
 <h3>What is the <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget">event target?</a></h3>
 
 In my first iteration, I chose <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window">window</a>
-as my <em>target</em> (ie object) for keyboard events.
+as my <em>target</em> (ie parent element) for keyboard events.
 
 A snag I hit was that while the arrows and space bar worked, pressing any other key
 would cause further presses of the arrow and space bar to be ignored. Switching the target to
@@ -157,9 +153,6 @@ to set the loop speed to 60/second irrespective of the hardware.
 We use it to create an infinite game loop along the lines of this basic template:
 
 ```javascript
-const canvas = document.querySelector("#board");
-const ctx = canvas.getContext("2d");
-
 function loop() {
   ...
   window.requestAnimationFrame(loop); % recursive call creating an infinite loop.
@@ -175,7 +168,8 @@ window.addEventListener("DOMContentLoaded", init);
 
 <h2>Initialising the game state and starting the loop</h2>
 
-In the template above I've introduced another event, <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event">DOMContentLoaded</a>. 
+The template above introduces a new event, <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event">DOMContentLoaded</a>, which is triggered once index.html and its associated css, JavaScript etc
+files have been loaded by the browser.
 
 Here I'm not bothering with <code>(event) => init(event)</code> since this event has no properties to read. 
 It's a common idiom in "concurrency-oriented programming" language Erlang to call the function that 
@@ -187,8 +181,9 @@ This is because Erlang doesn't allow variables to be overwritten with new values
 whereas with Javascript its easiest to think of the state as global variables.
 
 Keyboard, mouse, whatever events change the state by overwriting global variables, 
-and the loop reads whatever the current value is during each pass. (Luckily, games aren't that mission critical, so
-all this very bad practice gets allowed here).
+and the loop reads whatever the current value is during each pass. (Global variables are usually frowned on, 
+and having different parts of concurrent systems altering the values of shared variables equates to untestable code 
+where no two runs produce the same results, but since this is only a small game, hopefully none of that matters).
 
 <h2>Thinking in tables (rows and columns) rather than objects</h2>
 

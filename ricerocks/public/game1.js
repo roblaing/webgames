@@ -14,6 +14,8 @@ const inputStates = {loaded: true};
 let sprites = [];
 let new_sprites = [];
 let scale = 1.0;
+let lives = 3;
+let score = 0;
 
 function get_scale() {
   if (window.innerWidth/window.innerHeight < background.width/background.height) {
@@ -27,6 +29,8 @@ function resize() {
   scale = get_scale();
   canvas.width = scale * background.width;
   canvas.height = scale * background.height;
+  ctx.fillStyle = "white";
+  ctx.font = scale * 22 + "px monospace";
   /* Doesn't work
   sprites.forEach(sprite => {
     sprite.x_centre = scale * sprite.x_centre;
@@ -156,6 +160,7 @@ function update_spaceship(spaceship) {
     collision(spaceship.x_centre, spaceship.y_centre, spaceship.radius,
               sprite.x_centre, sprite.y_centre, sprite.radius));
   if (hitlist.length > 0) {
+    lives = lives - 1;
     spaceship.type = "explosion";
     spaceship.image = explosion;
     spaceship.width = 128;
@@ -184,6 +189,7 @@ function update_asteroid(asteroid) {
     collision(asteroid.x_centre, asteroid.y_centre, asteroid.radius,
               sprite.x_centre, sprite.y_centre, sprite.radius));
   if (hitlist.length > 0) {
+    score = score + 1;
     asteroid.type = "explosion";
     asteroid.image = explosion;
     asteroid.width = 128;
@@ -230,7 +236,7 @@ function init() {
   background.addEventListener("load", (event) => {
     resize();
     sprites.push(create_spaceship(canvas.width/2, canvas.height/2, -Math.PI/2));
-    for (let rock = 0; rock <= 10; rock ++) { 
+    for (let rock = 0; rock <= 12; rock ++) { 
       sprites.push(create_asteroid());
     }
     window.addEventListener("resize", resize);
@@ -257,6 +263,10 @@ function loop() {
   sprites = sprites.filter(sprite => dead(sprite));
   sprites = sprites.concat(new_sprites);
   ctx.drawImage(debris, 0, 0, debris.width, debris.height, 0, 0, canvas.width, canvas.height);
+  ctx.fillText("Lives", scale * 50, scale * 50);
+  ctx.fillText("Score", scale * 680, scale * 50);
+  ctx.fillText(lives, scale * 50, scale * 80);
+  ctx.fillText(score, scale * 680, scale * 80);
   window.requestAnimationFrame(loop);
 }
 
