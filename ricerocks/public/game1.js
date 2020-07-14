@@ -54,6 +54,7 @@ function spawn_asteroid() {
          , row: 0
          , column: 0
          , angle: ang
+         , angle_velocity: vel * Math.PI/90
          , radius: 35
          };
 }
@@ -92,6 +93,9 @@ function update_sprite(sprite) {
       break;
     case "missile":
       update_missile(sprite);
+      break;
+    case "explosion":
+      update_explosion(sprite);
       break;
     default:
       // sprite.angle = sprite.angle - Math.PI/120;
@@ -139,12 +143,33 @@ function update_spaceship(spaceship) {
 function update_asteroid(asteroid) {
   asteroid.x_centre = asteroid.x_centre + asteroid.x_velocity;
   asteroid.y_centre = asteroid.y_centre + asteroid.y_velocity;
+  asteroid.angle = asteroid.angle + asteroid.angle_velocity;
+  const hitlist = sprites.filter(sprite => sprite.type === "missile" && 
+    collision(asteroid.x_centre, asteroid.y_centre, asteroid.radius,
+              sprite.x_centre, sprite.y_centre, sprite.radius));
+  if (hitlist.length > 0) {
+    asteroid.type = "explosion";
+    asteroid.image = explosion;
+    asteroid.width = 128;
+    asteroid.height = 128;
+    asteroid.was = "asteroid";
+    asteroid.tick = 0;
+    asteroid.lifespan = 120;
+    hitlist.forEach(missile => missile.tick = missile.lifetime);
+  }
 }
 
 function update_missile(missile) {
   missile.x_centre = missile.x_centre + (scale * missile.x_velocity);
   missile.y_centre = missile.y_centre + (scale * missile.y_velocity);
   missile.tick = missile.tick + 1;
+}
+
+function update_explosion(explosion) {
+  explosion.x_centre = explosion.x_centre + (scale * explosion.x_velocity);
+  explosion.y_centre = explosion.y_centre + (scale * explosion.y_velocity);
+  explosion.angle = explosion.angle + explosion.angle_velocity;
+  explosion.tick = explosion.tick + 1;
 }
 
 function init() {
@@ -167,8 +192,9 @@ function init() {
                  , angle: -Math.PI/2 // facing up
                  , radius: 35
                  });
-    //for (let 
-    sprites.push(spawn_asteroid());
+    for (let rock = 0; rock <= 10; rock ++) { 
+      sprites.push(spawn_asteroid());
+    }
     window.addEventListener("resize", resize);
     window.requestAnimationFrame(loop);
   });
