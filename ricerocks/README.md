@@ -189,8 +189,8 @@ where no two runs produce the same results, but since this is only a small game,
 
 <h2>Thinking in tables (rows and columns) rather than objects</h2>
 
-While a video game may not look like a spreadsheet, abstractly it consists of a list of sprites (which we can think of as rows),
-each of which is a compound data structure whose properties or attributes can be thought of as slotting into columns.
+While a video game may not look like a spreadsheet, abstractly it consists of a list of <em>things</em> 
+(which we can think of as rows), each of which is a compound data structure whose properties or attributes can be thought of as slotting into columns.
 
 All the components of our game boil down to 
 
@@ -260,48 +260,24 @@ perspective or whatever.
 
 <h3>Updating sprites</h3>
 
-Writing a simple <a href="https://en.wikipedia.org/wiki/Physics_engine">physics engine</a> brings otherwise dry subjects
-such as trigonometry and vectors to life. My goal with this game was to stick to the bare bones of the original
-teaching example, but I found it hard not to tinker, and the potential for variations is endless.
+Game engines are often called <a href="https://en.wikipedia.org/wiki/Physics_engine">physics engines</a>, which is a good
+name since it brings otherwise dry subjects such as trigonometry and vectors to life. 
+My goal with this game was to stick to the bare bones of the original teaching example, but I found it hard not to tinker, 
+and the potential for variations is endless.
 
 One of the basic decisions of a video game is will the world be toroidal as I've done here &mdash; things that move off the side
 reapear on the other side &mdash; or should there be walls. Moving things that are about to move off the edge to the other side
 is general to all sprites, so I've put code to do that to whatever sprite at the top. But the rest is a dispatcher which
 gives each type of sprite its own update function so each can be moved or transformed in a unique way.
 
-```javascript
-function update_sprite(sprite) {
-  // space is toroidal
-  if (sprite.x_centre < 0) {
-    sprite.x_centre = canvas.width;
-  }
-  if (sprite.x_centre > canvas.width) {
-    sprite.x_centre = 0;
-  }
-  if (sprite.y_centre < 0) {
-    sprite.y_centre = canvas.height;
-  }
-  if (sprite.y_centre > canvas.height) {
-    sprite.y_centre = 0;
-  }
-  switch (sprite.type) {
-    case "spaceship":
-      update_spaceship(sprite);
-      break;
-    case "asteroid":
-      update_asteroid(sprite);
-      break;
-    case "missile":
-      update_missile(sprite);
-      break;
-    case "explosion":
-      update_explosion(sprite);
-      break;
-    default:
-      return;
-  }
-}
-```
+I recall the original game had friction in space in that the spaceship would gradually come to a standstill if the burner
+was switched off, which I found unrealistic. Keeping the burner on causes spaceship.x_velocity and spaceship.y_velocity
+to keep increasing, demonstrating acceleration whereby the spaceship soon overtakes its own missiles. I haven't checked
+for collissions between the spaceship and the shots it fires, so that's another avenue of experimentation.
+
+Something I didn't like about the original was there wasn't really a reason to use the up arrow, so I decided
+missiles in space should cause recoil, causing the spaceship to move back forcing the player to try keep still with
+the burner.
 
 <h2>Size and resize are events too</h2>
 
@@ -362,6 +338,33 @@ function resize() {
 
 Users can change the size of their browsers, triggering a "resize" window event, which we can use to redraw the game to a new scale.
 This is an example of how one tends to encounter ever more events to handle, ratifying my belief in event-oriented programming.
+
+<h2>Audio</h2>
+
+https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API
+
+https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/AudioContext
+
+
+var thrust_sound = audio_ctx.createBufferSource();
+
+    if (typeof sound !== "undefined") {
+        this.current_sound = audio_ctx.createBufferSource();
+        this.current_sound.buffer = sound.buffer;
+        this.current_sound.connect(audio_ctx.destination);
+        this.current_sound.start();
+    }
+
+    if (on && typeof this.current_thrust_sound === "undefined") {
+        this.current_thrust_sound = audio_ctx.createBufferSource();
+        this.current_thrust_sound.buffer = thrust_sound.buffer;
+        this.current_thrust_sound.connect(audio_ctx.destination);
+        this.current_thrust_sound.start();
+    }
+    if (!on && typeof this.current_thrust_sound !== "undefined") {
+        this.current_thrust_sound.stop();
+        this.current_thrust_sound = undefined;
+    }
 
 
 
