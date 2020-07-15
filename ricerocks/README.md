@@ -52,16 +52,16 @@ Python calls them dictionaries, Awk calls them associative arrays, Erlang calls 
 and JavaScript calls them objects &mdash; jargon I like since it cuts through a lot of OOP bull by
 making it clear it's just another way of expressing and processing sets of key-value pairs.
 
+Another Perlism, <q>If you have a procedure with 10 parameters, you probably missed some</q>, sums up the
+main advantage of <em>curly bracketed things</em> in that they let us pass a bag of parameters as one argument
+instead of as a bewildering number in a specific order, which besides being hard for users to remember, also makes code hard
+to refactor.
+
 Whereas in Python values separated by dots, as in <em>element.attribute</em>, and square brackets, as
 in <em>element[attribute]</em> are separate types, in JavaScript they are syntactic sugar for the same
 thing. But we can't simply treat JavaScript's <em>curly bracketed things</em> as compound data because of
 the complication of deciding whether to process them with functions, eg <code>draw(sprite)</code>, or 
 with methods as in <code>sprite.draw()</code>.
-
-To recite another Perlism, <q>If you have a procedure with 10 parameters, you probably missed some</q>, the
-main advantage of <em>curly bracketed things</em> is they let us pass a bag of parameters as one argument
-instead of as a bewildering number in a specific order, which besides being hard for users to remember, also makes code hard
-to refactor.
 
 I personally don't like the agglutinative horror of OOP or its mishmashing of data and processing.
 With JavaScript, I find addressing, say <em>sprite.x</em> within draw(sprite) a lot easier than 
@@ -98,14 +98,14 @@ My own convention goes like so:
 ```javascript
 target.addEventListener(type, (event) => my_listener(Arg1, Arg2, ..., event));
 ```
-My key_listener falls into the <em>pattern -> action</em> template which, along with events and loops, make up the guts of
+My keyListener falls into the <em>pattern -> action</em> template which, along with events and loops, make up the guts of
 concurrent programming. I think the most elegant way to do this in JavaScript is using its
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch">switch</a> statement.
 
 ```javascript
 const inputStates = {loaded: true, thrust: false}; // global container for mutable key-value pairs
 
-function key_listener(event) {
+function keyListener(event) {
   let bool;
   switch (event.type) {
     case "keydown":
@@ -140,7 +140,7 @@ function key_listener(event) {
 
 <h4>pattern -> action</h4>
 
-My initial version of key_listener passed the value of <code>bool</code> as a paramter depending on whether it was called
+My initial version of keyListener passed the value of <code>bool</code> as a paramter depending on whether it was called
 by "keydown" or "keyup", but I rewrote it to get that value from event.type.
 
 Though actually more verbose, having two switch blocks resolved confusion in my mind when to use <code>break;</code> 
@@ -189,8 +189,8 @@ so just left this third parameter out
 To recap, my two event listeners so far look like this:
 
 ```javascript
-document.addEventListener('keydown', (event) => key_listener(event));
-document.addEventListener('keyup',   (event) => key_listener(event));
+document.addEventListener('keydown', (event) => keyListener(event));
+document.addEventListener('keyup',   (event) => keyListener(event));
 ```
 
 So we now have a simple framework whereby, if we want to make the game more complex, we can add more case statements to
