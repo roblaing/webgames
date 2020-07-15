@@ -270,29 +270,6 @@ function load_play_sound(url, audio_node) {
   xhr2.send();
 }
 
-function init() {
-  background.src = "nebula_blue.f2014.png";
-  spaceship.src = "double_ship.png";
-  asteroid.src = "asteroid_blue.png";
-  splash.src = "splash.png";
-  missile.src = "shot2.png";
-  explosion.src = "explosion_alpha.png";
-  debris.src = "debris2_blue.png";
-  load_play_sound("soundtrack.ogg", soundtrack); 
-  load_play_sound("thrust.ogg", thrust_sound);
-  load_play_sound("missile.ogg", missile_sound);
-  load_play_sound("explosion.ogg", explosion_sound);
-  background.addEventListener("load", function (event) {
-    resize();
-    sprites.push(create_spaceship(canvas.width/2, canvas.height/2, -Math.PI/2));
-    for (let rock = 0; rock <= 12; rock ++) { 
-      sprites.push(create_asteroid());
-    }
-    window.addEventListener("resize", resize);
-    window.requestAnimationFrame(loop);
-  });
-}
-
 function dead(sprite) {
   switch (sprite.type) {
     case "missile":
@@ -308,7 +285,7 @@ function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(background, 0, 0, background.width, background.height, 0, 0, canvas.width, canvas.height);
   new_sprites = [];
-  sprites.forEach(sprite => {draw(sprite); update_sprite(sprite);});
+  sprites.forEach(function (sprite) {draw(sprite); update_sprite(sprite);});
   sprites = sprites.filter(sprite => dead(sprite));
   sprites = sprites.concat(new_sprites);
   ctx.drawImage(debris, 0, 0, debris.width, debris.height, 0, 0, canvas.width, canvas.height);
@@ -349,6 +326,29 @@ function key_listener(event) {
       event.preventDefault();
       return;
   }
+}
+
+function init() {
+  background.src = "nebula_blue.f2014.png";
+  spaceship.src = "double_ship.png";
+  asteroid.src = "asteroid_blue.png";
+  splash.src = "splash.png";
+  missile.src = "shot2.png";
+  explosion.src = "explosion_alpha.png";
+  debris.src = "debris2_blue.png";
+  load_play_sound("soundtrack.ogg", soundtrack); 
+  load_play_sound("thrust.ogg", thrust_sound);
+  load_play_sound("missile.ogg", missile_sound);
+  load_play_sound("explosion.ogg", explosion_sound);
+  background.addEventListener("load", function (event) {
+    resize();
+    sprites.push(create_spaceship(canvas.width/2, canvas.height/2, -Math.PI/2));
+    for (let rock = 0; rock <= 12; rock ++) { 
+      sprites.push(create_asteroid());
+    }
+    window.addEventListener("resize", resize);
+    window.requestAnimationFrame(loop);
+  });
 }
 
 window.addEventListener("DOMContentLoaded", init);

@@ -19,7 +19,7 @@ event-driven programming</a> <q>in which the flow of the program is determined b
 In RiceRocks, a simple version of the old arcade game Asteroids, the user presses arrow keys to maneuver
 and the space bar to shoot. The limited number of events to handle make it a nice introduction.
 
-<h2>Events</h2>
+<h2><a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">Events</a></h2>
 
 As is common with JavaScript, there are <a href="https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Event_handlers">
 several APIs</a> of various vintages.
@@ -40,8 +40,42 @@ would cause further presses of the arrow and space bar to be ignored. Switching 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document">document</a> didn't fix the bug, but seems
 to be the more appropriate choice, since it gets keyboard events, whereas they only "bubble up" to window.
 
-In JavaScript, an <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">event</a> is an object
-with various attributes, which vary according according to type, and 
+A key point is that in JavaScript, an event is what I like to think of as a compound data structure &mdash;
+thereby avoiding the jargon term <em>object</em> and its swamp of buzzwords. I'll make a quick digression
+into what I call <q>curly bracketed things</q> since they'll come up a lot.
+
+<h4>Curly bracketed things</h4>
+
+<code>{key1: value1, key2: value2, ... , keyN, valueN}</code>
+
+Python calls them dictionaries, Awk calls them associative arrays, Erlang calls them maps,
+and JavaScript calls them objects &mdash; jargon I like since it cuts through a lot of OOP bull by
+making it clear it's just another way of expressing and processing sets of key-value pairs.
+
+Whereas in Python values separated by dots, as in <em>element.attribute</em>, and square brackets, as
+in <em>element[attribute]</em> are separate types, in JavaScript they are syntactic sugar for the same
+thing. But we can't simply treat JavaScript's <em>curly bracketed things</em> as compound data because of
+the complication of deciding whether to process them with functions, eg <code>draw(sprite)</code>, or 
+with methods as in <code>sprite.draw()</code>.
+
+To recite another Perlism, <q>If you have a procedure with 10 parameters, you probably missed some</q>, the
+main advantage of <em>curly bracketed things</em> is they let us pass a bag of parameters as one argument
+instead of as a bewildering number in a specific order, which besides being hard for users to remember, also makes code hard
+to refactor.
+
+I personally don't like the agglutinative horror of OOP or its mishmashing of data and processing.
+With JavaScript, I find addressing, say <em>sprite.x</em> within draw(sprite) a lot easier than 
+<em>this.x</em> within sprite.draw(), especially since keeping track of what 
+<em>this</em> is leads to hacks like <code>let that = this;</code> or appending
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind">bind()</a>
+to everything.
+
+To use a browser as our frontend, however, we have to get to grips with the
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model">DOM</a>, so there's no escaping the 
+OOP side of JavaScript. But I find the provided system objects confusing enough without creating more, so avoid it in 
+my own code.
+
+Back to the event object. It is a compound data type with numerous attributes, which vary according according to type, but 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event/target">event.target</a> is common to all.
 
 <h3>What is the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">event type</a>?</h3>
@@ -226,20 +260,19 @@ All the components of our game boil down to
 ]
 </pre></code>
 
-ie, one set of square brackets containing an arbitrary number of curly bracketed <em>things</em> 
-&mdash; Python calls them dictionaries, Awk calls them associative arrays, Erlang calls them maps,
-and JavaScript calls them objects (jargon I like since it cuts through a lot of the OOP bull) &mdash; 
-which in turn contain any number of key-value pairs.
+ie, one set of square brackets containing an arbitrary number of <em>curly bracketed things</em>. 
 
 Some key-value pairs will only be needed by certain types of sprites, but we can generalise them enough for
 all to use the same draw and update functions.
+
+<h3>forEach or map?</h3>
 
 ```javascript
 let sprites = []; // global list of sprites, has to be let (not const) for concatenation and filter
 
 function loop() {
   ...
-  sprites.forEach(sprite => { draw(sprite); update(sprite); });
+  sprites.forEach( function (sprite) { draw(sprite); update(sprite); });
   ...
 }
 ```
