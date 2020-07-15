@@ -14,7 +14,7 @@ const soundtrack = audio_ctx.createBufferSource();
 const thrust_sound = audio_ctx.createBufferSource();
 const missile_sound = audio_ctx.createBufferSource();
 const explosion_sound = audio_ctx.createBufferSource();
-const inputStates = {loaded: true};
+const inputStates = {loaded: true, thrust: false};
 let sprites = [];
 let new_sprites = [];
 let scale = 1.0;
@@ -92,7 +92,7 @@ function draw(sprite) {
   ctx.restore();
 }
 
-function sound(audio_node) {
+function play_sound(audio_node) {
   const sound = audio_ctx.createBufferSource();
   sound.buffer = audio_node.buffer;
   sound.connect(audio_ctx.destination);
@@ -117,16 +117,16 @@ function update_sprite(sprite) {
   switch (sprite.type) {
     case "spaceship":
       update_spaceship(sprite);
-      break;
+      return;
     case "asteroid":
       update_asteroid(sprite);
-      break;
+      return;
     case "missile":
       update_missile(sprite);
-      break;
+      return;
     case "explosion":
       update_explosion(sprite);
-      break;
+      return;
     default:
       return;
   }
@@ -136,26 +136,28 @@ function update_spaceship(spaceship) {
   spaceship.x_centre = spaceship.x_centre + spaceship.x_velocity;
   spaceship.y_centre = spaceship.y_centre + spaceship.y_velocity;
   if (inputStates.up) {
-    // spaceship.sound = sound(thrust_sound);
+    if (inputStates.thrust === false) {
+      spaceship.sound = play_sound(thrust_sound);
+      inputStates.thrust = true;
+    }
     spaceship.column = 1;
     spaceship.x_velocity = spaceship.x_velocity + (0.1 * scale * Math.cos(spaceship.angle));
     spaceship.y_velocity = spaceship.y_velocity + (0.1 * scale * Math.sin(spaceship.angle));
   } else {
     spaceship.column = 0;
-    // can't get this to work
-    if (typeof spaceship.sound !== "undefined") {
+    if (inputStates.thrust === true) {
       spaceship.sound.stop();
-      spaceship.sound = undefined;
+      inputStates.thrust = false;
     }
   }
   if (inputStates.right) {
-    spaceship.angle = spaceship.angle + Math.PI/90;
+    spaceship.angle = spaceship.angle + Math.PI/60;
   } 
   if (inputStates.left) {
-    spaceship.angle = spaceship.angle - Math.PI/90;
+    spaceship.angle = spaceship.angle - Math.PI/60;
   }
   if (inputStates.space && inputStates.loaded) {
-    sound(missile_sound);
+    play_sound(missile_sound);
     new_sprites.push({ type: "missile"
                      , image: missile
                      , width: 10, height: 10
@@ -175,11 +177,15 @@ function update_spaceship(spaceship) {
   if (!inputStates.space) {
     inputStates.loaded = true;
   }
-  const hitlist = sprites.filter(sprite => sprite.type === "asteroid" && 
+  const hitlist = sprites.filter((sprite) => sprite.type === "asteroid" && 
     collision(spaceship.x_centre, spaceship.y_centre, spaceship.radius,
               sprite.x_centre, sprite.y_centre, sprite.radius));
   if (hitlist.length > 0) {
-    sound(explosion_sound);
+    if (inputStates.thrust === true) {
+      spaceship.sound.stop();
+      inputStates.thrust = false;
+    }
+    play_sound(explosion_sound);
     lives = lives - 1;
     spaceship.type = "explosion";
     spaceship.image = explosion;
@@ -189,7 +195,7 @@ function update_spaceship(spaceship) {
     spaceship.tick = 0;
     spaceship.lifespan = 120;
     spaceship.angle_velocity = 0;
-    hitlist.forEach(asteroid => { 
+    hitlist.forEach(function (asteroid) { 
       asteroid.type = "explosion";
       asteroid.image = explosion;
       asteroid.width = 128;
@@ -205,11 +211,11 @@ function update_asteroid(asteroid) {
   asteroid.x_centre = asteroid.x_centre + asteroid.x_velocity;
   asteroid.y_centre = asteroid.y_centre + asteroid.y_velocity;
   asteroid.angle = asteroid.angle + asteroid.angle_velocity;
-  const hitlist = sprites.filter(sprite => sprite.type === "missile" && 
+  const hitlist = sprites.filter((sprite) => sprite.type === "missile" && 
     collision(asteroid.x_centre, asteroid.y_centre, asteroid.radius,
               sprite.x_centre, sprite.y_centre, sprite.radius));
   if (hitlist.length > 0) {
-    sound(explosion_sound);
+    play_sound(explosion_sound);
     score = score + 1;
     asteroid.type = "explosion";
     asteroid.image = explosion;
@@ -218,7 +224,7 @@ function update_asteroid(asteroid) {
     asteroid.was = "asteroid";
     asteroid.tick = 0;
     asteroid.lifespan = 60;
-    hitlist.forEach(missile => missile.tick = missile.lifetime);
+    hitlist.forEach((missile) => missile.tick = missile.lifetime);
   }
 }
 
@@ -246,7 +252,7 @@ function update_explosion(explosion) {
   }
 }
 
-function load_sound(url, audio_node) {
+function load_play_sound(url, audio_node) {
   let xhr2;
   xhr2 = new XMLHttpRequest();
   xhr2.open("GET", url, true);
@@ -272,11 +278,11 @@ function init() {
   missile.src = "shot2.png";
   explosion.src = "explosion_alpha.png";
   debris.src = "debris2_blue.png";
-  load_sound("soundtrack.ogg", soundtrack); 
-  load_sound("thrust.ogg", thrust_sound);
-  load_sound("missile.ogg", missile_sound);
-  load_sound('explosion.ogg', explosion_sound);
-  background.addEventListener("load", (event) => {
+  load_play_sound("soundtrack.ogg", soundtrack); 
+  load_play_sound("thrust.ogg", thrust_sound);
+  load_play_sound("missile.ogg", missile_sound);
+  load_play_sound("explosion.ogg", explosion_sound);
+  background.addEventListener("load", function (event) {
     resize();
     sprites.push(create_spaceship(canvas.width/2, canvas.height/2, -Math.PI/2));
     for (let rock = 0; rock <= 12; rock ++) { 
@@ -313,29 +319,39 @@ function loop() {
   window.requestAnimationFrame(loop);
 }
 
-function key_listener(Bool, event) {
+function key_listener(event) {
+  let bool;
+  switch (event.type) {
+    case "keydown":
+      bool = true;
+      break;
+    case "keyup":
+      bool = false;
+      break;
+  }
   switch (event.key) {
     case "ArrowLeft":
-      inputStates.left = Bool;
-      break;
+      inputStates.left = bool;
+      return;
     case "ArrowUp":
-      inputStates.up = Bool;
-      break;
+      inputStates.up = bool;
+      return;
     case "ArrowRight":
-      inputStates.right = Bool;
-      break;
+      inputStates.right = bool;
+      return;
     case " ":
-      inputStates.space = Bool;
-      break;
-    case "F12":  // allows togling to debug screen, needs mouseclick for game to regain keyboard.
-      document.dispatchEvent(event);
-      break;
+      inputStates.space = bool;
+      return;
+    case "F12":  // allows toggling to debug screen, needs mouseclick for game to regain keyboard.
+      event.target.dispatchEvent(event);
+      return;
     default:
       event.preventDefault();
+      return;
   }
 }
 
 window.addEventListener("DOMContentLoaded", init);
-document.addEventListener('keydown', (event) => key_listener(true,  event));
-document.addEventListener('keyup',   (event) => key_listener(false, event));
+document.addEventListener("keydown", (event) => key_listener(event));
+document.addEventListener("keyup",   (event) => key_listener(event));
 

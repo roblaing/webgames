@@ -40,10 +40,17 @@ would cause further presses of the arrow and space bar to be ignored. Switching 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document">document</a> didn't fix the bug, but seems
 to be the more appropriate choice, since it gets keyboard events, whereas they only "bubble up" to window.
 
+In JavaScript, an <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">event</a> is an object
+with various attributes, which vary according according to type, and 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Event/target">event.target</a> is common to all.
+
 <h3>What is the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">event type</a>?</h3>
 
-The bewilderingly long <a href="https://developer.mozilla.org/en-US/docs/Web/Events">full list</a> is provided by Mozilla,
-and this is intertwined with our choice of event target above.
+Another common property is <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event/type">event.type</a>
+whereby we can ask an event what it is.
+
+The bewilderingly long <a href="https://developer.mozilla.org/en-US/docs/Web/Events">full list</a> 
+is provided by Mozilla, and this is intertwined with our choice of event target above.
 
 For this simple example, we only initially need 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keydown_event">keydown</a> and
@@ -57,44 +64,61 @@ My own convention goes like so:
 ```javascript
 target.addEventListener(type, (event) => my_listener(Arg1, Arg2, ..., event));
 ```
-
-This circumvents two frustrations I have with beginner tutorials on this subject: they either disregard the
-<em>event</em> object by writing a callback without access to the event object, or put
-<code>function (event) {... lines and lines of code ...}</code> as the second argument.
-
-<code>my_listener(Arg1, Arg2, ..., event)</code> will typically be a <em>dispatcher</em> &mdash; which in 
-JavaScript usually means a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch">
-switch</a> block &mdash; which handles different cases of an event object attribute, modifying the <em>game state</em> 
-which is a key concept I'll get to shortly.
-
-In this example, <code>key_listener</code> is nearly identical for "keydown" and "keyup", only requiring one boolean
-argument to differentiate them.
+My key_listener falls into the <em>pattern -> action</em> template which, along with events and loops, make up the guts of
+concurrent programming. I think the most elegant way to do this in JavaScript is using its
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch">switch</a> statement.
 
 ```javascript
-const inputStates = {loaded: true}; // global container for mutable key-value pairs
+const inputStates = {loaded: true, thrust: false}; // global container for mutable key-value pairs
 
-function key_listener(Bool, event) {
+function key_listener(event) {
+  let bool;
+  switch (event.type) {
+    case "keydown":
+      bool = true;
+      break;
+    case "keyup":
+      bool = false;
+      break;
+  }
   switch (event.key) {
     case "ArrowLeft":
-      inputStates.left = Bool;
-      break;
+      inputStates.left = bool;
+      return;
     case "ArrowUp":
-      inputStates.up = Bool;
-      break;
+      inputStates.up = bool;
+      return;
     case "ArrowRight":
-      inputStates.right = Bool;
-      break;
+      inputStates.right = bool;
+      return;
     case " ":
-      inputStates.space = Bool;
-      break;
-    case "F12":  // allows togling to debug screen, needs mouseclick for game to regain keyboard.
-      document.dispatchEvent(event);
-      break;
+      inputStates.space = bool;
+      return;
+    case "F12":  // allows toggling to debug screen, needs mouseclick for game to regain keyboard.
+      event.target.dispatchEvent(event);
+      return;
     default:
       event.preventDefault();
+      return;
   }
 }
 ```
+
+<h4>pattern -> action</h4>
+
+My initial version of key_listener passed the value of <code>bool</code> as a paramter depending on whether it was called
+by "keydown" or "keyup", but I rewrote it to get that value from event.type.
+
+Though actually more verbose, having two switch blocks resolved confusion in my mind when to use <code>break;</code> 
+and when to use <code>return;</code> to end actions.
+
+A subtlety between programming languages is whether they only find the first matching pattern and 
+perform that action, or continue down the list to check if further patterns also match &mdash;which is JavaScript's default. 
+
+So in JavaScript, if we don't want more than one pattern matched, the action needs to be concluded with <em>break;</em> or <em>return;</em>. Since the above code does a <em>side-effect</em> by altering the value of a global variable rather than 
+return a value, it doesn't matter. 
+
+<h4>Specific event properties</h4>
 
 Something I discovered refactoring my old code is that the keyCode attribute for 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent">keyboad events</a> is deprecated,
@@ -131,8 +155,8 @@ so just left this third parameter out
 To recap, my two event listeners so far look like this:
 
 ```javascript
-document.addEventListener('keydown', (event) => key_listener(true,  event));
-document.addEventListener('keyup',   (event) => key_listener(false, event));
+document.addEventListener('keydown', (event) => key_listener(event));
+document.addEventListener('keyup',   (event) => key_listener(event));
 ```
 
 So we now have a simple framework whereby, if we want to make the game more complex, we can add more case statements to
