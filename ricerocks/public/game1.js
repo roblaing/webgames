@@ -71,7 +71,8 @@ function create(type, sprite=undefined) {
   const obj = { type: type
               , row: 0
               , column: 0
-              , dead: false
+              , tick: 0
+              , lifespan: 10
               };
   let x;
   let y;
@@ -238,9 +239,12 @@ function update_spaceship(spaceship) {
     }
     play_sound(explosion_sound);
     lives = lives - 1;
-    spaceship.dead = true;
+    spaceship.tick = spaceship.lifespan;
     new_sprites.push(create("explosion", spaceship));
-    hitlist.forEach((asteroid) => new_sprites.push(create("explosion", asteroid)));
+    hitlist.forEach(function (asteroid) {
+      asteroid.tick = asteroid.lifespan;
+      new_sprites.push(create("explosion", asteroid));
+    });
   }
 }
 
@@ -254,7 +258,7 @@ function update_asteroid(asteroid) {
   if (hitlist.length > 0) {
     play_sound(explosion_sound);
     score = score + 1;
-    asteroid.dead = true;
+    asteroid.tick = asteroid.lifespan;
     new_sprites.push(create("explosion", asteroid));
     hitlist.forEach((missile) => missile.tick = missile.lifetime);
   }
@@ -264,9 +268,6 @@ function update_missile(missile) {
   missile.x_centre = missile.x_centre + (scale * missile.x_velocity);
   missile.y_centre = missile.y_centre + (scale * missile.y_velocity);
   missile.tick = missile.tick + 1;
-  if (missile.tick === missile.lifespan) {
-    missile.dead = true;
-  }
 }
 
 function update_explosion(explosion) {
@@ -276,7 +277,6 @@ function update_explosion(explosion) {
   explosion.column = Math.floor((explosion.tick/explosion.lifespan) * 24);
   explosion.tick = explosion.tick + 1;
   if (explosion.tick === explosion.lifespan) {
-    explosion.dead = true;
     switch (explosion.was) {
       case "asteroid":
         new_sprites.push(create("asteroid"));
@@ -324,7 +324,7 @@ function loop() {
   ctx.drawImage(background, 0, 0, background.width, background.height, 0, 0, canvas.width, canvas.height);
   new_sprites = [];
   sprites.forEach(function (sprite) {draw(sprite); update_sprite(sprite);});
-  sprites = sprites.filter((sprite) => !sprite.dead);
+  sprites = sprites.filter((sprite) => sprite.tick < sprite.lifespan);
   sprites = sprites.concat(new_sprites);
   ctx.drawImage(debris, 0, 0, debris.width, debris.height, 0, 0, canvas.width, canvas.height);
   ctx.fillText("Lives", scale * 50, scale * 50);
