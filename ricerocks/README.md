@@ -119,19 +119,23 @@ function keyListener(event) {
     case "ArrowLeft":
       inputStates.left = bool;
       return;
-    case "ArrowUp":
-      inputStates.up = bool;
-      return;
     case "ArrowRight":
       inputStates.right = bool;
       return;
+    case "ArrowUp":
+      inputStates.up = bool;
+      // Rocket thrust sound code was subsequenly added here.
+      return;
     case " ":
       inputStates.space = bool;
+      // Missile firing sound code was subsequenly added here.
       return;
-    case "F12":  // allows toggling to debug screen, needs mouseclick for game to regain keyboard.
+    case "F12":  
+      // Allows toggling to debug screen, needs mouseclick for game to regain keyboard.
       event.target.dispatchEvent(event);
       return;
     default:
+      // Counterintuitively, preventDefault seems the best default for keyboard events.
       event.preventDefault();
       return;
   }
@@ -153,6 +157,10 @@ So in JavaScript, if we don't want more than one pattern matched, the action nee
 return a value, it doesn't matter. 
 
 <h4>Specific event properties</h4>
+
+In Erlang jargon, the value of the event would be called a <em>message</em>. Unlike Erlang, JavaScript allows
+variables to be overwitten, so instead of responding with a <em>message</em>, as in the above example, the
+event can be communicated to the listening loop by writing to variables which it reads.
 
 Something I discovered refactoring my old code is that the keyCode attribute for 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent">keyboad events</a> is deprecated,
@@ -196,6 +204,102 @@ document.addEventListener('keyup',   (event) => keyListener(event));
 So we now have a simple framework whereby, if we want to make the game more complex, we can add more case statements to
 handle other keys. The number of events that need to be handled tend to proliferate, so using them as the starting point
 for the various components makes keeping the overall design clean much simpler.
+
+<h2>Sounds</h2>
+
+Another relatively simple thing about this game is there are only four sounds: missile fire, rocket thruster, explosion
+(when a missile hits a rock or a rock hits the spaceship) and constantly looping eerie space background noise.
+
+Two of these sounds are linked to keyboard events: missile fire to the spacebar, and the rocket thruster to the up arrow.
+Following my ideology of thinking events first, I decided to move the sounds triggered by key events
+out of the listening loop (which invariably gets very cluttered) into keyListener.
+
+I considered making a new <code>keySound(event)</code> listener. One of the reasons JavaScript
+introduced <em>addEventListener</em> as an alternative to <em>target.onevent = function ()...</em> was to allow the same
+event to trigger several listeners, but decided against this because of the hassle duplicating the code handling
+"non-game" keys.
+
+<h3>Audio Basics</h3>
+
+I'm more of a graphics than a sound guy, so found understanding the concepts and jargon here fairly tricky.
+
+As with JavaScript's canvas which needs a <em>context object</em> instantiated (conventionally called <code>ctx</code>), 
+there's an <a href="https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext">BaseAudioContext()</a> object
+which I've instantiated as <code>audioCtx</code> (keeping to the recommended JavaScripty style of camel rather
+than snake case), checking which of the two AudioContexts the browser prefers, as follows:
+
+```javascript
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+```
+
+The audio equivalent of JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/Image">Image()</a>
+object appears to be <a href="https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createBufferSource">
+BaseAudioContext.createBufferSource()</a>. For my four sound files, I create the following global constants near the 
+top of my script:
+
+```javascript
+const soundtrack = audio_ctx.createBufferSource();
+const thrust_sound = audio_ctx.createBufferSource();
+const missile_sound = audio_ctx.createBufferSource();
+const explosion_sound = audio_ctx.createBufferSource();
+```
+
+Whereas <code>Image()</code> simplifies graphic file downloads to <code>myImage.src="whatever.jpg"</code>, 
+source sound objects need to retrieved, either by the old way of 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Using_XMLHttpRequest">XMLHttpRequest()</a>,
+or the newer, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises">promises</a>-based
+<a href="">fetch</a>.
+
+The method we want to apply the sound file data to similarly has an old and a newer promises-based syntax
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/decodeAudioData">
+Promise<decodedData> baseAudioContext.decodeAudioData(ArrayBuffer);</a>, so chaining things the promises way
+cuts this function down to:
+
+```javascript
+function loadSound(url, audioNode) {
+  fetch(url)
+  .then((response) => response.arrayBuffer())
+  .then((buffer) => audioCtx.decodeAudioData(buffer))
+  .then((decodedData) => audioNode.buffer = decodedData);
+}
+```
+
+I have to confess the above style of coding looks fairly alien to me, but also pretty promising.
+
+With the exception of the background noise which plays in a loop, the event-linked sounds need to be coppied to
+new instances of <em>audio_ctx.createBufferSource()</em> every time they are used. For the rocket thruster sound,
+this object news to be stored so that it can later be stopped, so needs a return value:
+
+```javascript
+function playSound(audioNode) {
+  const sound = audioCtx.createBufferSource();
+  sound.buffer = audioNode.buffer;
+  sound.connect(audioCtx.destination);
+  sound.start();
+  return sound;
+}
+```
+
+<h3>Missile fire</h3>
+
+A game design decision I made was that instead of allowing "automatic" fire whereby the player can simply hold the space
+bar down to send up to 60 missiles per second, the spaceship has to <em>reload</em> after each shot by releasing the space
+bar. This means firing requires two boolean <code>inputState</code> variables, arrow up and loaded, to be <em>anded</em>.
+
+Somewhat inelegantly, toggling the <em>loaded</em> boolean on and off is split between the event listener and the listening 
+loop which updates graphics as explained shortly.
+
+<h3>Rocket noise</h3>
+
+In contrast to "one shot" missile fire, I decided the rocket should keep accelerating while the up arrow is held down.
+The original version of the game gave no reason to do this since moving the rocket complicated shooting rocks while avoiding
+hitting them a lot. This is why I introduced the recoil action. 
+
+Before moving the thrust sound to the event listener when it was in the listening loop, the thrust sound was repeatedly sent
+to the sound card at 60 times per second, creating an awful cacophony.
+
+
+
 
 <h2>The game loop</h2>
 
