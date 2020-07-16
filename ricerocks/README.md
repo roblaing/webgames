@@ -276,7 +276,7 @@ Once loaded with data, the sound source object appears to be transformed into an
 
 With the exception of the background noise which plays in a loop, the event-linked sounds need to be copied to
 new instances of <em>audioCtx.createBufferSource()</em> every time they are used. For the rocket thruster sound,
-this object news to be stored so that it can later be stopped, so needs a return value:
+this object neads to be stored so that it can later be stopped, so needs a return value:
 
 ```javascript
 function playSound(audioNode) {
@@ -373,10 +373,10 @@ where no two runs produce the same results, but since this is only a small game,
 
 <h2>Thinking in tables (rows and columns) rather than objects</h2>
 
-While a video game may not look like a spreadsheet, abstractly it consists of a list of <em>things</em> 
+While a video game may not look like a spreadsheet, abstractly it consists of a list of <em>curly bracketed things</em> 
 (which we can think of as rows), each of which is a compound data structure whose properties or attributes can be thought of as slotting into columns.
 
-All the components of our game boil down to 
+So all the components of our game boil down to 
 
 <code><pre>
 [ {keyA:valA1, keyB:valB1, keyC:valC1, ...}
