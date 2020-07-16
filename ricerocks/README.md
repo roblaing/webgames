@@ -21,7 +21,8 @@ and the space bar to shoot. The limited number of events to handle make it a nic
 
 <h2><a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">Events</a></h2>
 
-As is common with JavaScript, there are <a href="https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Event_handlers">
+As is common with JavaScript, there's a confusion of
+<a href="https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Event_handlers">
 several APIs</a> of various vintages.
 
 <q>Get into a rut early: Do the same processes the same way. Accumulate idioms. Standardize.</q>  &mdash; <a href="http://pu.inf.uni-tuebingen.de/users/klaeren/epigrams.html">Alan J. Perlis</a>.
@@ -159,8 +160,11 @@ return a value, it doesn't matter.
 <h4>Specific event properties</h4>
 
 In Erlang jargon, the value of the event would be called a <em>message</em>. Unlike Erlang, JavaScript allows
-variables to be overwitten, so instead of responding with a <em>message</em>, as in the above example, the
-event can be communicated to the listening loop by writing to variables which it reads.
+variables to be overwitten, so instead of responding to received messages with responce messages, 
+the response to an event can can be communicated to the listening loop by writing to shared variables for it to read.
+
+Even in this small example, I encountered weird bugs in the spaceship appearing to get confused about its current variable
+values, so it's not a good programming technique for running a bank.
 
 Something I discovered refactoring my old code is that the keyCode attribute for 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent">keyboad events</a> is deprecated,
@@ -170,7 +174,7 @@ The current ways is to use
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key">KeyboardEvent.key</a> as above.
 
 It took several frustrating hours to discover the magic incantation to stop other keys from breaking the game,
-and the solution was counter-intuitively making
+and the solution was counterintuitively making
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault">Event.preventDefault()</a>
 the default for switch.
 
@@ -197,8 +201,8 @@ so just left this third parameter out
 To recap, my two event listeners so far look like this:
 
 ```javascript
-document.addEventListener('keydown', (event) => keyListener(event));
-document.addEventListener('keyup',   (event) => keyListener(event));
+document.addEventListener("keydown", (event) => keyListener(event));
+document.addEventListener("keyup",   (event) => keyListener(event));
 ```
 
 So we now have a simple framework whereby, if we want to make the game more complex, we can add more case statements to
@@ -266,8 +270,12 @@ function loadSound(url, audioNode) {
 
 I have to confess the above style of coding looks fairly alien to me, but also pretty promising.
 
-With the exception of the background noise which plays in a loop, the event-linked sounds need to be coppied to
-new instances of <em>audio_ctx.createBufferSource()</em> every time they are used. For the rocket thruster sound,
+Once loaded with data, the sound source object appears to be transformed into an
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode">AudioBufferSourceNode</a>
+(I find the documentation extremely confusing).
+
+With the exception of the background noise which plays in a loop, the event-linked sounds need to be copied to
+new instances of <em>audioCtx.createBufferSource()</em> every time they are used. For the rocket thruster sound,
 this object news to be stored so that it can later be stopped, so needs a return value:
 
 ```javascript
@@ -295,11 +303,25 @@ In contrast to "one shot" missile fire, I decided the rocket should keep acceler
 The original version of the game gave no reason to do this since moving the rocket complicated shooting rocks while avoiding
 hitting them a lot. This is why I introduced the recoil action. 
 
-Before moving the thrust sound to the event listener when it was in the listening loop, the thrust sound was repeatedly sent
-to the sound card at 60 times per second, creating an awful cacophony.
+Something I learned the hard way before refactoring the code to make the thrust sound a keyboard event, 
+the listening loop created 60 new copies a second, creating an awful cacophony.
 
+<h3>Should explosions be an event?</h3>
 
+Explosions differ from the ambient background noise loop and keyboard triggered shots and rocket fire in that they occur
+when the listening loop detects detects collisions. Making them custom events is taking my ideology to extremes, but I 
+thought it would be fun and educational to use them to explore JavaScript's custom events, creating code which may
+be useful in future.
 
+<a href="https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events">
+Creating and triggering events</a>
+
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Event">Event()</a> or
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent">CustomEvent()</a>?
+
+const event = new Event('build');
+
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/dispatchEvent">elem.dispatchEvent(event);</a>
 
 <h2>The game loop</h2>
 

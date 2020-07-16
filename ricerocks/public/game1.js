@@ -310,8 +310,8 @@ function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(background, 0, 0, background.width, background.height, 0, 0, canvas.width, canvas.height);
   new_sprites = [];
-  sprites.forEach((sprite) => draw(sprite));
-  sprites = sprites.map((sprite) => update_sprite(sprite));
+  sprites.forEach(function (sprite) {draw(sprite); update_sprite(sprite)});
+  // sprites = sprites.map((sprite) => update_sprite(sprite));
   sprites = sprites.filter((sprite) => sprite.tick < sprite.lifespan);
   sprites = sprites.concat(new_sprites);
   ctx.drawImage(debris, 0, 0, debris.width, debris.height, 0, 0, canvas.width, canvas.height);
@@ -320,6 +320,18 @@ function loop() {
   ctx.fillText(lives, scale * 50, scale * 80);
   ctx.fillText(score, scale * 680, scale * 80);
   window.requestAnimationFrame(loop);
+}
+
+function init() {
+  background.addEventListener("load", function (event) {
+    resize();
+    sprites.push(create("spaceship"));
+    for (let rock = 0; rock <= 12; rock ++) { 
+      sprites.push(create("asteroid"));
+    }
+    window.addEventListener("resize", resize);
+    window.requestAnimationFrame(loop);
+  });
 }
 
 function keyListener(event) {
@@ -366,18 +378,6 @@ function keyListener(event) {
       event.preventDefault();
       return;
   }
-}
-
-function init() {
-  background.addEventListener("load", function (event) {
-    resize();
-    sprites.push(create("spaceship"));
-    for (let rock = 0; rock <= 12; rock ++) { 
-      sprites.push(create("asteroid"));
-    }
-    window.addEventListener("resize", resize);
-    window.requestAnimationFrame(loop);
-  });
 }
 
 window.addEventListener("DOMContentLoaded", init);
