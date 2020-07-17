@@ -268,7 +268,9 @@ function loadSound(url, audioNode) {
 }
 ```
 
-I have to confess the above style of coding looks fairly alien to me, but also pretty promising.
+A bit alien at first, using a <code>.then</code> chain makes asynchronous steps look sequential, sidestepping
+the common exasperation of using <code>async function() {...}</code> combined with <code>await</code> to throw 
+away all of JavaScript's concurrency when things don't work.
 
 Once loaded with data, the sound source object appears to be transformed into an
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode">AudioBufferSourceNode</a>
@@ -845,68 +847,6 @@ function resize() {
 
 Users can change the size of their browsers, triggering a "resize" window event, which we can use to redraw the game to a new scale.
 This is an example of how one tends to encounter ever more events to handle, ratifying my belief in event-oriented programming.
-
-<h2>Audio</h2>
-
-https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API
-
-https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/AudioContext
-
-
-var thrust_sound = audio_ctx.createBufferSource();
-
-    if (typeof sound !== "undefined") {
-        this.current_sound = audio_ctx.createBufferSource();
-        this.current_sound.buffer = sound.buffer;
-        this.current_sound.connect(audio_ctx.destination);
-        this.current_sound.start();
-    }
-
-    if (on && typeof this.current_thrust_sound === "undefined") {
-        this.current_thrust_sound = audio_ctx.createBufferSource();
-        this.current_thrust_sound.buffer = thrust_sound.buffer;
-        this.current_thrust_sound.connect(audio_ctx.destination);
-        this.current_thrust_sound.start();
-    }
-    if (!on && typeof this.current_thrust_sound !== "undefined") {
-        this.current_thrust_sound.stop();
-        this.current_thrust_sound = undefined;
-    }
-
-
-
-Before diving into the init function, lets look at the global constants I've defined at the top of the 
-<a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/game1.js">game1.js</a> file:
-
-```javascript
-const canvas = document.querySelector("#board");
-const ctx = canvas.getContext("2d");
-const audio_ctx = new window.AudioContext() || new window.webkitAudioContext();
-const background = new Image();
-const spaceship = new Image();
-const asteroid = new Image();
-const explosion = new Image();
-const splash = new Image();
-const missile = new Image();
-const debris = new Image();
-```
-
-Here is probably a good time to run through what in game programming jargon are known as graphical <em>assets</em>, and
-digressing into responsive design.
-
-
-
-https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events
-
-https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial
-
-My first version, written in Python, had lots of classes &mdash; board, pieces, game... everything was an object &mdash; 
-leading to very verbose, hard to read or change code. I've found getting to grips with JavaScript's 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model">DOM</a> provided by browsers confusing
-enough without cluttering it up further with home-made objects.
-
-Broadly, I've based my JavaScript on the W3C's <a href="https://courses.edx.org/courses/course-v1:W3Cx+HTML5.2x+4T2015/course/">
-HTML5 Part 2</a> Mooc whose second week is titled "Game Programming with HTML5" which I've used to structure my notes on.
 
 
 <q>If you have a procedure with 10 parameters, you probably missed some.</q> &mdash; <a href="http://pu.inf.uni-tuebingen.de/users/klaeren/epigrams.html">Alan J. Perlis</a>.
