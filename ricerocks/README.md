@@ -345,6 +345,9 @@ So all the components of our game boil down to a list of <em>curly bracketed thi
 I'll use <a href="https://en.wikipedia.org/wiki/Sprite_(computer_graphics)">sprite</a> as the generic name for these
 <em>curly bracketed things</em>. In RiceRocks there are four types: spaceship, asteroid, missile, and explosion.
 
+In this case, no two sprites use the same image, but I've included a <em>type</em> attribute with a string name
+to differentiate sprites by name rather than image object in case this isn't true in future games.
+
 Each of these has an associated image object, some of which are <em>sprite sheets</em> &mdash; tiles of smaller images.
 The only animated sprite in this game is 
 <a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/explosion_alpha.png">explosion</a>
@@ -366,42 +369,208 @@ opening and closing curly and square brackets in nested compound data structures
 For an explosion, the <em>curly bracketed thing</em> so far looks like this:
 
 ```javascript
-{ image: spaceship
+{ type: "spaceship"
+, image: spaceship
 , width: 90
 , height: 90
 , row: 0
 , column: 0
+, ...
 }
 ```
 
-This provides us with the first five bits of information we need for 
+This provides us with the first five pieces of information we need for 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage">
 ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);</a>, leaving four to go.
 
 <h4>Graphic destination parameters</h4>
 
-This part of the exercise got me to dust off my <a href="https://en.wikipedia.org/wiki/Classical_mechanics">classical mechanics</a>,
+Whereas its convenient for each sprite to store image source parameters as expected by <em>drawImage</em>, its
+best to think basic physics rather than computer graphics for the destination parameters.
+
+This exercise got me to dust off my <a href="https://en.wikipedia.org/wiki/Classical_mechanics">classical mechanics</a>,
 knowledge, a subject I found extremely dull at school, but would have found fascinating if it had been combined with video games.
 
 The term <a href="https://en.wikipedia.org/wiki/Physics_engine">physics engine</a> is used interchangeably with
 <a href="https://en.wikipedia.org/wiki/Game_engine">game engine</a>, and its good jargon since it brings otherwise 
-dry subjects such as trigonometry and vectors to life. 
+dry subjects such as trigonometry and vectors to life.
+
+One of the core ideas of classical mechanics is we abstract a moving thing as a single point, called its centre of mass or gravity,
+which I'm going to call <em>x_centre</em> and <em>y_centre</em>. So we store the co-ordinates of the centre of the sprite rather
+than the top left co-ordinates called <code>dx</code> and <code>dy</code> by <em>drawImage</em>.
+
+```javascript
+{ ...
+, x_centre: canvas.width/2
+, y_centre: canvas.height/2
+, radius: 35
+, ...
+}
+```
+
+The co-ordinate conventions for computer screens aren't quite the same as a
+<a href="https://en.wikipedia.org/wiki/Cartesian_coordinate_system">Cartesian plane</a> in that the (0,0) centre is in the
+top left corner and down is positive for y. To get the centre of the playing area, we use (canvas.width/2, canvas.height/2).
+
+By scaling <code>sWidth</code> to <code>dWidth</code> and <code>sHeight</code> to <code>dHeight</code>
+&mdash; which in this game is done by sizing the canvas by <code>window.innerWidth</code> and
+<code>window.innerHeight</code>, but in a 3d game could also involve making closer objects look bigger,
+or in a 2d game getting different sized sprites to look bigger or smaller...  &mdash;
+and then using <code>dWidth</code> and <code>dHeight</code> to move from the centre to
+the top left corner, we've not got the last four required parameters for <em>drawImage</em>.
+
+For collision calculations, all sprites in this game are treated as circles of various radii to keep things simple.
+
+<h4>Motion</h4>
+
+Back to <em>classical mechanics</em>, we want to give our sprites linear and angular velocity. Velocity is defined
+as distance/time &mdash; advancing to differential equations with time approaching zero etc.
+
+Luckily, we can simplify the algebra by setting t=1, but need to remember what one unit of time is:
+of the confusing choice, I'm using
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame">Window.requestAnimationFrame(callback)</a>
+to set my loop speed to about one-sixtieth of a second irrespective of the hardware. I'm going to call my unit of time a
+<em>tick</em> which equates to 1/60 second.
+
+To take 2d direction into account, I can either store how far each sprite moves per tick in polar co-ordinates 
+(velocity, direction) or Cartesian co-ordinates (x_delta, y_delta) where 
+<code>x_delta = velocity * Math.cos(direction)</code> and <code>y_delta = velocity * Math.sin(direction)</code>.
+
+Alternatively, <code>velocity = Math.sqrt(Math.pow(x_delta, 2) + Math.pow(y_delta, 2));</code> 
+(we will see the Pythagorean theorem again in collision detection)
+and <code>direction = Math.atan(y_delta/x_delta);</code>. I find polar co-ordinates easier to visualise, so am
+naming these <em>columns</em> &mdash; or attributes, properties, key names... &mdash; velocity and direction.
+
+The spaceship starts stationary, so its velocity is 0, making its direction academic. 
+Asteroids get initialised with random velocities and directions:
+
+```javascript
+{ ...
+, velocity: scale * (Math.random() - 0.5)
+, direction: Math.random() * 2 * Math.PI
+, ...
+}
+```
+
+<h4>Spin</h4>
+
+Something that tripped me up initially was I made the spaceship's movement direction and where it was pointing the same variable,
+causing bugs when I mutated it to an explosion and back to a spaceship. Getting sprites to point in a
+given direction requires calling
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/translate">ctx.translate(x, y);</a>
+and then <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rotate">ctx.rotate(angle);</a>
+before drawing.
+
+Another thing that tripped me up is that <em>up</em> in computer graphics is <code>-Math.PI/2</code> because the vertical signs 
+are flipped from a Cartesian plane.
+
+The spaceship starts pointing up, and then turns clockwise while the right key is held down and anti-clockwise when the
+left key is held down. This is setting <em>angular_velocity</em> to plus or minus <code>Math.PI/60</code> where the 60 is
+kinda arbitrary and playing around with it tweaks the feal of the game nicely.
+
+Using the centre of the spaceship sprite as the point it rotates when you press the right or left arrows looks a bit 
+unrealistic to me, but as far as I recall, the original Asteroids game worked like that.
+
+Though the asteroids aren't animated per se, to make them look interesting we get them to spin either clockwise
+or anti-clockwise at random rates.
+
+```javascript
+{ ...
+, angle: -Math.PI/2
+, angular_velocity: Math.PI/60
+, ...
+}
+```
+
+<h4>Time</h4>
+
+Explosions and missiles are ephemeral, so I need to give them a <em>lifespan</em> of N ticks, keeping count of how long
+they have been in existence with a variable called <em>tick</em>. Though the spaceship and asteroids don't have a fixed
+lifespan, simply setting <code>tick = lifespan</code> simplifies adding them to the kill list during that phase of the loop.
+
+Putting this all together, my <em>curly-bracketed thing</em> for a sprite, using the spaceship as an example, looks like so:
+
+```javascript
+{ type: "spaceship"
+, image: spaceship
+, width: 90
+, height: 90
+, row: 0
+, column: 0
+, x_centre: canvas.width/2
+, y_centre: canvas.height/2
+, radius: 35
+, velocity: 0
+, direction: 0
+, angle: -Math.PI/2
+, angular_velocity: 0
+, tick: 0
+, lifespan: Infinity
+}
+```
+
+<h3>Factory or Constructor?</h3>
+
+What should be easy &mdash; initialising our <em>curly-bracketed things</em> &mdash; turns into a religious argument
+in Javascript over whether this should be done by a <em>factory function</em> (which is just a normal function whose
+return type is an object which in turn will be handled by normal functions such as <code>draw(sprite)</code>) or a 
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/constructor">constructor</a>
+for those who like <em>classy</em> code:
+
+```javascript
+class Sprite {
+  
+  constructor(tp, im, w, h, row, col, x, y, rad, v, d, a, av, t, l) { 
+    this.type = tp;
+    this.image = im;
+    this.width = w;
+    this.height = h;
+    this.row = row;
+    this.column = col;
+    this.x_centre = x;
+    this.y_centre = y;
+    this.radius = rad;
+    this.velocity = v;
+    this.direction = d;
+    this.angle = a;
+    this.angular_velocity = av;
+    this.tick = t;
+    this.lifespan = l;
+  }
+
+  draw() {
+    ctx.save();
+    ctx.translate(this.x_centre, this.y_centre);
+    ctx.rotate(this.angle);
+    ctx.drawImage(this.image, this.column * this.width, this.row * this.height, 
+      this.width, this.height, 
+      -(scale * this.width)/2, -(scale * this.height)/2, 
+      scale * this.width, scale * this.height);
+    ctx.restore();
+  }
+}
+
+sprites.push(new Sprite("spaceship", spaceship, 90, 90, 0, 0, canvas.width/2, canvas.height/2, 
+  35, 0, 0, -Math.PI/2, 0, 0, Infinity));
+```
+
+Possibly influenced by originally doing this game in Python, in a very OOP biased course, I made everything
+in my original version a class.
+
+Among the reasons the OOP style is bad is that it burries <em>draw</em> inside the Sprite class, making
+it hard to re-use more generally. Like <em>goto</em>, <em>this</em> and <em>new</em> are considered harmful,
+so I'm going the factory route:
+
 
 One of my goals here was to keep things minimalistic to focus on JavaScript's basic functions, but the temptation to tinker around
 with fictional physics proved too strong &mdash; and the nice thing about keeping things simple is that small tweeks to a
 a few parameters change the way sprites move and react to player input a lot.
 
-One of the core ideas of classical mechanics is we abstract any object down to a point, often called the centre of mass or gravity,
-which I'm going to call <em>x_centre</em> and <em>y_centre</em>. 
 
 
 
-Using the centre of the spaceship sprite as the point it rotates when you
-press the right or left arrows looks a bit unrealistic to me, but as far as I recall, the original Asteroids game worked like that.
 
-The co-ordinate conventions for computer screens aren't quite the same as a
-<a href="https://en.wikipedia.org/wiki/Cartesian_coordinate_system">Cartesian plane</a> in that the (0,0) centre is in the
-top left corner and down is positive for y. 
+
 
 The centre of the screen 
 
@@ -409,7 +578,6 @@ The angle for up is -Math.PI/2... along with counting from zero, these
 are historical bad decisions we are now stuck with.
 
 
-For collision calculations, all sprites in this game are treated as circles of various radii to keep things simple.
 
 
 
@@ -693,5 +861,6 @@ ctx.clearRect(0, 0, canvas.width, canvas.height);</a> creates a blank slate to r
 <td>1 x 640 x 480 pixels</td>
 </tr>
 </table>
+
 
 
