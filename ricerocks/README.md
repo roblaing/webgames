@@ -588,20 +588,61 @@ sprites.push(create("spaceship", spaceship, 90, 90, 0, 0, canvas.width/2, canvas
 
 No <em>class, this, new</em>, extraneous dots... much simpler, easier to understand code.
 
-<h4>Ticking up sprites</h4>
+<h3>Ticking up sprites</h3>
 
-JavaScript objects are <em>mutable</em>, which means we can update <code>x_centre</code> with 
-<code>x_centre + velocity * Math.cos(direction)</code>, <code>y_centre</code> with
-<code>y_centre + velocity * Math.sin(direction)</code>, <code>angle</code> with
-<code>angle + angle_velocity</code>
+JavaScript objects are <em>mutable</em>, which means we can update the sprite after it's drawn in
+its new position before its drawn again the next tick:
 
 ```javascript 
 function update(sprite) {
+  ...
   sprite.x_centre += sprite.velocity * Math.cos(sprite.direction);
   sprite.y_centre += sprite.velocity * Math.sin(sprite.direction);
   sprite.angle += sprite.angular_velocity;
-  sprite.tick++;
+  ...
 }
+```
+
+Certain updates are specific for types. For instance <em>ephemeral</em> missiles and explosions need to count ticks to reach
+their lifespans:
+
+```javascript
+  ...
+  sprite.tick++;
+  ...
+```
+
+Explosion is the only animated sprite in this game, and its column needs to be incremented to animate through its
+24 frames before ending its lifespan (so the value given to lifespan sets the animation speed).
+
+```javascript
+  ...
+  sprite.column = Math.floor((sprite.tick/sprite.lifespan) * 24);
+  ...
+```
+
+The spaceship is more complex in that it updates its attributes depending on the values in inputStates:
+
+```javascript
+  ...
+  if (inputStates.up) {
+    spaceship.column = 1;
+    spaceship.velocity = spaceship.velocity + (0.1 * scale);
+    // need to think direction through carefully
+  } else {
+    spaceship.column = 0;
+  }
+  if (inputStates.right) {
+    sprite.angular_velocity = Math.PI/60;
+  } else {
+    sprite.angular_velocity = 0;
+  }
+  if (inputStates.left) {
+    sprite.angular_velocity = -Math.PI/60;
+  } else {
+    sprite.angular_velocity = 0;
+  }
+  ...
 ```
 
 
