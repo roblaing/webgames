@@ -595,7 +595,8 @@ JavaScript objects are <em>mutable</em>, which means we can update <code>x_centr
 <code>y_centre + velocity * Math.sin(direction)</code>, <code>angle</code> with
 <code>angle + angle_velocity</code>
 
-```javascript update(sprite) {
+```javascript 
+function update(sprite) {
   sprite.x_centre += sprite.velocity * Math.cos(sprite.direction);
   sprite.y_centre += sprite.velocity * Math.sin(sprite.direction);
   sprite.angle += sprite.angular_velocity;
