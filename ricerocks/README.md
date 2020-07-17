@@ -515,7 +515,7 @@ What should be easy &mdash; initialising our <em>curly-bracketed things</em> &md
 in Javascript over whether this should be done by a <em>factory function</em> (which is just a normal function whose
 return type is an object which in turn will be handled by normal functions such as <code>draw(sprite)</code>) or a 
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/constructor">constructor</a>
-for those who like <em>classy</em> code:
+for those who like <em>classy</em> code with <code>sprite.draw()</code>:
 
 ```javascript
 class Sprite {
@@ -586,10 +586,25 @@ sprites.push(create("spaceship", spaceship, 90, 90, 0, 0, canvas.width/2, canvas
   35, 0, 0, -Math.PI/2, 0, 0, Infinity));
 ```
 
-No <em>class, this, new</em> or extraneous dots &mdash; allowing us to sidestep all these strange OOP warts.
+No <em>class, this, new</em>, extraneous dots... much simpler, easier to understand code.
+
+<h4>Ticking up sprites</h4>
+
+JavaScript objects are <em>mutable</em>, which means we can update <code>x_centre</code> with 
+<code>x_centre + velocity * Math.cos(direction)</code>, <code>y_centre</code> with
+<code>y_centre + velocity * Math.sin(direction)</code>, <code>angle</code> with
+<code>angle + angle_velocity</code>
+
+```javascript update(sprite) {
+  sprite.x_centre += sprite.velocity * Math.cos(sprite.direction);
+  sprite.y_centre += sprite.velocity * Math.sin(sprite.direction);
+  sprite.angle += sprite.angular_velocity;
+  sprite.tick++;
+}
+```
 
 
-
+<h3>List processing</h3>
 
 One of my goals here was to keep things minimalistic to focus on JavaScript's basic functions, but the temptation to tinker around
 with fictional physics proved too strong &mdash; and the nice thing about keeping things simple is that small tweeks to a
