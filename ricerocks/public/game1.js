@@ -102,7 +102,26 @@ function random_distance(r2) {
   return [x2, y2];
 }
 
-function create(type, sprite=undefined) {
+function create(tp, im, w, h, rw, col, x, y, rad, v, d, a, av, t, l) { 
+  return { type: tp
+         , image: im
+         , width: w
+         , height: h
+         , row: rw
+         , column: col
+         , x_centre: x
+         , y_centre: y
+         , radius: rad
+         , velocity: v
+         , direction: d
+         , angle: a
+         , angular_velocity: av
+         , tick: t
+         , lifespan: l
+         };
+}
+
+function create_old(type, sprite=undefined) {
   const obj = { type: type
               , row: 0
               , column: 0
@@ -241,7 +260,7 @@ function update_spaceship(spaceship) {
     spaceship.angle = spaceship.angle - Math.PI/60;
   }
   if (inputStates.space && inputStates.loaded) {
-    new_sprites.push(create("missile", spaceship));
+    new_sprites.push(create_old("missile", spaceship));
     // recoil
     spaceship.x_velocity = spaceship.x_velocity - (0.05 * scale * Math.cos(spaceship.angle));
     spaceship.y_velocity = spaceship.y_velocity - (0.05 * scale * Math.sin(spaceship.angle));
@@ -258,10 +277,10 @@ function update_spaceship(spaceship) {
     playSound(explosion_sound);
     lives = lives - 1;
     spaceship.tick = spaceship.lifespan;
-    new_sprites.push(create("explosion", spaceship));
+    new_sprites.push(create_old("explosion", spaceship));
     hitlist.forEach(function (asteroid) {
       asteroid.tick = asteroid.lifespan;
-      new_sprites.push(create("explosion", asteroid));
+      new_sprites.push(create_old("explosion", asteroid));
     });
   }
 }
@@ -277,7 +296,7 @@ function update_asteroid(asteroid) {
     playSound(explosion_sound);
     score = score + 1;
     asteroid.tick = asteroid.lifespan;
-    new_sprites.push(create("explosion", asteroid));
+    new_sprites.push(create_old("explosion", asteroid));
     hitlist.forEach((missile) => missile.tick = missile.lifetime);
   }
 }
@@ -297,10 +316,10 @@ function update_explosion(explosion) {
   if (explosion.tick === explosion.lifespan) {
     switch (explosion.was) {
       case "asteroid":
-        new_sprites.push(create("asteroid"));
+        new_sprites.push(create_old("asteroid"));
         break;
       case "spaceship":
-        new_sprites.push(create("spaceship", explosion));
+        new_sprites.push(create_old("spaceship", explosion));
         break;
     }
   }
@@ -325,9 +344,11 @@ function loop() {
 function init() {
   background.addEventListener("load", function (event) {
     resize();
-    sprites.push(create("spaceship"));
+    sprites.push(create("spaceship", spaceship, 90, 90, 0, 0, 
+      canvas.width/2, canvas.height/2, 
+      35, 0, 0, -Math.PI/2, 0, 0, Infinity));
     for (let rock = 0; rock <= 12; rock ++) { 
-      sprites.push(create("asteroid"));
+      sprites.push(create_old("asteroid"));
     }
     window.addEventListener("resize", resize);
     window.requestAnimationFrame(loop);

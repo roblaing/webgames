@@ -424,10 +424,10 @@ For collision calculations, all sprites in this game are treated as circles of v
 <h4>Motion</h4>
 
 Back to <em>classical mechanics</em>, we want to give our sprites linear and angular velocity. Velocity is defined
-as distance/time &mdash; advancing to differential equations with time approaching zero etc.
+as the change distance divided by the change in time.
 
-Luckily, we can simplify the algebra by setting t=1, but need to remember what one unit of time is:
-of the confusing choice, I'm using
+Luckily, we can simplify the algebra by setting the change in time to one, but need to remember what one unit of time is:
+of the confusing choices, I'm going with
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame">Window.requestAnimationFrame(callback)</a>
 to set my loop speed to about one-sixtieth of a second irrespective of the hardware. I'm going to call my unit of time a
 <em>tick</em> which equates to 1/60 second.
@@ -548,6 +548,8 @@ class Sprite {
       scale * this.width, scale * this.height);
     ctx.restore();
   }
+
+  // update() would go here...
 }
 
 sprites.push(new Sprite("spaceship", spaceship, 90, 90, 0, 0, canvas.width/2, canvas.height/2, 
@@ -557,9 +559,36 @@ sprites.push(new Sprite("spaceship", spaceship, 90, 90, 0, 0, canvas.width/2, ca
 Possibly influenced by originally doing this game in Python, in a very OOP biased course, I made everything
 in my original version a class.
 
-Among the reasons the OOP style is bad is that it burries <em>draw</em> inside the Sprite class, making
-it hard to re-use more generally. Like <em>goto</em>, <em>this</em> and <em>new</em> are considered harmful,
-so I'm going the factory route:
+I've subsequently learned that among the reasons the OOP style is bad is that it burries <em>draw, update, ...</em> 
+inside the Sprite class, making them hard to re-use more generally. 
+
+```javascript
+function create(tp, im, w, h, rw, col, x, y, rad, v, d, a, av, t, l) { 
+  return { type: tp
+         , image: im
+         , width: w
+         , height: h
+         , row: rw
+         , column: col
+         , x_centre: x
+         , y_centre: y
+         , radius: rad
+         , velocity: v
+         , direction: d
+         , angle: a
+         , angular_velocity: av
+         , tick: t
+         , lifespan: l
+         };
+}
+
+sprites.push(create("spaceship", spaceship, 90, 90, 0, 0, canvas.width/2, canvas.height/2, 
+  35, 0, 0, -Math.PI/2, 0, 0, Infinity));
+```
+
+No <em>class, this, new</em> or extraneous dots &mdash; allowing us to sidestep all these strange OOP warts.
+
+
 
 
 One of my goals here was to keep things minimalistic to focus on JavaScript's basic functions, but the temptation to tinker around
