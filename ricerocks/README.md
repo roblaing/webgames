@@ -323,60 +323,14 @@ const event = new Event('build');
 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/dispatchEvent">elem.dispatchEvent(event);</a>
 
-<h2>The game loop</h2>
+<h2>Game State</h2>
 
-Video games are a great way of learning concurrent programming because seeing lots of things happening on a screen simultaniously
-makes otherwise dry and abstract theory easy to visualise.
-
-JavaScript has started supporting parallelism via <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API">
-workers</a>, but browser support at time of writing seems limited, so here concurrency is largely an optical illusion created by looping through sequential steps over-and-over very rapidly.
-
-Again, JavaScript has <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_animations"> several
-ways</a> to make something that should be easy confusing, so I'm settling on 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame">Window.requestAnimationFrame(callback)</a>
-to set the loop speed to 60/second irrespective of the hardware.
-
-We use it to create an infinite game loop along the lines of this basic template:
-
-```javascript
-function loop() {
-  ...
-  window.requestAnimationFrame(loop); % recursive call creating an infinite loop.
-}
-
-function init() {
-  ...
-  window.requestAnimationFrame(loop); % start infinite loop.
-}
-
-window.addEventListener("DOMContentLoaded", init);
-```
-
-<h2>Initialising the game state and starting the loop</h2>
-
-The template above introduces a new event, <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event">DOMContentLoaded</a>, which is triggered once index.html and its associated css, JavaScript etc
-files have been loaded by the browser.
-
-Here I'm not bothering with <code>(event) => init(event)</code> since this event has no properties to read. 
-It's a common idiom in "concurrency-oriented programming" language Erlang to call the function that 
-sets up the initial state and starts the listening loop <code>init()</code>, so I'll stick with it here.
-
-Much of my thinking on concurreny programming has been shaped by learning Erlang, where the <em>state</em> is kept as
-an argument in the loop function, with its new value passed when it recursively calls itself at the end of each loop cycle. 
-This is because Erlang doesn't allow variables to be overwritten with new values &mdash; making parallelism easier &mdash; 
-whereas with Javascript its easiest to think of the state as global variables.
-
-Keyboard, mouse, whatever events change the state by overwriting global variables, 
-and the loop reads whatever the current value is during each pass. (Global variables are usually frowned on, 
-and having different parts of concurrent systems altering the values of shared variables equates to untestable code 
-where no two runs produce the same results, but since this is only a small game, hopefully none of that matters).
-
-<h2>Thinking in tables (rows and columns) rather than objects</h2>
+<h3>Thinking in tables (rows and columns) rather than objects</h3>
 
 While a video game may not look like a spreadsheet, abstractly it consists of a list of <em>curly bracketed things</em> 
 (which we can think of as rows), each of which is a compound data structure whose properties or attributes can be thought of as slotting into columns.
 
-So all the components of our game boil down to 
+So all the components of our game boil down to a list of <em>curly bracketed things</em>:
 
 <code><pre>
 [ {keyA:valA1, keyB:valB1, keyC:valC1, ...}
@@ -386,10 +340,79 @@ So all the components of our game boil down to
 ]
 </pre></code>
 
-ie, one set of square brackets containing an arbitrary number of <em>curly bracketed things</em>. 
+<h4>Graphic source parameters</h4>
 
-Some key-value pairs will only be needed by certain types of sprites, but we can generalise them enough for
-all to use the same draw and update functions.
+I'll use <a href="https://en.wikipedia.org/wiki/Sprite_(computer_graphics)">sprite</a> as the generic name for these
+<em>curly bracketed things</em>. In RiceRocks there are four types: spaceship, asteroid, missile, and explosion.
+
+Each of these has an associated image object, some of which are <em>sprite sheets</em> &mdash; tiles of smaller images.
+The only animated sprite in this game is 
+<a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/explosion_alpha.png">explosion</a>
+which has a row 24 square images of 128 x 128 pixels, providing an animation which requires us to keep track of
+<em>rows, columns,</em> and units of time, which I'll call <em>ticks</em>.
+
+The <a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/double_ship.png">spaceship</a> has
+two images of 90 × 90 pixels, not for animation, but to show if it's rocket thruster is on or not.
+
+<a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/asteroid_blue.png">Asteroids</a> consist of
+just one 90 x 90 pixel tile, and <a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/shot2.png">missiles</a>
+of one 10 x 10 pixel tile.
+
+This <em>image source</em> data provides us with the first set of common <em>column names</em> for all our sprites.
+
+A style I picked up from looking at SQL code is to use leading commas, which is especially handy for keeping track of
+opening and closing curly and square brackets in nested compound data structures, which mercifully I don't need here.
+
+For an explosion, the <em>curly bracketed thing</em> so far looks like this:
+
+```javascript
+{ image: spaceship
+, width: 90
+, height: 90
+, row: 0
+, column: 0
+}
+```
+
+This provides us with the first five bits of information we need for 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage">
+ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);</a>, leaving four to go.
+
+<h4>Graphic destination parameters</h4>
+
+This part of the exercise got me to dust off my <a href="https://en.wikipedia.org/wiki/Classical_mechanics">classical mechanics</a>,
+knowledge, a subject I found extremely dull at school, but would have found fascinating if it had been combined with video games.
+
+The term <a href="https://en.wikipedia.org/wiki/Physics_engine">physics engine</a> is used interchangeably with
+<a href="https://en.wikipedia.org/wiki/Game_engine">game engine</a>, and its good jargon since it brings otherwise 
+dry subjects such as trigonometry and vectors to life. 
+
+One of my goals here was to keep things minimalistic to focus on JavaScript's basic functions, but the temptation to tinker around
+with fictional physics proved too strong &mdash; and the nice thing about keeping things simple is that small tweeks to a
+a few parameters change the way sprites move and react to player input a lot.
+
+One of the core ideas of classical mechanics is we abstract any object down to a point, often called the centre of mass or gravity,
+which I'm going to call <em>x_centre</em> and <em>y_centre</em>. 
+
+
+
+Using the centre of the spaceship sprite as the point it rotates when you
+press the right or left arrows looks a bit unrealistic to me, but as far as I recall, the original Asteroids game worked like that.
+
+The co-ordinate conventions for computer screens aren't quite the same as a
+<a href="https://en.wikipedia.org/wiki/Cartesian_coordinate_system">Cartesian plane</a> in that the (0,0) centre is in the
+top left corner and down is positive for y. 
+
+The centre of the screen 
+
+The angle for up is -Math.PI/2... along with counting from zero, these
+are historical bad decisions we are now stuck with.
+
+
+For collision calculations, all sprites in this game are treated as circles of various radii to keep things simple.
+
+
+
 
 <h3>forEach or map?</h3>
 
@@ -443,10 +466,6 @@ perspective or whatever.
 
 <h3>Updating sprites</h3>
 
-Game engines are often called <a href="https://en.wikipedia.org/wiki/Physics_engine">physics engines</a>, which is a good
-name since it brings otherwise dry subjects such as trigonometry and vectors to life. 
-My goal with this game was to stick to the bare bones of the original teaching example, but I found it hard not to tinker, 
-and the potential for variations is endless.
 
 One of the basic decisions of a video game is will the world be toroidal as I've done here &mdash; things that move off the side
 reapear on the other side &mdash; or should there be walls. Moving things that are about to move off the edge to the other side
@@ -461,6 +480,57 @@ for collissions between the spaceship and the shots it fires, so that's another 
 Something I didn't like about the original was there wasn't really a reason to use the up arrow, so I decided
 missiles in space should cause recoil, causing the spaceship to move back forcing the player to try keep still with
 the burner.
+
+
+<h2>The game loop</h2>
+
+Video games are a great way of learning concurrent programming because seeing lots of things happening on a screen simultaniously
+makes otherwise dry and abstract theory easy to visualise.
+
+JavaScript has started supporting parallelism via <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API">
+workers</a>, but browser support at time of writing seems limited, so here concurrency is largely an optical illusion created by looping through sequential steps over-and-over very rapidly.
+
+Again, JavaScript has <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_animations"> several
+ways</a> to make something that should be easy confusing, so I'm settling on 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame">Window.requestAnimationFrame(callback)</a>
+to set the loop speed to 60/second irrespective of the hardware.
+
+We use it to create an infinite game loop along the lines of this basic template:
+
+```javascript
+function loop() {
+  ...
+  window.requestAnimationFrame(loop); % recursive call creating an infinite loop.
+}
+
+function init() {
+  ...
+  window.requestAnimationFrame(loop); % start infinite loop.
+}
+
+window.addEventListener("DOMContentLoaded", init);
+```
+
+<h2>Initialising the game state and starting the loop</h2>
+
+The template above introduces a new event, <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event">DOMContentLoaded</a>, which is triggered once index.html and its associated css, JavaScript etc
+files have been loaded by the browser.
+
+Here I'm not bothering with <code>(event) => init(event)</code> since this event has no properties to read. 
+It's a common idiom in "concurrency-oriented programming" language Erlang to call the function that 
+sets up the initial state and starts the listening loop <code>init()</code>, so I'll stick with it here.
+
+Much of my thinking on concurreny programming has been shaped by learning Erlang, where the <em>state</em> is kept as
+an argument in the loop function, with its new value passed when it recursively calls itself at the end of each loop cycle. 
+This is because Erlang doesn't allow variables to be overwritten with new values &mdash; making parallelism easier &mdash; 
+whereas with Javascript its easiest to think of the state as global variables.
+
+Keyboard, mouse, whatever events change the state by overwriting global variables, 
+and the loop reads whatever the current value is during each pass. (Global variables are usually frowned on, 
+and having different parts of concurrent systems altering the values of shared variables equates to untestable code 
+where no two runs produce the same results, but since this is only a small game, hopefully none of that matters).
+
+
 
 <h2>Size and resize are events too</h2>
 
@@ -570,36 +640,7 @@ const debris = new Image();
 Here is probably a good time to run through what in game programming jargon are known as graphical <em>assets</em>, and
 digressing into responsive design.
 
-<table>
-<tr>
-<td><a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/nebula_blue.f2014.png">Background</a></td>
-<td>1 x 800 × 600 pixels</td>
-</tr>
-<tr>
-<td><a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/double_ship.png">Spaceship</a></td>
-<td>2 x 90 × 90 pixels</td>
-</tr>
-<tr>
-<td><a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/asteroid_blue.png">Asteroid</a></td>
-<td>1 x 90 × 90 pixels</td>
-</tr>
-<tr>
-<td><a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/explosion_alpha.png">Explosion</a></td>
-<td>24 x 128 x 128 pixels</td>
-</tr>
-<tr>
-<td><a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/splash.png">Splash</a></td>
-<td>1 x 400 x 300 pixels</td>
-</tr>
-<tr>
-<td><a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/shot2.png">Shot</a></td>
-<td>1 x 10 x 10 pixels</td>
-</tr>
-<tr>
-<td><a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/debris2_blue.png">Debris</a></td>
-<td>1 x 640 x 480 pixels</td>
-</tr>
-</table>
+
 
 https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events
 
@@ -637,4 +678,20 @@ function loop() {
 
 At the start of each loop, <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clearRect">
 ctx.clearRect(0, 0, canvas.width, canvas.height);</a> creates a blank slate to redraw the background and sprites on.
+
+<table>
+<tr>
+<td><a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/nebula_blue.f2014.png">Background</a></td>
+<td>1 x 800 × 600 pixels</td>
+</tr>
+<tr>
+<td><a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/splash.png">Splash</a></td>
+<td>1 x 400 x 300 pixels</td>
+</tr>
+<tr>
+<td><a href="https://github.com/roblaing/webgames/blob/master/ricerocks/public/debris2_blue.png">Debris</a></td>
+<td>1 x 640 x 480 pixels</td>
+</tr>
+</table>
+
 

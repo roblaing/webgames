@@ -7,3 +7,7 @@ then you play again.<q> &mdash; From Mozilla's
 <h2>Game 1: RiceRocks</h2>
 
 
+https://github.com/fredsa/gritsgame
+
+
+
