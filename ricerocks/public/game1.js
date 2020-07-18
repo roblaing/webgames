@@ -40,6 +40,12 @@ let scale = 1.0;
 let lives = 3;
 let score = 0;
 
+// Sprite movement constants
+const THRUST_SPEED = 0.1;
+const RECOIL = -0.05;
+const SPACESHIP_ROTATE_RATE = 60;
+const ASTEROID_ROTATE_RATE = 90;
+const MISSILE_SPEED = 4;
 
 function loadSound(url, audioNode) {
   fetch(url)
@@ -78,12 +84,35 @@ function resize() {
   */
 }
 
-function distance(x1, y1, x2, y2) {
-  return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+function polar(sprite, speed) {
+  let dir;
+  const x_vel = (sprite.velocity * Math.cos(sprite.direction) + 
+    (scale * speed * Math.cos(sprite.angle)));
+  const y_vel = (sprite.velocity * Math.sin(sprite.direction) + 
+    (scale * speed * Math.sin(sprite.angle)));
+  const vel = Math.sqrt(Math.pow(x_vel, 2) + Math.pow(y_vel, 2));
+  if (x_vel >= 0) {
+    dir = Math.asin(y_vel/vel);   // quadrant 1 & 4
+  }
+  if (x_vel < 0 && y_vel < 0) {
+    dir = Math.atan(y_vel/x_vel) - Math.PI;  // quadrant 2
+  }
+  if (x_vel < 0 && y_vel > 0) {
+    dir = Math.acos(x_vel/vel);;  // quadrant 3
+  }
+  return [vel, dir];
 }
 
-function collision(x1, y1, r1, x2, y2, r2) {
-  return distance(x1, y1, x2, y2) <= scale * (r1 + r2);
+function collisions(sprite1, type) {
+  return sprites.filter((sprite2) => sprite2.type === type &&
+    Math.sqrt(Math.pow(sprite2.x_centre - sprite1.x_centre, 2) + 
+              Math.pow(sprite2.y_centre - sprite2.y_centre, 2)) < 
+      scale * (sprite1.radius + sprite2.radius));
+}
+
+// still needed?
+function distance(x1, y1, x2, y2) {
+  return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 }
 
 function spaceship_pos() {
@@ -102,102 +131,75 @@ function random_distance(r2) {
   return [x2, y2];
 }
 
-function create(tp, im, w, h, rw, col, x, y, rad, v, d, a, av, t, l) { 
-  return { type: tp
-         , image: im
-         , width: w
-         , height: h
-         , row: rw
-         , column: col
-         , x_centre: x
-         , y_centre: y
-         , radius: rad
-         , velocity: v
-         , direction: d
-         , angle: a
-         , angular_velocity: av
-         , tick: t
-         , lifespan: l
+function create_spaceship() { 
+  return { type: "spaceship"
+         , image: spaceship
+         , width: 90
+         , height: 90 
+         , row: 0
+         , column: 0
+         , x_centre: canvas.width/2
+         , y_centre: canvas.height/2
+         , radius: 35
+         , velocity: 0
+         , direction: -Math.PI/2
+         , angle: -Math.PI/2
+         , angular_velocity: 0
+         , tick: 0
+         , lifespan: Infinity
          };
 }
 
-function create_old(type, sprite=undefined) {
-  const obj = { type: type
-              , row: 0
-              , column: 0
-              , tick: 0
-              , lifespan: 10
-              };
-  let x;
-  let y;
-  let velocity;
-  switch (type) {
-    case "spaceship":
-      obj.image = spaceship;
-      obj.width = 90; 
-      obj.height = 90;
-      obj.radius = 35;
-      if (sprite === undefined) {
-        obj.x_centre = canvas.width/2;
-        obj.y_centre = canvas.height/2;
-        obj.x_velocity = 0; 
-        obj.y_velocity = 0;
-        obj.angle = -Math.PI/2;
-      } else {
-        obj.x_centre = sprite.x_centre;
-        obj.y_centre = sprite.y_centre;
-        obj.x_velocity = sprite.x_velocity;
-        obj.y_velocity = sprite.x_velocity;
-        obj.angle = sprite.angle;
-      }
-      return obj;
-    case "asteroid":
-      obj.radius = 40;
-      [x, y] = random_distance(obj.radius);
-      obj.angle = Math.random() * 2 * Math.PI;
-      obj.image = asteroid;
-      obj.width = 90; 
-      obj.height = 90;
-      obj.x_centre = x;
-      obj.y_centre = y;
-      velocity = scale * (Math.random() - 0.5);
-      obj.x_velocity = velocity * Math.cos(obj.angle);
-      obj.y_velocity = velocity * Math.sin(obj.angle);
-      obj.angle_velocity = velocity * Math.PI/90;
-      return obj;
-    case "missile":
-     obj.image = missile;
-     obj.width = 10; 
-     obj.height = 10;
-     obj.x_centre = sprite.x_centre + (scale * sprite.height/2 * Math.cos(sprite.angle));
-     obj.y_centre = sprite.y_centre + (scale * sprite.height/2 * Math.sin(sprite.angle));
-     obj.x_velocity = sprite.x_velocity + (4 * scale * Math.cos(sprite.angle));
-     obj.y_velocity = sprite.y_velocity + (4 * scale * Math.sin(sprite.angle));
-     obj.angle = sprite.angle;
-     obj.radius = 3;
-     obj.tick = 0;
-     obj.lifespan = 120;
-     return obj;
-    case "explosion":
-      obj.was = sprite.type;
-      obj.image = explosion;
-      obj.width = 128;
-      obj.height = 128;
-      obj.x_centre = sprite.x_centre;
-      obj.y_centre = sprite.y_centre;
-      obj.x_velocity = sprite.x_velocity;
-      obj.y_velocity = sprite.x_velocity;
-      obj.angle = sprite.angle;
-      obj.tick = 0;
-      if (sprite.type === "spaceship") {
-        obj.lifespan = 120;
-        obj.angle_velocity = 0;
-      } else {
-        obj.lifespan = 60;
-        obj.angle_velocity = sprite.angle_velocity;
-      }
-      return obj;
-  }
+function create_asteroid() {
+  const [x, y] = random_distance(40);
+  return { type: "asteroid"
+         , image: asteroid
+         , width: 90
+         , height: 90
+         , row: 0
+         , column: 0
+         , x_centre: x
+         , y_centre: y
+         , radius: 40
+         , velocity: scale * (Math.random() - 0.5)
+         , direction:  Math.random() * 2 * Math.PI
+         , angle: Math.random() * 2 * Math.PI
+         , angular_velocity: (Math.random() - 0.5) * Math.PI/ASTEROID_ROTATE_RATE
+         , tick: 0
+         , lifespan: Infinity
+         };
+}
+
+function create_missile(sprite) {
+  const [vel, dir] = polar(sprite, MISSILE_SPEED);
+  return { type: "missile"
+         , image: missile
+         , width: 10
+         , height: 10
+         , row: 0
+         , column: 0
+         , x_centre: sprite.x_centre + (scale * sprite.height/2 * Math.cos(sprite.angle)) 
+         , y_centre: sprite.y_centre + (scale * sprite.height/2 * Math.sin(sprite.angle))
+         , radius: 3
+         , velocity: vel
+         , direction: dir
+         , angle: sprite.angle
+         , angular_velocity: 0
+         , tick: 0
+         , lifespan: 120
+         };
+}
+
+function explode(sprite, lifespan) {
+  sprite.was = sprite.type;
+  sprite.type = "explosion";
+  sprite.image = explosion;
+  sprite.width = 128;
+  sprite.height = 128;
+  sprite.row = 0;
+  sprite.column = 0;
+  sprite.tick = 0;
+  sprite.lifespan = lifespan;
 }
 
 function draw(sprite) {
@@ -211,7 +213,14 @@ function draw(sprite) {
   ctx.restore();
 }
 
-function update_sprite(sprite) {
+function update(sprite) {
+  let hitlist = [];
+  let velocity;
+  let direction;
+  // increment linear and angular positions
+  sprite.x_centre += sprite.velocity * Math.cos(sprite.direction);
+  sprite.y_centre += sprite.velocity * Math.sin(sprite.direction);
+  sprite.angle += sprite.angular_velocity;
   // space is toroidal
   if (sprite.x_centre < 0) {
     sprite.x_centre = canvas.width;
@@ -225,103 +234,78 @@ function update_sprite(sprite) {
   if (sprite.y_centre > canvas.height) {
     sprite.y_centre = 0;
   }
+  // specific to type updates
   switch (sprite.type) {
     case "spaceship":
-      update_spaceship(sprite);
-      return sprite;
+      if (inputStates.up) {
+        sprite.column = 1;
+        [velocity, direction] = polar(sprite, THRUST_SPEED);
+        sprite.velocity = velocity;
+        sprite.direction = direction;
+      } else {
+        sprite.column = 0;
+      }
+      if (inputStates.right) {
+        sprite.angular_velocity = Math.PI/SPACESHIP_ROTATE_RATE;
+      } 
+      if (inputStates.left) {
+        sprite.angular_velocity = -Math.PI/SPACESHIP_ROTATE_RATE;
+      } 
+      if (!inputStates.right && !inputStates.left) {
+        sprite.angular_velocity = 0;
+      }
+      if (inputStates.space && inputStates.loaded) {
+        new_sprites.push(create_missile(sprite));
+        [velocity, direction] = polar(sprite, RECOIL);
+        sprite.velocity = velocity;
+        sprite.direction = direction;
+        inputStates.loaded = false;
+      }
+      hitlist = collisions(sprite, "asteroid");
+      if (hitlist.length > 0) {
+        if (inputStates.thrust === true) {
+          inputStates.thrust_sound.stop();
+          inputStates.thrust = false;
+        }
+        playSound(explosion_sound);
+        lives--;
+        explode(sprite, 30);
+        hitlist.forEach(function (sprite2) {
+          explode(sprite2, 120);
+        });
+      }
+      return;
     case "asteroid":
-      update_asteroid(sprite);
-      return sprite;
-    case "missile":
-      update_missile(sprite);
-      return sprite;
+      hitlist = collisions(sprite, "missile");
+      if (hitlist.length > 0) {
+        playSound(explosion_sound);
+        score++;
+        hitlist[0].tick = hitlist[0].lifespan; // only the first missile kills and gets killed
+        explode(sprite, 60);
+      }
+      return;
     case "explosion":
-      update_explosion(sprite);
-      return sprite;
-    default:
-      return sprite;
-  }
-}
-
-function update_spaceship(spaceship) {
-  spaceship.x_centre = spaceship.x_centre + spaceship.x_velocity;
-  spaceship.y_centre = spaceship.y_centre + spaceship.y_velocity;
-  if (inputStates.up) {
-    spaceship.column = 1;
-    spaceship.x_velocity = spaceship.x_velocity + (0.1 * scale * Math.cos(spaceship.angle));
-    spaceship.y_velocity = spaceship.y_velocity + (0.1 * scale * Math.sin(spaceship.angle));
-  } else {
-    spaceship.column = 0;
-  }
-  if (inputStates.right) {
-    spaceship.angle = spaceship.angle + Math.PI/60;
-  } 
-  if (inputStates.left) {
-    spaceship.angle = spaceship.angle - Math.PI/60;
-  }
-  if (inputStates.space && inputStates.loaded) {
-    new_sprites.push(create_old("missile", spaceship));
-    // recoil
-    spaceship.x_velocity = spaceship.x_velocity - (0.05 * scale * Math.cos(spaceship.angle));
-    spaceship.y_velocity = spaceship.y_velocity - (0.05 * scale * Math.sin(spaceship.angle));
-    inputStates.loaded = false;
-  }
-  const hitlist = sprites.filter((sprite) => sprite.type === "asteroid" && 
-    collision(spaceship.x_centre, spaceship.y_centre, spaceship.radius,
-              sprite.x_centre, sprite.y_centre, sprite.radius));
-  if (hitlist.length > 0) {
-    if (inputStates.thrust === true) {
-      inputStates.thrust_sound.stop();
-      inputStates.thrust = false;
-    }
-    playSound(explosion_sound);
-    lives = lives - 1;
-    spaceship.tick = spaceship.lifespan;
-    new_sprites.push(create_old("explosion", spaceship));
-    hitlist.forEach(function (asteroid) {
-      asteroid.tick = asteroid.lifespan;
-      new_sprites.push(create_old("explosion", asteroid));
-    });
-  }
-}
-
-function update_asteroid(asteroid) {
-  asteroid.x_centre = asteroid.x_centre + asteroid.x_velocity;
-  asteroid.y_centre = asteroid.y_centre + asteroid.y_velocity;
-  asteroid.angle = asteroid.angle + asteroid.angle_velocity;
-  const hitlist = sprites.filter((sprite) => sprite.type === "missile" && 
-    collision(asteroid.x_centre, asteroid.y_centre, asteroid.radius,
-              sprite.x_centre, sprite.y_centre, sprite.radius));
-  if (hitlist.length > 0) {
-    playSound(explosion_sound);
-    score = score + 1;
-    asteroid.tick = asteroid.lifespan;
-    new_sprites.push(create_old("explosion", asteroid));
-    hitlist.forEach((missile) => missile.tick = missile.lifetime);
-  }
-}
-
-function update_missile(missile) {
-  missile.x_centre = missile.x_centre + (scale * missile.x_velocity);
-  missile.y_centre = missile.y_centre + (scale * missile.y_velocity);
-  missile.tick = missile.tick + 1;
-}
-
-function update_explosion(explosion) {
-  explosion.x_centre = explosion.x_centre + (scale * explosion.x_velocity);
-  explosion.y_centre = explosion.y_centre + (scale * explosion.y_velocity);
-  explosion.angle = explosion.angle + explosion.angle_velocity;
-  explosion.column = Math.floor((explosion.tick/explosion.lifespan) * 24);
-  explosion.tick = explosion.tick + 1;
-  if (explosion.tick === explosion.lifespan) {
-    switch (explosion.was) {
-      case "asteroid":
-        new_sprites.push(create_old("asteroid"));
-        break;
-      case "spaceship":
-        new_sprites.push(create_old("spaceship", explosion));
-        break;
-    }
+      sprite.column = Math.floor((sprite.tick/sprite.lifespan) * 24);
+      if ((sprite.lifespan - 1) === sprite.tick) {
+        if (sprite.was === "spaceship") {
+          sprite.type = "spaceship";
+          sprite.image = spaceship;
+          sprite.width = 90;
+          sprite.height = 90;
+          sprite.row = 0;
+          sprite.column = 0;
+          sprite.tick = 0;
+          sprite.lifespan = Infinity;
+        }
+        if (sprite.was === "asteroid") {
+          new_sprites.push(create_asteroid());
+        }
+      }
+      sprite.tick++;
+      return;
+    case "missile":
+      sprite.tick++;
+      return;
   }
 }
 
@@ -329,8 +313,7 @@ function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(background, 0, 0, background.width, background.height, 0, 0, canvas.width, canvas.height);
   new_sprites = [];
-  sprites.forEach(function (sprite) {draw(sprite); update_sprite(sprite)});
-  // sprites = sprites.map((sprite) => update_sprite(sprite));
+  sprites.forEach(function (sprite) {draw(sprite); update(sprite);});
   sprites = sprites.filter((sprite) => sprite.tick < sprite.lifespan);
   sprites = sprites.concat(new_sprites);
   ctx.drawImage(debris, 0, 0, debris.width, debris.height, 0, 0, canvas.width, canvas.height);
@@ -344,11 +327,9 @@ function loop() {
 function init() {
   background.addEventListener("load", function (event) {
     resize();
-    sprites.push(create("spaceship", spaceship, 90, 90, 0, 0, 
-      canvas.width/2, canvas.height/2, 
-      35, 0, 0, -Math.PI/2, 0, 0, Infinity));
-    for (let rock = 0; rock <= 12; rock ++) { 
-      sprites.push(create_old("asteroid"));
+    sprites.push(create_spaceship());
+    for (let rock = 0; rock <= 12; rock++) { 
+      sprites.push(create_asteroid());
     }
     window.addEventListener("resize", resize);
     window.requestAnimationFrame(loop);
@@ -404,7 +385,4 @@ function keyListener(event) {
 window.addEventListener("DOMContentLoaded", init);
 document.addEventListener("keydown", (event) => keyListener(event));
 document.addEventListener("keyup",   (event) => keyListener(event));
-
-
-
 

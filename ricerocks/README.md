@@ -1,5 +1,7 @@
 <h1>Game 1: RiceRocks</h1>
 
+Why is collisions giving wrong results?
+
 This game comes from a Mooc I did several years ago, Rice University's 
 <a href="https://www.coursera.org/learn/interactive-python-1">Interactive Python</a> which I translated into
 JavaScript.
@@ -436,12 +438,25 @@ to set my loop speed to about one-sixtieth of a second irrespective of the hardw
 
 To take 2d direction into account, I can either store how far each sprite moves per tick in polar co-ordinates 
 (velocity, direction) or Cartesian co-ordinates (x_delta, y_delta) where 
-<code>x_delta = velocity * Math.cos(direction)</code> and <code>y_delta = velocity * Math.sin(direction)</code>.
+<code>x_delta = velocity * Math.cos(direction)</code> and <code>y_delta = velocity * Math.sin(direction)</code>
+and <code>direction = Math.atan(x_delta/y_delta)</code>. I decided polar co-ordinates made more sense, which forced
+me to revise my trigonometry on getting the correct quadrant. For a Cartesian plane, it's
 
-Alternatively, <code>velocity = Math.sqrt(Math.pow(x_delta, 2) + Math.pow(y_delta, 2));</code> 
-(we will see the Pythagorean theorem again in collision detection)
-and <code>direction = Math.atan(y_delta/x_delta);</code>. I find polar co-ordinates easier to visualise, so am
-naming these <em>columns</em> &mdash; or attributes, properties, key names... &mdash; velocity and direction.
+<ol>
+  <li>All</li>
+  <li>Sine</li>
+  <li>Tangent</li>
+  <li>Cosine</li>
+</ol>
+
+For computer graphics, we need to remember y is flipped, so it becomes
+
+<ol>
+  <li>Cosine</li>
+  <li>Tangent</li>
+  <li>Sine</li>
+  <li>All</li>
+</ol>
 
 The spaceship starts stationary, so its velocity is 0, making its direction academic. 
 Asteroids get initialised with random velocities and directions:
@@ -451,6 +466,22 @@ Asteroids get initialised with random velocities and directions:
 , velocity: scale * (Math.random() - 0.5)
 , direction: Math.random() * 2 * Math.PI
 , ...
+}
+```
+
+
+
+I decided to go for polar co-ordiantes, forcing me to dust-off my high-school trigonometry to figure out how
+the spaceship thrust or recoil from missile fire would change its velocity and direction. Mercifully, I could
+just put this in an <em>impure</em> function with the side-effect of mutating a <em>curly-bracketed thing's</em> 
+values rather than return anything.
+
+```javascript
+function acceleration(sprite, speed) {
+  const x_vel = (sprite.velocity * Math.cos(sprite.direction) + (scale * speed * Mat.cos(sprite.angle)));
+  const y_vel = (sprite.velocity * Math.sin(sprite.direction) + (scale * speed * Mat.sin(sprite.angle)));
+  sprite.velocity = Math.sqrt(Math.pow(x_vel, 2) + Math.pow(y_vel, 2));
+  sprite.direction = Math.atan(x_vel/y_vel);
 }
 ```
 
@@ -511,7 +542,7 @@ Putting this all together, my <em>curly-bracketed thing</em> for a sprite, using
 }
 ```
 
-<h3>Factory or Constructor?</h3>
+<h3>FP or OOP?</h3>
 
 What should be easy &mdash; initialising our <em>curly-bracketed things</em> &mdash; turns into a religious argument
 in Javascript over whether this should be done by a <em>factory function</em> (which is just a normal function whose
@@ -605,6 +636,8 @@ function update(sprite) {
 }
 ```
 
+The gameboard is toroidal, so all sprites also have their position toggled if they move over an edge.
+
 Certain updates are specific for types. For instance <em>ephemeral</em> missiles and explosions need to count ticks to reach
 their lifespans:
 
@@ -623,30 +656,124 @@ Explosion is the only animated sprite in this game, and its column needs to be i
   ...
 ```
 
-The spaceship is more complex in that it updates its attributes depending on the values in inputStates:
+The spaceship is more complex in that it updates its attributes depending on the values in inputStates. It also creates
+missiles which are in this step put into a separate list to be concatenated to sprites after it has completed the 
+iteration in progress. Changing the length of a list itself while it is being iterated is a recipe for bugs, which
+is why I've made filtering dead sprites and concatenating new sprites separate steps in loop().
 
 ```javascript
+THRUST = 0.1;
+RECOIL = 0.05;
+ROTATE_RATE = 60;
+
   ...
   if (inputStates.up) {
-    spaceship.column = 1;
-    spaceship.velocity = spaceship.velocity + (0.1 * scale);
-    // need to think direction through carefully
+    sprite.column = 1;
+    vectorMove(sprite, THRUST_SPEED);
   } else {
-    spaceship.column = 0;
+    sprite.column = 0;
   }
   if (inputStates.right) {
-    sprite.angular_velocity = Math.PI/60;
+    sprite.angular_velocity = Math.PI/ROTATE_RATE;
   } else {
     sprite.angular_velocity = 0;
   }
   if (inputStates.left) {
-    sprite.angular_velocity = -Math.PI/60;
+    sprite.angular_velocity = -Math.PI/ROTATE_RATE;
   } else {
     sprite.angular_velocity = 0;
+  }
+  if (inputStates.space && inputStates.loaded) {
+    new_sprites.push(create_missile(sprite));
+    vectorMove(sprite, RECOIL);
+    inputStates.loaded = false;
   }
   ...
 ```
 
+<h3>Collision detection</h3>
+
+In this game, rock beats spaceship, missile beats rock. Rocks colliding don't do anything to each other
+(though it would be fun to expand the game physics to have the asteroids cause each other to bounce around 
+like billiard balls), and the spaceship is immune from its own missiles (though again, it might be fun to change
+that so missed shots are fatal in a toroid).
+
+Each tick, the spaceship needs to check if it's been hit by an asteroid, and an asteroid needs to check if it has been
+hit by a missile.
+
+
+```javascript
+function collisions(sprite1, type) {
+  return sprites.filter((sprite2) => sprite2.type === type &&
+    Math.sqrt(Math.pow(sprite2.x_centre - sprite1.x_centre, 2) + 
+              Math.pow(sprite2.y_centre - sprite2.y_centre, 2)) 
+    <= scale * (sprite1.radius + sprite2.radius);
+  );
+}
+
+  // for spaceship
+  const hitlist = collisions(sprite, "asteroid");
+
+  // for asteroid
+  const hitlist = collisions(sprite, "missile");
+```
+
+<h4>Explosions</h4>
+
+When the spaceship and one or more asteroids collide, they all explode (I learned the need to also destroy the asteroid
+the hardway when the resurected spaceship kept up exploding again because the asteroid was still there).
+
+When an asteroid gets hit by a missile, it explodes. 
+
+Explosions differ from other sprites because instead of creating a new <em>curly bracketed thing</em>, an
+existing sprite mutates into an explosion for given number of ticks. I find it looks coos if the explosion
+"inherits" the moment of whatever it was. (My physics knowledge isn't sufficient to know how this should
+really work, and learning more would be another fun education project for a later date).
+
+When it reaches its lifespan, the explosion either mutates back into the spaceship, or dies and spawns a replacement
+asteroid. For the explosion to know what its type was in a past life, I tag on a new attribute <em>was</em>.
+
+
+```javascript
+
+  // for spaceship hit by one or more asteroid
+  if (hitlist.length > 0) {
+    if (inputStates.thrust === true) {
+      inputStates.thrust_sound.stop();
+      inputStates.thrust = false;
+    }
+    playSound(explosion_sound);
+    lives--;
+    sprite.was = "spaceship";
+    sprite.type = "explosion";
+    sprite.image = explosion";
+    sprite.tick = 0;  // reset starting clock to zero
+    sprite.lifespan = 30; // half a second, rocket fuel is vicious
+    hitlist.forEach(function (asteroid) {
+      asteroid.was = "asteroid";
+      asteroid.type = "explosion";
+      asteroid.image = explosion";
+      asteroid.tick = 0;
+      asteroid.lifespan = 120; // rocks hit by spacecraft disintegrate very slowly
+    sprite.lifespan = 30; // half a second, rocket fuel is vicious
+    });
+  }
+
+  // for asteroid hit by a missile 
+  if (hitlist.length > 0) {
+    playSound(explosion_sound);
+    score++;
+    hitlist[0].tick = hitlist[0].lifespan; // only the first missile kills and gets killed
+    sprite.x_centre = hitlist[0].x_centre; // decided it looks cooler if the explosion 
+    sprite.y_centre = hitlist[0].y_centre; // epicentre is where it was hit
+    sprite.was = "asteroid";
+    sprite.type = "explosion";
+    sprite.image = explosion";
+    sprite.tick = 0;  // reset starting clock to zero
+    sprite.lifespan = 60; // Asteroids are destroyed faster by missiles than spaceship collisions
+  }
+
+```
 
 <h3>List processing</h3>
 
