@@ -3,37 +3,30 @@
 // Global Image assets
 const canvas = document.querySelector("#board");
 const ctx = canvas.getContext("2d");
-const background = new Image();
-const spaceship = new Image();
-const asteroid = new Image();
-const explosion = new Image();
-const splash = new Image();
-const missile = new Image();
-const debris = new Image();
-background.src = "nebula_blue.f2014.png";
-spaceship.src = "double_ship.png";
-asteroid.src = "asteroid_blue.png";
-splash.src = "splash.png";
-missile.src = "shot2.png";
-explosion.src = "explosion_alpha.png";
-debris.src = "debris2_blue.png";
+const backgroundImage = new Image();
+const spaceshipImage = new Image();
+const asteroidImage = new Image();
+const explosionImage = new Image();
+const splashImage = new Image();
+const missileImage = new Image();
+const debrisImage = new Image();
+backgroundImage.src = "nebula_blue.f2014.png";
+spaceshipImage.src = "double_ship.png";
+asteroidImage.src = "asteroid_blue.png";
+splashImage.src = "splash.png";
+missileImage.src = "shot2.png";
+explosionImage.src = "explosion_alpha.png";
+debrisImage.src = "debris2_blue.png";
 
 // Global Audio assets
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-const soundtrack = audioCtx.createBufferSource();
-const thrust_sound = audioCtx.createBufferSource();
-const missile_sound = audioCtx.createBufferSource();
-const explosion_sound = audioCtx.createBufferSource();
-loadSound("soundtrack.ogg", soundtrack); 
-loadSound("thrust.ogg", thrust_sound);
-loadSound("missile.ogg", missile_sound);
-loadSound("explosion.ogg", explosion_sound);
-soundtrack.loop = true;
-soundtrack.connect(audioCtx.destination);
-soundtrack.start();
+const backgroundSound = audioCtx.createBufferSource();
+const thrustSound = audioCtx.createBufferSource();
+const missileSound = audioCtx.createBufferSource();
+const explosionSound = audioCtx.createBufferSource();
 
 // Global state variables
-const inputStates = {loaded: true, thrust: false};
+const inputStates = {isLoaded: true, isThrust: false};
 let sprites = [];
 let new_sprites = [];
 let scale = 1.0;
@@ -63,17 +56,17 @@ function playSound(audioNode) {
 }
 
 function get_scale() {
-  if (window.innerWidth/window.innerHeight < background.width/background.height) {
-    return 0.98 * (window.innerWidth/background.width);
+  if (window.innerWidth/window.innerHeight < backgroundImage.width/backgroundImage.height) {
+    return 0.98 * (window.innerWidth/backgroundImage.width);
   } else {
-    return 0.98 * (window.innerHeight/background.height);
+    return 0.98 * (window.innerHeight/backgroundImage.height);
   }
 }
 
 function resize() {
   scale = get_scale();
-  canvas.width = scale * background.width;
-  canvas.height = scale * background.height;
+  canvas.width = scale * backgroundImage.width;
+  canvas.height = scale * backgroundImage.height;
   ctx.fillStyle = "white";
   ctx.font = scale * 22 + "px monospace";
   /* Doesn't work
@@ -98,7 +91,7 @@ function polar(sprite, speed) {
     dir = Math.atan(y_vel/x_vel) - Math.PI;  // quadrant 2
   }
   if (x_vel < 0 && y_vel > 0) {
-    dir = Math.acos(x_vel/vel);;  // quadrant 3
+    dir = Math.acos(x_vel/vel);  // quadrant 3
   }
   return [vel, dir];
 }
@@ -131,9 +124,9 @@ function random_distance(r2) {
   return [x2, y2];
 }
 
-function create_spaceship() { 
+function createSpaceship() { 
   return { type: "spaceship"
-         , image: spaceship
+         , image: spaceshipImage
          , width: 90
          , height: 90 
          , row: 0
@@ -150,10 +143,10 @@ function create_spaceship() {
          };
 }
 
-function create_asteroid() {
+function createAsteroid() {
   const [x, y] = random_distance(40);
   return { type: "asteroid"
-         , image: asteroid
+         , image: asteroidImage
          , width: 90
          , height: 90
          , row: 0
@@ -170,10 +163,10 @@ function create_asteroid() {
          };
 }
 
-function create_missile(sprite) {
+function createMissile(sprite) {
   const [vel, dir] = polar(sprite, MISSILE_SPEED);
   return { type: "missile"
-         , image: missile
+         , image: missileImage
          , width: 10
          , height: 10
          , row: 0
@@ -193,7 +186,7 @@ function create_missile(sprite) {
 function explode(sprite, lifespan) {
   sprite.was = sprite.type;
   sprite.type = "explosion";
-  sprite.image = explosion;
+  sprite.image = explosionImage;
   sprite.width = 128;
   sprite.height = 128;
   sprite.row = 0;
@@ -237,7 +230,7 @@ function update(sprite) {
   // specific to type updates
   switch (sprite.type) {
     case "spaceship":
-      if (inputStates.up) {
+      if (inputStates.isUp) {
         sprite.column = 1;
         [velocity, direction] = polar(sprite, THRUST_SPEED);
         sprite.velocity = velocity;
@@ -245,42 +238,40 @@ function update(sprite) {
       } else {
         sprite.column = 0;
       }
-      if (inputStates.right) {
+      if (inputStates.isRight) {
         sprite.angular_velocity = Math.PI/SPACESHIP_ROTATE_RATE;
       } 
-      if (inputStates.left) {
+      if (inputStates.isLeft) {
         sprite.angular_velocity = -Math.PI/SPACESHIP_ROTATE_RATE;
       } 
-      if (!inputStates.right && !inputStates.left) {
+      if (!inputStates.isRight && !inputStates.isLeft) {
         sprite.angular_velocity = 0;
       }
-      if (inputStates.space && inputStates.loaded) {
-        new_sprites.push(create_missile(sprite));
+      if (inputStates.isSpace && inputStates.isLoaded) {
+        new_sprites.push(createMissile(sprite));
         [velocity, direction] = polar(sprite, RECOIL);
         sprite.velocity = velocity;
         sprite.direction = direction;
-        inputStates.loaded = false;
+        inputStates.isLoaded = false;
       }
       hitlist = collisions(sprite, "asteroid");
       if (hitlist.length > 0) {
-        if (inputStates.thrust === true) {
-          inputStates.thrust_sound.stop();
-          inputStates.thrust = false;
+        if (inputStates.isThrust === true) {
+          inputStates.soundBuffer.stop();
+          inputStates.isThrust = false;
         }
-        playSound(explosion_sound);
+        playSound(explosionSound);
         lives--;
         explode(sprite, 30);
-        hitlist.forEach(function (sprite2) {
-          explode(sprite2, 120);
-        });
+        hitlist.forEach((sprite2) => explode(sprite2, 120));
       }
       return;
     case "asteroid":
       hitlist = collisions(sprite, "missile");
       if (hitlist.length > 0) {
-        playSound(explosion_sound);
+        playSound(explosionSound);
         score++;
-        hitlist[0].tick = hitlist[0].lifespan; // only the first missile kills and gets killed
+        hitlist[0].tick = hitlist[0].lifespan; // only the first missileImage kills and gets killed
         explode(sprite, 60);
       }
       return;
@@ -289,7 +280,7 @@ function update(sprite) {
       if ((sprite.lifespan - 1) === sprite.tick) {
         if (sprite.was === "spaceship") {
           sprite.type = "spaceship";
-          sprite.image = spaceship;
+          sprite.image = spaceshipImage;
           sprite.width = 90;
           sprite.height = 90;
           sprite.row = 0;
@@ -298,7 +289,7 @@ function update(sprite) {
           sprite.lifespan = Infinity;
         }
         if (sprite.was === "asteroid") {
-          new_sprites.push(create_asteroid());
+          new_sprites.push(createAsteroid());
         }
       }
       sprite.tick++;
@@ -311,12 +302,12 @@ function update(sprite) {
 
 function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(background, 0, 0, background.width, background.height, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(backgroundImage, 0, 0, backgroundImage.width, backgroundImage.height, 0, 0, canvas.width, canvas.height);
   new_sprites = [];
   sprites.forEach(function (sprite) {draw(sprite); update(sprite);});
   sprites = sprites.filter((sprite) => sprite.tick < sprite.lifespan);
   sprites = sprites.concat(new_sprites);
-  ctx.drawImage(debris, 0, 0, debris.width, debris.height, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(debrisImage, 0, 0, debrisImage.width, debrisImage.height, 0, 0, canvas.width, canvas.height);
   ctx.fillText("Lives", scale * 50, scale * 50);
   ctx.fillText("Score", scale * 680, scale * 50);
   ctx.fillText(lives, scale * 50, scale * 80);
@@ -325,11 +316,11 @@ function loop() {
 }
 
 function init() {
-  background.addEventListener("load", function (event) {
+  backgroundImage.addEventListener("load", function (event) {
     resize();
-    sprites.push(create_spaceship());
+    sprites.push(createSpaceship());
     for (let rock = 0; rock <= 12; rock++) { 
-      sprites.push(create_asteroid());
+      sprites.push(createAsteroid());
     }
     window.addEventListener("resize", resize);
     window.requestAnimationFrame(loop);
@@ -348,29 +339,29 @@ function keyListener(event) {
   }
   switch (event.key) {
     case "ArrowLeft":
-      inputStates.left = bool;
+      inputStates.isLeft = bool;
       return;
     case "ArrowRight":
-      inputStates.right = bool;
+      inputStates.isRight = bool;
       return;
     case "ArrowUp":
-      inputStates.up = bool;
-      if (inputStates.up && !inputStates.thrust) {
-        inputStates.thrust_sound = playSound(thrust_sound);
-        inputStates.thrust = true;
+      inputStates.isUp = bool;
+      if (inputStates.isUp && !inputStates.isThrust) {
+        inputStates.soundBuffer = playSound(thrustSound);
+        inputStates.isThrust = true;
       }
-      if (!inputStates.up && inputStates.thrust) {
-        inputStates.thrust_sound.stop()
-        inputStates.thrust = false;
+      if (!inputStates.isUp && inputStates.isThrust) {
+        inputStates.soundBuffer.stop()
+        inputStates.isThrust = false;
       }
       return;
     case " ":
-      inputStates.space = bool;
-      if (inputStates.space && inputStates.loaded) {
-        playSound(missile_sound);
+      inputStates.isSpace = bool;
+      if (inputStates.isSpace && inputStates.isLoaded) {
+        playSound(missileSound);
       }
-      if (!inputStates.space) {
-        inputStates.loaded = true;
+      if (!inputStates.isSpace) {
+        inputStates.isLoaded = true;
       }
       return;
     case "F12":  // allows toggling to debug screen, needs mouseclick for game to regain keyboard.
@@ -381,6 +372,14 @@ function keyListener(event) {
       return;
   }
 }
+
+loadSound("soundtrack.ogg", backgroundSound); 
+loadSound("thrust.ogg", thrustSound);
+loadSound("missile.ogg", missileSound);
+loadSound("explosion.ogg", explosionSound);
+backgroundSound.loop = true;
+backgroundSound.connect(audioCtx.destination);
+backgroundSound.start();
 
 window.addEventListener("DOMContentLoaded", init);
 document.addEventListener("keydown", (event) => keyListener(event));
