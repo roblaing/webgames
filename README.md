@@ -12,7 +12,16 @@ I'm generally following this, except for trailing commas. It took me a while to 
 
 Quoted keys
 
+<h3>camelCase</h3>
+
 Booleans: isUp
+
+PascalCase
+
+snake_case
+
+
+
 
 <h2><a href="https://jsdoc.app/">Jsdoc</a></h2>
 

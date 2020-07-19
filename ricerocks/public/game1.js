@@ -108,13 +108,8 @@ function distance(x1, y1, x2, y2) {
   return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 }
 
-function spaceship_pos() {
-  const lst = sprites.filter((sprite) => sprite.type === "spaceship" || sprite.was === "spaceship");
-  return [lst[0].x_centre, lst[0].y_centre, lst[0].radius];
-}
-
 function random_distance(r2) {
-  let [x1, y1, r1] = spaceship_pos(); 
+  let [x1, y1, r1] = [sprites[0].x_centre, sprites[0].y_centre, sprites[0].angle]; 
   let x2;
   let y2;
   do {
@@ -193,6 +188,38 @@ function explode(sprite, lifespan) {
   sprite.column = 0;
   sprite.tick = 0;
   sprite.lifespan = lifespan;
+}
+
+function unexplode(sprite) {
+  let x;
+  let y;
+  switch (sprite.was) {
+    case "spaceship":
+      sprite.type = "spaceship";
+      sprite.image = spaceshipImage;
+      sprite.width = 90;
+      sprite.height = 90;
+      sprite.row = 0;
+      sprite.column = 0;
+      sprite.tick = 0;
+      sprite.lifespan = Infinity;
+      return;
+    case "asteroid":
+     [x, y] = random_distance(40);
+     sprite.type = "asteroid";
+     sprite.image = asteroidImage;
+     sprite.width = 90;
+     sprite.height = 90;
+     sprite.row = 0;
+     sprite.column = 0;
+     sprite.tick = 0;
+     sprite.lifespan = Infinity;
+     sprite.velocity = scale * (Math.random() - 0.5);
+     sprite.direction =  Math.random() * 2 * Math.PI;
+     sprite.angle = Math.random() * 2 * Math.PI;
+     sprite.angular_velocity = (Math.random() - 0.5) * Math.PI/ASTEROID_ROTATE_RATE;
+     return;
+  }
 }
 
 function draw(sprite) {
@@ -278,19 +305,7 @@ function update(sprite) {
     case "explosion":
       sprite.column = Math.floor((sprite.tick/sprite.lifespan) * 24);
       if ((sprite.lifespan - 1) === sprite.tick) {
-        if (sprite.was === "spaceship") {
-          sprite.type = "spaceship";
-          sprite.image = spaceshipImage;
-          sprite.width = 90;
-          sprite.height = 90;
-          sprite.row = 0;
-          sprite.column = 0;
-          sprite.tick = 0;
-          sprite.lifespan = Infinity;
-        }
-        if (sprite.was === "asteroid") {
-          new_sprites.push(createAsteroid());
-        }
+        unexplode(sprite);
       }
       sprite.tick++;
       return;
@@ -318,9 +333,9 @@ function loop() {
 function init() {
   backgroundImage.addEventListener("load", function (event) {
     resize();
-    sprites.push(createSpaceship());
-    for (let rock = 0; rock <= 12; rock++) { 
-      sprites.push(createAsteroid());
+    sprites[0] = createSpaceship();
+    for (let rock = 1; rock <= 13; rock++) { 
+      sprites[rock] = createAsteroid();
     }
     window.addEventListener("resize", resize);
     window.requestAnimationFrame(loop);
