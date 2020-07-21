@@ -10,13 +10,13 @@ const explosionImage = new Image();
 const splashImage = new Image();
 const missileImage = new Image();
 const debrisImage = new Image();
-backgroundImage.src = "nebula_blue.f2014.png";
-spaceshipImage.src = "double_ship.png";
-asteroidImage.src = "asteroid_blue.png";
-splashImage.src = "splash.png";
-missileImage.src = "shot2.png";
-explosionImage.src = "explosion_alpha.png";
-debrisImage.src = "debris2_blue.png";
+backgroundImage.src = "https://github.com/roblaing/webgames/blob/master/ricerocks/public/nebula_blue.f2014.png";
+spaceshipImage.src = "https://github.com/roblaing/webgames/blob/master/ricerocks/public/double_ship.png";
+asteroidImage.src = "https://github.com/roblaing/webgames/blob/master/ricerocks/public/asteroid_blue.png";
+splashImage.src = "https://github.com/roblaing/webgames/blob/master/ricerocks/public/splash.png";
+missileImage.src = "https://github.com/roblaing/webgames/blob/master/ricerocks/public/shot2.png";
+explosionImage.src = "https://github.com/roblaing/webgames/blob/master/ricerocks/public/explosion_alpha.png";
+debrisImage.src = "https://github.com/roblaing/webgames/blob/master/ricerocks/public/debris2_blue.png";
 
 // Global Audio assets
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -40,7 +40,7 @@ const ROTATE_RATE = 60;
 const MISSILE_SPEED = 4;
 
 function loadSound(url, audioNode) {
-  fetch(url)
+  fetch(url, {credentials: "include"})
   .then((response) => response.arrayBuffer())
   .then((buffer) => audioCtx.decodeAudioData(buffer))
   .then((decodedData) => audioNode.buffer = decodedData);
@@ -348,10 +348,10 @@ function keyListener(event) {
   }
 }
 
-loadSound("soundtrack.ogg", backgroundSound); 
-loadSound("thrust.ogg", thrustSound);
-loadSound("missile.ogg", missileSound);
-loadSound("explosion.ogg", explosionSound);
+loadSound("https://github.com/roblaing/webgames/blob/master/ricerocks/public/soundtrack.ogg", backgroundSound); 
+loadSound("https://github.com/roblaing/webgames/blob/master/ricerocks/public/thrust.ogg", thrustSound);
+loadSound("https://github.com/roblaing/webgames/blob/master/ricerocks/public/missile.ogg", missileSound);
+loadSound("https://github.com/roblaing/webgames/blob/master/ricerocks/public/explosion.ogg", explosionSound);
 backgroundSound.loop = true;
 backgroundSound.connect(audioCtx.destination);
 backgroundSound.start();

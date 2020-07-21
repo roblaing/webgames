@@ -344,6 +344,32 @@ So all the components of our game boil down to a list of <em>curly bracketed thi
 ]
 </pre></code>
 
+
+<h3>Vectors</h3>
+
+<h4>Computer gaphics vs Cartesian plane</h4>
+
+```javascript
+function polar(sprite, speed) {
+  let dir;
+  const x_vel = (sprite.velocity * Math.cos(sprite.direction) + 
+    (scale * speed * Math.cos(sprite.angle)));
+  const y_vel = (sprite.velocity * Math.sin(sprite.direction) + 
+    (scale * speed * Math.sin(sprite.angle)));
+  const vel = Math.sqrt(Math.pow(x_vel, 2) + Math.pow(y_vel, 2));
+  if (x_vel >= 0) {
+    dir = Math.asin(y_vel/vel);   // quadrant 1 & 4
+  }
+  if (x_vel < 0 && y_vel < 0) {
+    dir = Math.atan(y_vel/x_vel) - Math.PI;  // quadrant 2
+  }
+  if (x_vel < 0 && y_vel > 0) {
+    dir = Math.acos(x_vel/vel);  // quadrant 3
+  }
+  return [vel, dir];
+}
+```
+
 <h4>Graphic source parameters</h4>
 
 I'll use <a href="https://en.wikipedia.org/wiki/Sprite_(computer_graphics)">sprite</a> as the generic name for these
