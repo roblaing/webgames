@@ -10,13 +10,13 @@ const explosionImage = new Image();
 const splashImage = new Image();
 const missileImage = new Image();
 const debrisImage = new Image();
-backgroundImage.src = "https://github.com/roblaing/webgames/blob/master/ricerocks/public/nebula_blue.f2014.png";
-spaceshipImage.src = "https://github.com/roblaing/webgames/blob/master/ricerocks/public/double_ship.png";
-asteroidImage.src = "https://github.com/roblaing/webgames/blob/master/ricerocks/public/asteroid_blue.png";
-splashImage.src = "https://github.com/roblaing/webgames/blob/master/ricerocks/public/splash.png";
-missileImage.src = "https://github.com/roblaing/webgames/blob/master/ricerocks/public/shot2.png";
-explosionImage.src = "https://github.com/roblaing/webgames/blob/master/ricerocks/public/explosion_alpha.png";
-debrisImage.src = "https://github.com/roblaing/webgames/blob/master/ricerocks/public/debris2_blue.png";
+backgroundImage.src = "http://www.seatavern.co.za/nebula_blue.f2014.png";
+spaceshipImage.src = "http://www.seatavern.co.za/double_ship.png";
+asteroidImage.src = "http://www.seatavern.co.za/asteroid_blue.png";
+splashImage.src = "http://www.seatavern.co.za/splash.png";
+missileImage.src = "http://www.seatavern.co.za/shot2.png";
+explosionImage.src = "http://www.seatavern.co.za/explosion_alpha.png";
+debrisImage.src = "http://www.seatavern.co.za/debris2_blue.png";
 
 // Global Audio assets
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -348,10 +348,10 @@ function keyListener(event) {
   }
 }
 
-loadSound("https://github.com/roblaing/webgames/blob/master/ricerocks/public/soundtrack.ogg", backgroundSound); 
-loadSound("https://github.com/roblaing/webgames/blob/master/ricerocks/public/thrust.ogg", thrustSound);
-loadSound("https://github.com/roblaing/webgames/blob/master/ricerocks/public/missile.ogg", missileSound);
-loadSound("https://github.com/roblaing/webgames/blob/master/ricerocks/public/explosion.ogg", explosionSound);
+loadSound("http://www.seatavern.co.za/soundtrack.ogg", backgroundSound); 
+loadSound("http://www.seatavern.co.za/thrust.ogg", thrustSound);
+loadSound("http://www.seatavern.co.za/missile.ogg", missileSound);
+loadSound("http://www.seatavern.co.za/explosion.ogg", explosionSound);
 backgroundSound.loop = true;
 backgroundSound.connect(audioCtx.destination);
 backgroundSound.start();

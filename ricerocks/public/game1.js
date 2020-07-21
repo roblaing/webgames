@@ -291,15 +291,24 @@ function loop() {
 }
 
 function init() {
-  backgroundImage.addEventListener("load", function (event) {
-    resize();
-    sprites[0] = createSpaceship();
-    for (let rock = 1; rock <= 13; rock++) { 
-      sprites[rock] = createAsteroid();
-    }
-    window.addEventListener("resize", resize);
-    window.requestAnimationFrame(loop);
+  window.addEventListener("DOMContentLoaded", async function (event1) {
+    await backgroundImage.addEventListener("load", function (event2) {
+      resize();
+      sprites[0] = createSpaceship();
+      for (let rock = 1; rock <= 13; rock++) { 
+        sprites[rock] = createAsteroid();
+      }
+      window.addEventListener("resize", resize);
+      window.requestAnimationFrame(loop);
+    });
   });
+  loadSound("soundtrack.ogg", backgroundSound); 
+  loadSound("thrust.ogg", thrustSound);
+  loadSound("missile.ogg", missileSound);
+  loadSound("explosion.ogg", explosionSound);
+  backgroundSound.loop = true;
+  backgroundSound.connect(audioCtx.destination);
+  backgroundSound.start();
 }
 
 function keyListener(event) {
@@ -348,15 +357,7 @@ function keyListener(event) {
   }
 }
 
-loadSound("soundtrack.ogg", backgroundSound); 
-loadSound("thrust.ogg", thrustSound);
-loadSound("missile.ogg", missileSound);
-loadSound("explosion.ogg", explosionSound);
-backgroundSound.loop = true;
-backgroundSound.connect(audioCtx.destination);
-backgroundSound.start();
-
-window.addEventListener("DOMContentLoaded", init);
+init();
 document.addEventListener("keydown", (event) => keyListener(event));
 document.addEventListener("keyup",   (event) => keyListener(event));
 
