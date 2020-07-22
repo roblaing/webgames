@@ -84,7 +84,7 @@ CanvasRenderingContext2D of HTMLCanvasElement etc, coding convention is to treat
 
 Along with getting to grips with the language, I also used developing some games as a way to learn JavaScript's documentation and testing tools.
 
-I haven't got far with the testing tools yet, but found JSDoc's tags a handy way to "think above the code" in trying to abstract RiceRocks.
+I haven't got far with the testing tools yet, but found JSDoc's tags a handy way to "think above the code" in trying to abstract RiceRocks into a general game framework.
 
 Like most automated documentation systems, JSDoc lists things alphabetically, which is good for reference, but not great for explaining
 <a href="https://en.wikipedia.org/wiki/Control_flow">control flow</a>, which I'll attempt in this 
@@ -94,7 +94,7 @@ Like most automated documentation systems, JSDoc lists things alphabetically, wh
 
 In the fog of the religious war underway between <a href="https://en.wikipedia.org/wiki/Functional_programming">FP</a> vs
 <a href="https://en.wikipedia.org/wiki/Object-oriented_programming">OOP</a>, event-driven programming seems to have been
-forgotten about. For me, it seems the most natural approach for writing any kind of GUI application, including games.
+forgotten. to me, it seems the most natural approach for writing any kind of GUI application, including games.
 
 Event-driven programming broadly involves three types of things:
 
@@ -110,7 +110,8 @@ and <a href="https://developer.mozilla.org/en-US/docs/Web/Events">type</a> is so
 
 <h3>1. Listeners</h3>
 
-A reason I selected RiceRocks as an introductory example is user input only involves four keys &mdash; space to fire missiles, left to rotate
+RiceRocks is a game originally done as a project in Rice University's <a href="https://www.coursera.org/learn/interactive-python-1">Interactive Python</a> Mooc which I translated to JavaScript. It makes a good 
+introductory example because its user input only involves four keys &mdash; space to fire missiles, left to rotate
 counter-clockwise, right to rotate clockwise, and up to move in the direction the spaceship is currently pointed.
 
 ```javascript
@@ -122,8 +123,7 @@ I initially made <em>window</em> rather than <em>document</em> my target, and it
 <a href="https://javascript.info/bubbling-and-capturing">bubble</a> through the DOM, arriving at the Window if nothing has captured them before then.
 It's generally good practice to make the target as close to the event as possible.
 
-The original game which I got from Rice University's <a href="https://www.coursera.org/learn/interactive-python-1">Interactive Python</a>
-had a splash screen which was removed by clicking on the canvas with a mouse, but I left it out since it doesn't add much.
+The original game had a splash screen which was removed by clicking on the canvas with a mouse, but I left it out since it doesn't add much.
 
 A less obvious event is <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event">DOMContentLoaded</a> &mdash;
 which I'm actually not sure is the better choice than <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/load_event">load</a>.
