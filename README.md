@@ -48,7 +48,7 @@ snake_case
 <dd>Name, type, and description, with a hyphen before the description</dd>
 <dt><a href="https://jsdoc.app/tags-returns.html">@returns {number} Sum of a and b</a></dt>
 <dd>For multiple return types, <code>@returns {(number|Array)} Sum ...</code></dd>
-<dt><a href="https://jsdoc.app/tags-typedef.html"></a>@typedef {Object} Sprite</a></dt>
+<dt><a href="https://jsdoc.app/tags-typedef.html">@typedef {Object} Sprite</a></dt>
 <dd>The @typedef tag is useful for documenting custom types, particularly if you wish to refer to them repeatedly. 
 These types can then be used within other tags expecting a type, such as @type or @param.</dd>
 <dt><a href="https://jsdoc.app/tags-property.html">@property {number} players - The default number of players.</a></dt>

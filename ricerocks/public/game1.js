@@ -1,11 +1,50 @@
 "use strict";
+/**
+ * @file A simple arcade game translated to JavaScript from a 
+ * [Python Mooc]{@link https://www.coursera.org/learn/interactive-python-1} given by Rice University.
+ * @author Robert Laing
+ */
 
-// Global Image assets
+/** 
+ * [Canvas API]{@link https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API}
+ * @constant {HTMLCanvasElement} canvas 
+*/
 const canvas = document.querySelector("#board");
+/** 
+ * [Canvas's context]{@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D}
+ * @constant {CanvasRenderingContext2D} ctx 
+ */
 const ctx = canvas.getContext("2d");
+/**
+ * First image drawn each loop.
+ * @constant {HTMLImageElement} backgroundImage
+ * @property {pixels} width - 800, canvas.width if scale = 1.0
+ * @property {pixels} height - 600, canvas.height if scale = 1.0
+ * @property {graphicFile} src - [nebula_blue.f2014.png]{@link http://www.seatavern.co.za/nebula_blue.f2014.png}
+ */
 const backgroundImage = new Image();
+/**
+ * Two images in one file showing spaceship with rocket on or off.
+ * @constant {HTMLImageElement} spaceshipImage
+ * @property {pixels} width - 180, two square tiles in a row
+ * @property {pixels} height - 90
+ * @property {graphicFile} src - [double_ship.png]{@link http://www.seatavern.co.za/double_ship.png}
+ */
 const spaceshipImage = new Image();
+/**
+ * Single image with no animation per se, but rotation makes it look lively.
+ * @constant {HTMLImageElement} asteroidImage
+ * @property {pixels} width - 90
+ * @property {pixels} height - 90
+ * @property {graphicFile} src - [asteroid_blue.png]{@link http://www.seatavern.co.za/asteroid_blue.png}
+ */
 const asteroidImage = new Image();
+/**
+ * The only animated sprite in this game
+ * @constant {HTMLImageElement} asteroidImage
+ * @property {pixels} width - 90
+ * @property {pixels} height - 90
+ */
 const explosionImage = new Image();
 const splashImage = new Image();
 const missileImage = new Image();
@@ -97,6 +136,30 @@ function random_distance(sprite, r2, ratio) {
   return [x2, y2];
 }
 
+/**
+ * Each Sprite has these 15 common properties
+ * @typedef {Object} Sprite
+ * @property {String} type - "spaceship" | "asteroid" | "missile" | "explosion"
+ * @property {HTMLImageElement} image - initialised and loaded sprite sheet
+ * @property {pixels} width - pixel width of a sprite tile, which is not necessarily image.width
+ * @property {pixels} height - pixel height of a sprite tile, which is not necessarily image.height
+ * @property {Number} row - offset sx is calculated from row * width, ie row = 0 for first tile
+ * @property {Number} column - offset sy is calculated from column * height, ie column = 0 for first tile
+ * @property {pixels} xCentre - from 0 in top left corner positive right, horizontal centre co-ordinate of sprite
+ * @property {pixels} yCentre - from 0 in top left corner positive down, vertical centre co-ordinate of sprite
+ * @property {pixels} xDelta - Sets horizonal speed of the sprite. xCentre is incremented by xDela each tick
+ * @property {pixels} yDelta - Sets vertical speed of the sprite. yCentre is incremented by yDelta each tick
+ * @property {radians} angle - radians to rotate image. -Math.PI/2 is 90 degrees
+ * @property {radians} angleDelta - increment in radians to angle each tick, clockwise positive
+ * @property {Number} tick - counter to select sprite tile and measure sprite age
+ * @property {Number} lifespan - used to filter dead ephemereal sprites
+ */
+
+/**
+ * Initialises a spaceship Sprite
+ * @function
+ * @returns {Sprite} A spaceship starting in the centre, facing up, stationary
+ */
 function createSpaceship() { 
   return { type: "spaceship"
          , image: spaceshipImage
@@ -110,12 +173,17 @@ function createSpaceship() {
          , yDelta: 0
          , radius: 35
          , angle: -Math.PI/2
-         , angular_velocity: 0
+         , angleDelta: 0
          , tick: 0
          , lifespan: Infinity
          };
 }
 
+/**
+ * Initialises an asteroid Sprite
+ * @function
+ * @returns {Sprite} Selects random start (not on top of spaceship), speed and rotation
+ */
 function createAsteroid() {
   const [x, y] = random_distance(sprites[0], 40, 1.5);
   const velocity = scale * (Math.random() - 0.5);
@@ -132,26 +200,32 @@ function createAsteroid() {
          , yDelta: velocity * Math.sin(direction)
          , radius: 40
          , angle: Math.random() * 2 * Math.PI
-         , angular_velocity: (Math.random() - 0.5) * Math.PI/ROTATE_RATE
+         , angleDelta: (Math.random() - 0.5) * Math.PI/ROTATE_RATE
          , tick: 0
          , lifespan: Infinity
          };
 }
 
-function createMissile(sprite) {
+/**
+ * Initialises a missile Sprite, shoots from tip of spaceship
+ * @function
+ * @param {Sprite} spaceship - needs direction, position and velocity of spaceship
+ * @returns {Sprite} Missile shot from spaceship, lives 2 seconds (120 ticks)
+ */
+function createMissile(spaceship) {
   return { type: "missile"
          , image: missileImage
          , width: 10
          , height: 10
          , row: 0
          , column: 0
-         , xCentre: sprite.xCentre + (scale * sprite.height/2 * Math.cos(sprite.angle)) 
-         , yCentre: sprite.yCentre + (scale * sprite.height/2 * Math.sin(sprite.angle))
-         , xDelta: sprite.xDelta + (scale * MISSILE_SPEED * Math.cos(sprite.angle))
-         , yDelta: sprite.yDelta + (scale * MISSILE_SPEED * Math.sin(sprite.angle))
+         , xCentre: spaceship.xCentre + (scale * spaceship.height/2 * Math.cos(spaceship.angle)) 
+         , yCentre: spaceship.yCentre + (scale * spaceship.height/2 * Math.sin(spaceship.angle))
+         , xDelta: spaceship.xDelta + (scale * MISSILE_SPEED * Math.cos(spaceship.angle))
+         , yDelta: spaceship.yDelta + (scale * MISSILE_SPEED * Math.sin(spaceship.angle))
          , radius: 3
-         , angle: sprite.angle
-         , angular_velocity: 0
+         , angle: spaceship.angle
+         , angleDelta: 0
          , tick: 0
          , lifespan: 120
          };
@@ -202,7 +276,7 @@ function nextTick(sprite) {
   let hitlist = [];
   sprite.xCentre += sprite.xDelta;
   sprite.yCentre += sprite.yDelta;
-  sprite.angle += sprite.angular_velocity;
+  sprite.angle += sprite.angleDelta;
   // space is toroidal
   if (sprite.xCentre < 0) {
     sprite.xCentre = canvas.width;
@@ -227,13 +301,13 @@ function nextTick(sprite) {
         sprite.column = 0;
       }
       if (inputStates.isRight) {
-        sprite.angular_velocity = Math.PI/ROTATE_RATE;
+        sprite.angleDelta = Math.PI/ROTATE_RATE;
       } 
       if (inputStates.isLeft) {
-        sprite.angular_velocity = -Math.PI/ROTATE_RATE;
+        sprite.angleDelta = -Math.PI/ROTATE_RATE;
       } 
       if (!inputStates.isRight && !inputStates.isLeft) {
-        sprite.angular_velocity = 0;
+        sprite.angleDelta = 0;
       }
       if (inputStates.isSpace && inputStates.isLoaded) {
         new_sprites.push(createMissile(sprite));
@@ -290,27 +364,6 @@ function loop() {
   window.requestAnimationFrame(loop);
 }
 
-function init() {
-  window.addEventListener("DOMContentLoaded", async function (event1) {
-    await backgroundImage.addEventListener("load", function (event2) {
-      resize();
-      sprites[0] = createSpaceship();
-      for (let rock = 1; rock <= 13; rock++) { 
-        sprites[rock] = createAsteroid();
-      }
-      window.addEventListener("resize", resize);
-      window.requestAnimationFrame(loop);
-    });
-  });
-  loadSound("soundtrack.ogg", backgroundSound); 
-  loadSound("thrust.ogg", thrustSound);
-  loadSound("missile.ogg", missileSound);
-  loadSound("explosion.ogg", explosionSound);
-  backgroundSound.loop = true;
-  backgroundSound.connect(audioCtx.destination);
-  backgroundSound.start();
-}
-
 function keyListener(event) {
   let bool;
   switch (event.type) {
@@ -357,7 +410,33 @@ function keyListener(event) {
   }
 }
 
-init();
-document.addEventListener("keydown", (event) => keyListener(event));
-document.addEventListener("keyup",   (event) => keyListener(event));
+window.addEventListener("DOMContentLoaded", async function (event1) {
+  await backgroundImage.addEventListener("load", function (event2) {
+    resize();
+    sprites[0] = createSpaceship();
+    for (let rock = 1; rock <= 13; rock++) { 
+      sprites[rock] = createAsteroid();
+    }
+    window.addEventListener("resize", resize);
+    window.requestAnimationFrame(loop);
+  });
+});
+
+window.addEventListener("unload", function (event) {
+  backgroundSound.stop();
+  thrustSound.stop();
+  missileSound.stop();
+  explosionSound.stop();
+});
+
+loadSound("soundtrack.ogg", backgroundSound); 
+loadSound("thrust.ogg", thrustSound);
+loadSound("missile.ogg", missileSound);
+loadSound("explosion.ogg", explosionSound);
+backgroundSound.loop = true;
+backgroundSound.connect(audioCtx.destination);
+backgroundSound.start();
+
+document.addEventListener("keydown", keyListener);
+document.addEventListener("keyup",   keyListener);
 

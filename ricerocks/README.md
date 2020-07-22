@@ -1,6 +1,136 @@
 <h1>Game 1: RiceRocks</h1>
 
-Why is collisions giving wrong results?
+<h2><a href="https://developer.mozilla.org/en-US/docs/Web/API">Web APIs</a></h2>
+
+Frontend web development boils down to familiarisation with the bewildering choice of Web APIs available, and
+the goal of this first game was to learn a minimal subset to get animation, sound, and user interaction working.
+
+Invariably there are at least four ways of doing anything with JavaScript, and guessing the correct one
+involves knowing which is the old or new way, good or bad part, functional or object-oriented idiom,
+synchronous or asynchronous... 
+
+These are the ones I've settled on for now.
+
+Achieving a desired goal requires an encyclopaedic knowledge of many objects and their properties, 
+events and their handlers, and methods and their parameters &mdash; mercifully <a href="https://developer.mozilla.org/en-US/">
+MDN</a> is an excellent reference.
+
+I've attempted to draw a hierarchy of these objects, though in JavaScript that's not easy. Though Document is a child of Window,
+CanvasRenderingContext2D of HTMLCanvasElement etc, coding convention is to treat each as a separate object.
+<code>AudioContext</code>is initially addressed as a child of Window since it's the global, root object.
+
+<code><pre>
+├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model">DOM</a>
+│   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window">Window</a>
+│   │   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window#Events">Properties</a>
+│   │   │   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/innerWidth">innerWidth</a>
+│   │   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/innerHeight">innerHeight</a>
+│   │   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window#Events">Events</a>
+│   │   │   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event">DOMContentLoaded</a>
+│   │   │   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/unload_event">unload</a>
+│   │   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/resize_event">resize</a>
+│   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window#Methods">Methods</a>
+│   │   .   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame">requestAnimationFrame()</a>
+│   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document">Document</a>
+│   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document#Events">Events</a>
+│   .   │   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keydown_event">keydown</a>
+│   .   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keyup_event">keyup</a>
+│   .   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document#Methods">Methods</a>
+│   .   .   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector">querySelector()</a>
+├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API">Canvas</a>
+│   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement">HTMLCanvasElement</a>
+│   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement#Properties">Properties</a>
+│   │   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/width">width</a>
+│   │   .   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/height">height</a>
+│   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">CanvasRenderingContext2D</a>
+│   .   ├── Constructor/Instantiator
+│   .   │   └── <a href="developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext">HTMLCanvasElement.getContext()</a>
+│   .   ├── Properties
+│   .   │   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/fillStyle">fillStyle</a>
+│   .   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/font">font</a>
+│   .   └── Methods
+│   .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clearRect">clearRect()</a>
+│   .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage">drawImage()</a>
+│   .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/fillText">fillText()</a>
+│   .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/restore">restore()</a>
+│   .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rotate">rotate()</a>
+│   .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/save">save()</a>
+│   .   .   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/translate">translate()</a>
+├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement">HTMLImageElement</a>
+│   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Constructor">Constructor</a>
+│   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/Image">Image()</a>
+│   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Properties">Properties</a>
+│   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/width">width</a>
+│   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/height">height</a>
+│   .   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/src">src</a>
+├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext">BaseAudioContext</a>
+│   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioContext#Constructor">Constructor</a>
+│   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/AudioContext">AudioContext()</a>
+│   └── Properties
+│       └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/destination">destination</a>
+└── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode">AudioBufferSourceNode</a>
+.   ├── Constructor/Instantiator
+.   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createBufferSource">BaseAudioContext.createBufferSource()</a>
+.   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode#Properties">Properties</a>
+.   │   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/buffer">buffer</a>
+.   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/loop">loop</a>
+.   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode#Methods">Methods</a>
+.   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioNode/connect">connect()</a>
+.   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/start">start()</a>
+.   .   └── stop()
+</pre></code>
+
+<h2><a href="https://jsdoc.app/">JSDoc</a></h2>
+
+Along with getting to grips with the language, I also used developing some games as a way to learn JavaScript's documentation and testing tools.
+
+I haven't got far with the testing tools yet, but found JSDoc's tags a handy way to "think above the code" in trying to abstract RiceRocks.
+
+Like most automated documentation systems, JSDoc lists things alphabetically, which is good for reference, but not great for explaining
+<a href="https://en.wikipedia.org/wiki/Control_flow">control flow</a>, which I'll attempt in this 
+<a href=="https://jsdoc.app/about-including-readme.html">README.md</a> which JSDoc uses for the home page.
+
+<h2><a href="https://en.wikipedia.org/wiki/Event-driven_programming">Event-driven programming</a></h2>
+
+In the fog of the religious war underway between <a href="https://en.wikipedia.org/wiki/Functional_programming">FP</a> vs
+<a href="https://en.wikipedia.org/wiki/Object-oriented_programming">OOP</a>, event-driven programming seems to have been
+forgotten about. For me, it seems the most natural approach for writing any kind of GUI application, including games.
+
+Event-driven programming broadly involves three types of things:
+
+<ol>
+  <li>Listeners: In JavaScript, created with <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener">
+target.addEventListener(type, listener [, options]);</a> where
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget">target</a> is Window, Document, or other HTML element,
+and <a href="https://developer.mozilla.org/en-US/docs/Web/Events">type</a> is something like "keyup", "keydown", or "click".
+</li>
+  <li>Handlers: This is addEventListener's second argument, a <a href="">callback</a> called listener in the documentation.</li>
+  <li>A <a href="https://en.wikipedia.org/wiki/Event_loop">listening loop</a>.</li>
+</ol>
+
+<h3>1. Listeners</h3>
+
+A reason I selected RiceRocks as an introductory example is user input only involves four keys &mdash; space to fire missiles, left to rotate
+counter-clockwise, right to rotate clockwise, and up to move in the direction the spaceship is currently pointed.
+
+```javascript
+document.addEventListener("keydown", keyListener);
+document.addEventListener("keyup",   keyListener);
+```
+
+I initially made <em>window</em> rather than <em>document</em> my target, and it doesn't make much difference. JavaScript events are said to
+<a href="https://javascript.info/bubbling-and-capturing">bubble</a> through the DOM, arriving at the Window if nothing has captured them before then.
+It's generally good practice to make the target as close to the event as possible.
+
+One of the frustrations with JavaScript is there's little idiomatic consistency. For instance, sometimes the
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new">new operator</a> to instantiate objects, othertimes
+a new object is returned by, say, getContext() or createBufferSource().
+
+
+<h2>Welcome to the white screen of death</h2>
+
+https://stackoverflow.com/questions/40527986/how-to-find-out-what-is-causing-my-white-screen-of-death
+
 
 This game comes from a Mooc I did several years ago, Rice University's 
 <a href="https://www.coursera.org/learn/interactive-python-1">Interactive Python</a> which I translated into
