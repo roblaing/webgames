@@ -6,8 +6,8 @@ Frontend web development boils down to familiarisation with the bewildering choi
 the goal of this first game was to learn a minimal subset to get animation, sound, and user interaction working.
 
 Invariably there are at least four ways of doing anything with JavaScript, and guessing the correct one
-involves knowing which is the old or new way, good or bad part, functional or object-oriented idiom,
-synchronous or asynchronous... 
+involves knowing whether it is old or new, good or bad, functional or object-oriented,
+synchronous or asynchronous, block or function scope... 
 
 These are the ones I've settled on for now.
 
@@ -88,7 +88,7 @@ I haven't got far with the testing tools yet, but found JSDoc's tags a handy way
 
 Like most automated documentation systems, JSDoc lists things alphabetically, which is good for reference, but not great for explaining
 <a href="https://en.wikipedia.org/wiki/Control_flow">control flow</a>, which I'll attempt in this 
-<a href=="https://jsdoc.app/about-including-readme.html">README.md</a> which JSDoc uses for the home page.
+<a href="https://jsdoc.app/about-including-readme.html">README.md</a> which JSDoc uses for the home page.
 
 <h2><a href="https://en.wikipedia.org/wiki/Event-driven_programming">Event-driven programming</a></h2>
 
@@ -99,7 +99,7 @@ forgotten about. For me, it seems the most natural approach for writing any kind
 Event-driven programming broadly involves three types of things:
 
 <ol>
-  <li>Listeners: In JavaScript, created with <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener">
+  <li>Listeners: In JavaScript, these are created with <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener">
 target.addEventListener(type, listener [, options]);</a> where
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget">target</a> is Window, Document, or other HTML element,
 and <a href="https://developer.mozilla.org/en-US/docs/Web/Events">type</a> is something like "keyup", "keydown", or "click".
@@ -122,21 +122,83 @@ I initially made <em>window</em> rather than <em>document</em> my target, and it
 <a href="https://javascript.info/bubbling-and-capturing">bubble</a> through the DOM, arriving at the Window if nothing has captured them before then.
 It's generally good practice to make the target as close to the event as possible.
 
-One of the frustrations with JavaScript is there's little idiomatic consistency. For instance, sometimes the
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new">new operator</a> to instantiate objects, othertimes
-a new object is returned by, say, getContext() or createBufferSource().
+The original game which I got from Rice University's <a href="https://www.coursera.org/learn/interactive-python-1">Interactive Python</a>
+had a splash screen which was removed by clicking on the canvas with a mouse, but I left it out since it doesn't add much.
+
+A less obvious event is <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event">DOMContentLoaded</a> &mdash;
+which I'm actually not sure is the better choice than <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/load_event">load</a>.
+
+Getting this to work introduced me to two notorious horrors of Javascript: the <a href="https://javascript.info/callbacks#pyramid-of-doom">
+Pyramid of Doom</a> (also known as <q>Callback Hell</q>); and the <q>White Screen of Death</q>.
+
+My solution (which I'm not sure fixes these problems adequately) looks like this:
+
+```javascript
+window.addEventListener("DOMContentLoaded", async function (event1) {
+  await backgroundImage.addEventListener("load", function (event2) {
+    resize();
+    sprites[0] = createSpaceship();
+    for (let rock = 1; rock <= 13; rock++) { 
+      sprites[rock] = createAsteroid();
+    }
+    window.addEventListener("resize", resize);
+    window.requestAnimationFrame(loop);
+  });
+});
+```
+
+The problem the above code addresses is I want my website to have <a href="https://developers.google.com/search/mobile-sites/mobile-seo/responsive-design">
+responsive design</a> in that the <em>board</em> (ie canvas object) should use all the available screen real estate. To calculate this, the programme needs
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/innerWidth">window.innerWidth</a> and 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/innerHeight">window.innerHeight</a>, which if used before the window has completed
+loading, will be <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a>.
+
+The base size (ie scale = 1.0) is provided by the width and height of the background image, which if read before the graphic file has finished downloading
+will be <em>undefined</em>.
+
+A pitfall most novices will fall into is that, without care, JavaScript will produce a garbage value for <code>scale</code> using <em>undefined</em> 
+for its calculation which canvas won't draw, leading to the dreaded <q>White Screen of Death</q> with no error messages or clues on the console. 
+
+Before unravelling the above code, lets look at the <em>new way</em>, 
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises">promises</a>, using 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API">fetch</a> which I've written the function to download sound files with:
+
+```javascript
+function loadSound(url, audioNode) {
+  fetch(url)
+  .then((response) => response.arrayBuffer())
+  .then((buffer) => audioCtx.decodeAudioData(buffer))
+  .then((decodedData) => audioNode.buffer = decodedData);
+}
+```
+
+Three asynchronous processes which are contingent on each other &mdash; the buffer property of the audio node needs data
+decoded by the audio context, which in turn depends on a sound file that has to have finished downloading. 
+The <code>.then(...)</code> syntax lets us chain these three steps together in <em>sequential</em> steps, hiding the mind-bending concurrency.
+
+The <em>old way</em> of doing this was to nest each subsequent asynchronous step in the callback of its predecessor, which for many contingent steps
+would lead to very deeply nested, ugly code &mdash; the <q>Pyramid of Death</q>.
+
+Mercifully, the <q>window then background image loaded</q> chain only involves two steps, so the its pyramid of doom isn't very high. 
+Preventing a <q>white screen of death</q>, however, involved the additional step of 
+invoking JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous/Async_await">async function (...) {... await ...}</a>
+combination to avoid the loop getting started before <code>scale</code> was set correctly.
+
+A fourth event, <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/resize_event">resize</a>, is attached to the window so the user
+can make the board bigger or smaller by adjusting the size of their browser, or changing the orientation of their phone. A problem with keyboard
+user inputs is the game isn't mobile friendly, so adding <a href="https://developer.mozilla.org/en-US/docs/Web/API/Touch_events">Touch Events</a>
+is in the todo list.
+
+Among the advantages of <em>event-driven programming</em> is adding user interactions simply involves writing new listeners and handlers without effecting existing code.
+
+<h3>2. Handlers</h3>
+
+I refreshed my JavaScript knowledge doing this exercise after completing an Erlang course, which has made my JavaScript code fairly Erlangish.
+
+The guts of Erlang programmes follow a <code>pattern -> action</code> template, which emulating in JavaScript involves its
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch">switch</a> statement.
 
 
-<h2>Welcome to the white screen of death</h2>
-
-https://stackoverflow.com/questions/40527986/how-to-find-out-what-is-causing-my-white-screen-of-death
-
-
-This game comes from a Mooc I did several years ago, Rice University's 
-<a href="https://www.coursera.org/learn/interactive-python-1">Interactive Python</a> which I translated into
-JavaScript.
-
-The sprite sheets and sound effects all date back to an assignment for that course, which is still offered by Coursera for free.
 
 We need a simple http server &mdash; something every modern programing language has. The simplest is probably nodejs's 
 <a href="https://www.npmjs.com/package/http-server">http-server</a> which runs from the command line, defaulting to
@@ -231,9 +293,6 @@ My own convention goes like so:
 ```javascript
 target.addEventListener(type, (event) => my_listener(Arg1, Arg2, ..., event));
 ```
-My keyListener falls into the <em>pattern -> action</em> template which, along with events and loops, make up the guts of
-concurrent programming. I think the most elegant way to do this in JavaScript is using its
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch">switch</a> statement.
 
 ```javascript
 const inputStates = {loaded: true, thrust: false}; // global container for mutable key-value pairs
