@@ -17,7 +17,7 @@ MDN</a> is an excellent reference.
 
 I've attempted to draw a hierarchy of these objects, though in JavaScript that's not easy. Though Document is a child of Window,
 CanvasRenderingContext2D of HTMLCanvasElement etc, coding convention is to treat each as a separate object.
-<code>AudioContext</code>is initially addressed as a child of Window since it's the global, root object.
+<code>AudioContext</code> is initially addressed as a child of Window since it's the global, root object.
 
 <code><pre>
 ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model">DOM</a>
@@ -86,6 +86,9 @@ Along with getting to grips with the language, I also used developing some games
 
 I haven't got far with the testing tools yet, but found JSDoc's tags a handy way to "think above the code" in trying to abstract RiceRocks into a general game framework.
 
+I've also tried to follow the <a href="https://google.github.io/styleguide/jsguide.html">Google JavaScript Style Guide</a>,
+with the exception of ignoring its views of trailing commans since I find leading commas far better.
+
 Like most automated documentation systems, JSDoc lists things alphabetically, which is good for reference, but not great for explaining
 <a href="https://en.wikipedia.org/wiki/Control_flow">control flow</a>, which I'll attempt in this 
 <a href="https://jsdoc.app/about-including-readme.html">README.md</a> which JSDoc uses for the home page.
@@ -94,7 +97,7 @@ Like most automated documentation systems, JSDoc lists things alphabetically, wh
 
 In the fog of the religious war underway between <a href="https://en.wikipedia.org/wiki/Functional_programming">FP</a> vs
 <a href="https://en.wikipedia.org/wiki/Object-oriented_programming">OOP</a>, event-driven programming seems to have been
-forgotten. to me, it seems the most natural approach for writing any kind of GUI application, including games.
+forgotten. To me, it seems the most natural approach for writing any kind of GUI application, including games.
 
 Event-driven programming broadly involves three types of things:
 
@@ -110,9 +113,13 @@ and <a href="https://developer.mozilla.org/en-US/docs/Web/Events">type</a> is so
 
 <h3>1. Listeners</h3>
 
-RiceRocks is a game originally done as a project in Rice University's <a href="https://www.coursera.org/learn/interactive-python-1">Interactive Python</a> Mooc which I translated to JavaScript. It makes a good 
-introductory example because its user input only involves four keys &mdash; space to fire missiles, left to rotate
-counter-clockwise, right to rotate clockwise, and up to move in the direction the spaceship is currently pointed.
+RiceRocks is a game I originally encountered in Rice University's <a href="https://www.coursera.org/learn/interactive-python-1">Interactive Python</a> Mooc which I've translated to JavaScript. It makes a good 
+introductory example because its user input only involves four keys &mdash; the spacebar to fire missiles, 
+the left arrow to rotate counter-clockwise, the right arrow to rotate clockwise, and the up arrow to move in the 
+direction the spaceship is currently pointed.
+
+In JavaScript, this translates to attaching two listeners to the document object which can share a callback 
+I've named keyListener:
 
 ```javascript
 document.addEventListener("keydown", keyListener);
@@ -179,7 +186,7 @@ The <code>.then(...)</code> syntax lets us chain these three steps together in <
 The <em>old way</em> of doing this was to nest each subsequent asynchronous step in the callback of its predecessor, which for many contingent steps
 would lead to very deeply nested, ugly code &mdash; the <q>Pyramid of Death</q>.
 
-Mercifully, the <q>window then background image loaded</q> chain only involves two steps, so the its pyramid of doom isn't very high. 
+Mercifully, the <q>window then background image loaded</q> chain only involves two steps, so its pyramid of doom isn't very high. 
 Preventing a <q>white screen of death</q>, however, involved the additional step of 
 invoking JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous/Async_await">async function (...) {... await ...}</a>
 combination to avoid the loop getting started before <code>scale</code> was set correctly.
@@ -191,12 +198,75 @@ is in the todo list.
 
 Among the advantages of <em>event-driven programming</em> is adding user interactions simply involves writing new listeners and handlers without effecting existing code.
 
+A problem I encountered testing my site on a mobile phone was if I closed the window, the sound continued. I attempted to fix
+this with yet another event handler:
+
+```javascript
+window.addEventListener("unload", function (event) {
+  backgroundSound.stop();
+  thrustSound.stop();
+  missileSound.stop();
+  explosionSound.stop();
+});
+```
+
 <h3>2. Handlers</h3>
 
 I refreshed my JavaScript knowledge doing this exercise after completing an Erlang course, which has made my JavaScript code fairly Erlangish.
 
+Among JavaScript's <em>newish</em> APIs are 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">Web Workers</a> which follow
+Erlang's approach of creating separate processes which communicate via messages. I'd like to explore this in future, but 
+for now am not sure how to apply this here where the listening loop doubles as an animation loop (ie doesn't iterate every time it receives a new message, but every 1/60 second to redraw the board). I'm also confused about browser support
+for web workers, so will leave learning it for later.
+
+Instead of messages, the handlers and listening loop communicate via shared memory &mdash; which works in a single thread
+(the default for JavaScript web applications at time of writing), but wouldn't work in parallel using the multicores of 
+modern hardware.
+
+This makes a data structure, <a href="http://www.seatavern.co.za/doc/inputStates.html">inputStates</a>, stored as a global
+constant, vital since it is the core messaging mechanism between the handlers and the game loop.
+All the propertis of inputStates (with the exception of a sound buffer which should maybe be moved into the spaceship
+<a href="http://www.seatavern.co.za/doc/Sprite.html">sprite</a>) 
+are booleans, and I've followed Google's style of using a
+<a href="https://google.github.io/styleguide/jsguide.html#naming-method-names">isFoo</a> convention. For some, I've gotten
+into the habit of using <a href="https://en.wikipedia.org/wiki/Snake_case">snake case</a>, so find the JavaScript convention
+of camelCase and PascalCase a bit alien, but am getting the hang of it.
+
 The guts of Erlang programmes follow a <code>pattern -> action</code> template, which emulating in JavaScript involves its
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch">switch</a> statement.
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch">switch</a> statement. 
+A gotcha in JavaScript is that its switch statements are <q>Fall Through</q>, meaning that unlike Erlang's case statements
+which do one action for the first matching pattern, JavaScript will attempt to match further patterns unless the relevant
+<code>case</code> is terminated with <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break">
+break</a> or <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return">return</a>.
+
+I found the choice confusing until I wrote <a href="http://www.seatavern.co.za/doc/global.html#keyListener">keyListener(event)</a>
+which has an initial switch block to find if the event type is "keydown" or "keyup", terminated with <code>break;</code> because
+I want to continue to the second switch block to find what key was pressed or released. These cases are terminated with
+<code>return;</code> since that's the listeners job done, even though it doesn't return anything.
+
+A JSDoc gotcha that tripped me was to try and tag keyListener as <code>@callback</code> instead of <code>@function</code>, which
+resulted in it getting ommited from the documentation.
+
+While I had little difficulty in getting the four user input keys to work, pressing any keys not listened to caused the programme
+to freeze until I discovered that, counter-intuitively, the <code>default</code> statement should be 
+<code>event.preventDefault();</code>.
+
+Another challenge was getting the browser to open a debugging console with F12 &mdash; which stopped working after keyboard
+events were <em>captured</em> by my own function. The trick here was to write a case statement forwarding this key event
+back to the document. To be fancy, I wrote <code>event.target.dispatchEvent(event);</code> rather than
+<code>document.dispatchEvent(event);</code> just to test what the event.target property holds.
+
+The only other listener is <a href="http://www.seatavern.co.za/doc/global.html#resizeListener">resizeListener</a> which
+has a <a href="https://developer.mozilla.org/en-US/docs/Web/API/UIEvent">UIEvent</a> passed to it by
+<code>window.addEventListener("resize", resizeListener)</code>. But since I also use this as a normal function to initially
+set <code>scale</code> after the window has loaded and don't use any UIEvent properties, it doesn't have any paramters.
+
+
+
+Instead
+of sending the listening loop a message according to whatever case, here the handler writes to a global variable which the
+listening loop reads
 
 
 

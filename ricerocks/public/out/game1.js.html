@@ -33,6 +33,40 @@
  * @author Robert Laing
  */
 
+/**
+ * Each Sprite has these 15 common properties
+ * @typedef {Object} Sprite
+ * @namespace Sprite
+ * @property {String} Sprite.type - "spaceship" | "asteroid" | "missile" | "explosion"
+ * @property {HTMLImageElement} Sprite.image - initialised and loaded sprite sheet
+ * @property {pixels} Sprite.width - pixel width of a sprite tile, which is not necessarily image.width
+ * @property {pixels} Sprite.height - pixel height of a sprite tile, which is not necessarily image.height
+ * @property {Number} Sprite.row - offset sx is calculated from row * width, ie row = 0 for first tile
+ * @property {Number} Sprite.column - offset sy is calculated from column * height, ie column = 0 for first tile
+ * @property {pixels} Sprite.xCentre - from 0 in top left corner positive right, horizontal centre co-ordinate of sprite
+ * @property {pixels} Sprite.yCentre - from 0 in top left corner positive down, vertical centre co-ordinate of sprite
+ * @property {pixels} Sprite.xDelta - Sets horizonal speed of the sprite. xCentre is incremented by xDela each tick
+ * @property {pixels} Sprite.yDelta - Sets vertical speed of the sprite. yCentre is incremented by yDelta each tick
+ * @property {radians} Sprite.angle - radians to rotate image. -Math.PI/2 is 90 degrees
+ * @property {radians} Sprite.angleDelta - increment in radians to angle each tick, clockwise positive
+ * @property {Number} Sprite.tick - counter to select sprite tile and measure sprite age
+ * @property {Number} Sprite.lifespan - used to filter dead ephemereal sprites
+ */
+
+/** 
+ * Global object used by handlers to message the loop
+ * @constant {Object} inputStates
+ * @namespace inputStates
+ * @property {Boolean} inputStates.isUp - Up arrow pressed or not
+ * @property {Boolean} inputStates.isThrust - Don't want to add more rocket noise 60 times a second
+ * @property {Boolean} inputStates.isLeft - Left arrow pressed or not
+ * @property {Boolean} inputStates.isRight - Right arrow pressed or not
+ * @property {Boolean} inputStates.isSpace - Space arrow pressed or not
+ * @property {Boolean} inputStates.isLoaded - Space bar needs to be released between missiles
+ * @property {AudioBufferSourceNode} inputStates.soundBuffer - Stored to stop rocket noise
+ */
+const inputStates = {isLoaded: true, isThrust: false};
+
 /** 
  * [Canvas API]{@link https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API}
  * @constant {HTMLCanvasElement} canvas 
@@ -92,8 +126,6 @@ const thrustSound = audioCtx.createBufferSource();
 const missileSound = audioCtx.createBufferSource();
 const explosionSound = audioCtx.createBufferSource();
 
-// Global state variables
-const inputStates = {isLoaded: true, isThrust: false};
 let sprites = [];
 let new_sprites = [];
 let scale = 1.0;
@@ -129,20 +161,6 @@ function get_scale() {
   }
 }
 
-function resize() {
-  scale = get_scale();
-  canvas.width = scale * backgroundImage.width;
-  canvas.height = scale * backgroundImage.height;
-  ctx.fillStyle = "white";
-  ctx.font = scale * 22 + "px monospace";
-  /* Doesn't work
-  sprites.forEach(sprite => {
-    sprite.xCentre = scale * sprite.xCentre;
-    sprite.yCentre = scale * sprite.yCentre;
-  });
-  */
-}
-
 function distance(x1, y1, x2, y2) {
   return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 }
@@ -163,25 +181,6 @@ function random_distance(sprite, r2, ratio) {
   } while (distance(x1, y1, x2, y2) &lt; ratio * scale * (r1 + r2));
   return [x2, y2];
 }
-
-/**
- * Each Sprite has these 15 common properties
- * @typedef {Object} Sprite
- * @property {String} type - "spaceship" | "asteroid" | "missile" | "explosion"
- * @property {HTMLImageElement} image - initialised and loaded sprite sheet
- * @property {pixels} width - pixel width of a sprite tile, which is not necessarily image.width
- * @property {pixels} height - pixel height of a sprite tile, which is not necessarily image.height
- * @property {Number} row - offset sx is calculated from row * width, ie row = 0 for first tile
- * @property {Number} column - offset sy is calculated from column * height, ie column = 0 for first tile
- * @property {pixels} xCentre - from 0 in top left corner positive right, horizontal centre co-ordinate of sprite
- * @property {pixels} yCentre - from 0 in top left corner positive down, vertical centre co-ordinate of sprite
- * @property {pixels} xDelta - Sets horizonal speed of the sprite. xCentre is incremented by xDela each tick
- * @property {pixels} yDelta - Sets vertical speed of the sprite. yCentre is incremented by yDelta each tick
- * @property {radians} angle - radians to rotate image. -Math.PI/2 is 90 degrees
- * @property {radians} angleDelta - increment in radians to angle each tick, clockwise positive
- * @property {Number} tick - counter to select sprite tile and measure sprite age
- * @property {Number} lifespan - used to filter dead ephemereal sprites
- */
 
 /**
  * Initialises a spaceship Sprite
@@ -392,6 +391,35 @@ function loop() {
   window.requestAnimationFrame(loop);
 }
 
+/**
+ * The resizeListener event handler 
+ * @function resizeListener
+ * @returns {undefined} Mutates the scale global variable
+ */
+function resizeListener() {
+  const oldScale = scale;
+  scale = get_scale();
+  canvas.width = scale * backgroundImage.width;
+  canvas.height = scale * backgroundImage.height;
+  ctx.fillStyle = "white";
+  ctx.font = scale * 22 + "px monospace";
+  sprites.forEach(sprite => {
+    sprite.xCentre *= scale/oldScale;
+    sprite.yCentre *= scale/oldScale;
+    sprite.xDelta  *= scale/oldScale;
+    sprite.yDelta  *= scale/oldScale;
+  });
+}
+
+/**
+ * The keyboard event handler
+ * @function keyListener
+ * @param {KeyboardEvent} event - Object sent by document.addEventListener(type, keyListener);
+ * @returns {undefined} Mutates the inputStates global object
+ * @property {DOMString} event.type - Inherited from [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event#Properties}
+ * @property {DOMString} event.key - A [Key Value]{@link https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values}
+ * @property {DOMString} event.target - document since that's what called this function
+ */
 function keyListener(event) {
   let bool;
   switch (event.type) {
@@ -440,12 +468,12 @@ function keyListener(event) {
 
 window.addEventListener("DOMContentLoaded", async function (event1) {
   await backgroundImage.addEventListener("load", function (event2) {
-    resize();
+    resizeListener();
     sprites[0] = createSpaceship();
     for (let rock = 1; rock &lt;= 13; rock++) { 
       sprites[rock] = createAsteroid();
     }
-    window.addEventListener("resize", resize);
+    window.addEventListener("resize", resizeListener);
     window.requestAnimationFrame(loop);
   });
 });
@@ -478,13 +506,13 @@ document.addEventListener("keyup",   keyListener);
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#asteroidImage">asteroidImage</a></li><li><a href="global.html#backgroundImage">backgroundImage</a></li><li><a href="global.html#canvas">canvas</a></li><li><a href="global.html#createAsteroid">createAsteroid</a></li><li><a href="global.html#createMissile">createMissile</a></li><li><a href="global.html#createSpaceship">createSpaceship</a></li><li><a href="global.html#ctx">ctx</a></li><li><a href="global.html#spaceshipImage">spaceshipImage</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="inputStates.html">inputStates</a></li><li><a href="Sprite.html">Sprite</a></li></ul><h3>Global</h3><ul><li><a href="global.html#asteroidImage">asteroidImage</a></li><li><a href="global.html#backgroundImage">backgroundImage</a></li><li><a href="global.html#canvas">canvas</a></li><li><a href="global.html#createAsteroid">createAsteroid</a></li><li><a href="global.html#createMissile">createMissile</a></li><li><a href="global.html#createSpaceship">createSpaceship</a></li><li><a href="global.html#ctx">ctx</a></li><li><a href="global.html#keyListener">keyListener</a></li><li><a href="global.html#resizeListener">resizeListener</a></li><li><a href="global.html#spaceshipImage">spaceshipImage</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Wed Jul 22 2020 21:18:50 GMT+0200 (South Africa Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Jul 23 2020 13:11:49 GMT+0200 (South Africa Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
