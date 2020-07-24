@@ -1,6 +1,6 @@
 "use strict";
 /**
- * @file A simple arcade game translated to JavaScript from a 
+ * @file A simple arcade game translated to JavaScript from a
  * [Python Mooc]{@link https://www.coursera.org/learn/interactive-python-1} given by Rice University.
  * @author Robert Laing
  */
@@ -25,7 +25,7 @@
  * @property {Number} Sprite.lifespan - used to filter dead ephemereal sprites
  */
 
-/** 
+/**
  * Global object used by handlers to message the loop
  * @constant {Object} inputStates
  * @namespace inputStates
@@ -37,16 +37,23 @@
  * @property {Boolean} inputStates.isLoaded - Space bar needs to be released between missiles
  * @property {AudioBufferSourceNode} inputStates.soundBuffer - Stored to stop rocket noise
  */
-const inputStates = {isLoaded: true, isThrust: false};
+const inputStates = { isUp: false
+                    , isThrust: false
+                    , isLeft: false
+                    , isRight: false
+                    , isSpace: false
+                    , isLoaded: true
+                    , soundBuffer: null
+                    };
 
-/** 
+/**
  * [Canvas API]{@link https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API}
- * @constant {HTMLCanvasElement} canvas 
+ * @constant {HTMLCanvasElement} canvas
 */
 const canvas = document.querySelector("#board");
-/** 
+/**
  * [Canvas's context]{@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D}
- * @constant {CanvasRenderingContext2D} ctx 
+ * @constant {CanvasRenderingContext2D} ctx
  */
 const ctx = canvas.getContext("2d");
 /**
@@ -139,12 +146,12 @@ function distance(x1, y1, x2, y2) {
 
 function collisions(sprite1, type) {
   return sprites.filter((sprite2) => sprite2.type === type &&
-    distance(sprite1.xCentre, sprite1.yCentre, sprite2.xCentre, sprite2.yCentre) < 
+    distance(sprite1.xCentre, sprite1.yCentre, sprite2.xCentre, sprite2.yCentre) <
       (scale * (sprite1.radius + sprite2.radius)));
 }
 
 function random_distance(sprite, r2, ratio) {
-  let [x1, y1, r1] = [sprites.xCentre, sprites.yCentre, sprites.angle]; 
+  let [x1, y1, r1] = [sprites.xCentre, sprites.yCentre, sprites.angle];
   let x2;
   let y2;
   do {
@@ -159,11 +166,11 @@ function random_distance(sprite, r2, ratio) {
  * @function
  * @returns {Sprite} A spaceship starting in the centre, facing up, stationary
  */
-function createSpaceship() { 
+function createSpaceship() {
   return { type: "spaceship"
          , image: spaceshipImage
          , width: 90
-         , height: 90 
+         , height: 90
          , row: 0
          , column: 0
          , xCentre: canvas.width/2
@@ -218,7 +225,7 @@ function createMissile(spaceship) {
          , height: 10
          , row: 0
          , column: 0
-         , xCentre: spaceship.xCentre + (scale * spaceship.height/2 * Math.cos(spaceship.angle)) 
+         , xCentre: spaceship.xCentre + (scale * spaceship.height/2 * Math.cos(spaceship.angle))
          , yCentre: spaceship.yCentre + (scale * spaceship.height/2 * Math.sin(spaceship.angle))
          , xDelta: spaceship.xDelta + (scale * MISSILE_SPEED * Math.cos(spaceship.angle))
          , yDelta: spaceship.yDelta + (scale * MISSILE_SPEED * Math.sin(spaceship.angle))
@@ -260,17 +267,29 @@ function unexplode(sprite) {
   }
 }
 
+/**
+ * Uses five of CanvasRenderingContext2D's many methods
+ * @function draw
+ * @param {Sprite} sprite The 9 parameters needed by ctx.drawImage, the 2 for ctx.translate, and angle for ctx.rotate
+ * @returns {undefined} Causes side-effect of drawing image
+ */
 function draw(sprite) {
   ctx.save();
   ctx.translate(sprite.xCentre, sprite.yCentre);
   ctx.rotate(sprite.angle);
-  ctx.drawImage(sprite.image, sprite.column * sprite.width, sprite.row * sprite.height, 
-    sprite.width, sprite.height, 
-    -(scale * sprite.width)/2, -(scale * sprite.height)/2, 
+  ctx.drawImage(sprite.image, sprite.column * sprite.width, sprite.row * sprite.height,
+    sprite.width, sprite.height,
+    -(scale * sprite.width)/2, -(scale * sprite.height)/2,
     scale * sprite.width, scale * sprite.height);
   ctx.restore();
 }
 
+/**
+ * The physics/game engine
+ * @function nextTick
+ * @param {Sprite} sprite Position and movement parameters to be updated
+ * @returns {undefined} Mutates the sprite object
+ */
 function nextTick(sprite) {
   let hitlist = [];
   sprite.xCentre += sprite.xDelta;
@@ -301,10 +320,10 @@ function nextTick(sprite) {
       }
       if (inputStates.isRight) {
         sprite.angleDelta = Math.PI/ROTATE_RATE;
-      } 
+      }
       if (inputStates.isLeft) {
         sprite.angleDelta = -Math.PI/ROTATE_RATE;
-      } 
+      }
       if (!inputStates.isRight && !inputStates.isLeft) {
         sprite.angleDelta = 0;
       }
@@ -348,6 +367,11 @@ function nextTick(sprite) {
   }
 }
 
+/**
+ * The core body of the application
+ * @function loop
+ * @returns {undefined} Never returning infinite loop
+ */
 function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(backgroundImage, 0, 0, backgroundImage.width, backgroundImage.height, 0, 0, canvas.width, canvas.height);
@@ -364,7 +388,7 @@ function loop() {
 }
 
 /**
- * The resizeListener event handler 
+ * The resizeListener event handler
  * @function resizeListener
  * @returns {undefined} Mutates the scale global variable
  */
@@ -375,12 +399,78 @@ function resizeListener() {
   canvas.height = scale * backgroundImage.height;
   ctx.fillStyle = "white";
   ctx.font = scale * 22 + "px monospace";
-  sprites.forEach(sprite => {
+  sprites.forEach(function (sprite) {
     sprite.xCentre *= scale/oldScale;
     sprite.yCentre *= scale/oldScale;
     sprite.xDelta  *= scale/oldScale;
     sprite.yDelta  *= scale/oldScale;
   });
+}
+
+/**
+ * Touch event handler for mobile phones, based on keyListener
+ * @function touchListener
+ * @param {TouchEvent} event - [Object]{@link https://developer.mozilla.org/en-US/docs/Web/API/TouchEvent} sent by document.addEventListener(type, touchListener);
+ * @returns {undefined} Mutates the inputStates global object
+ * @property {DOMString} event.type - Inherited from [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event#Properties}
+ * @property {TouchList} event.changedTouches - A [Touch List]{@link https://developer.mozilla.org/en-US/docs/Web/API/TouchList}
+ * @property {Touch} event.changedTouches[0] - A [Touch Object]{@link https://developer.mozilla.org/en-US/docs/Web/API/Touch}
+ * @property {float} event.changedTouches[0].clientX - [X co-ordinate]{@link https://developer.mozilla.org/en-US/docs/Web/API/Touch/clientX}
+ * @property {float} event.changedTouches[0].clientY - [Y co-ordinate]{@link https://developer.mozilla.org/en-US/docs/Web/API/Touch/clientY}
+ */
+function touchListener(event) {
+  let bool;
+  const rect = canvas.getBoundingClientRect();
+  const x = event.changedTouches[0].clientX - rect.left;
+  const y = event.changedTouches[0].clientY - rect.top;
+  const h3rd = canvas.width/3;
+  const v3rd = canvas.height/3;
+  let key = " ";
+  if (y < v3rd) {
+    key = "ArrowUp";
+  }
+  if (x < h3rd) {
+    key = "ArrowLeft";
+  }
+  if (x > 2 * h3rd) {
+    key = "ArrowRight";
+  }
+  switch (event.type) {
+    case "touchstart":
+      bool = true;
+      break;
+    case "touchend":
+      bool = false;
+      break;
+  }
+  switch (key) {
+    case "ArrowLeft":
+      inputStates.isLeft = bool;
+      return;
+    case "ArrowRight":
+      inputStates.isRight = bool;
+      return;
+    case "ArrowUp":
+      inputStates.isUp = bool;
+      if (inputStates.isUp && !inputStates.isThrust) {
+        inputStates.soundBuffer = playSound(thrustSound);
+        inputStates.isThrust = true;
+      }
+      if (!inputStates.isUp && inputStates.isThrust) {
+        inputStates.soundBuffer.stop();
+        inputStates.isThrust = false;
+      }
+      return;
+    case " ":
+      inputStates.isSpace = bool;
+      if (inputStates.isSpace && inputStates.isLoaded) {
+        playSound(missileSound);
+      }
+      if (!inputStates.isSpace) {
+        inputStates.isLoaded = true;
+      }
+      return;
+  }
 }
 
 /**
@@ -393,6 +483,7 @@ function resizeListener() {
  * @property {DOMString} event.target - document since that's what called this function
  */
 function keyListener(event) {
+  // console.log(event);
   let bool;
   switch (event.type) {
     case "keydown":
@@ -416,7 +507,7 @@ function keyListener(event) {
         inputStates.isThrust = true;
       }
       if (!inputStates.isUp && inputStates.isThrust) {
-        inputStates.soundBuffer.stop()
+        inputStates.soundBuffer.stop();
         inputStates.isThrust = false;
       }
       return;
@@ -442,10 +533,12 @@ window.addEventListener("DOMContentLoaded", async function (event1) {
   await backgroundImage.addEventListener("load", function (event2) {
     resizeListener();
     sprites[0] = createSpaceship();
-    for (let rock = 1; rock <= 13; rock++) { 
+    for (let rock = 1; rock <= 13; rock++) {
       sprites[rock] = createAsteroid();
     }
     window.addEventListener("resize", resizeListener);
+    canvas.addEventListener("touchstart", touchListener);
+    canvas.addEventListener("touchend", touchListener);
     window.requestAnimationFrame(loop);
   });
 });
@@ -457,7 +550,7 @@ window.addEventListener("unload", function (event) {
   explosionSound.stop();
 });
 
-loadSound("soundtrack.ogg", backgroundSound); 
+loadSound("soundtrack.ogg", backgroundSound);
 loadSound("thrust.ogg", thrustSound);
 loadSound("missile.ogg", missileSound);
 loadSound("explosion.ogg", explosionSound);
