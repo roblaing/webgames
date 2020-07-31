@@ -155,7 +155,7 @@ function collisions(sprite1, type) {
 }
 
 function random_distance(sprite, r2, ratio) {
-  let [x1, y1, r1] = [sprites.xCentre, sprites.yCentre, sprites.angle];
+  let [x1, y1, r1] = [sprite.xCentre + sprite.xDelta, sprite.yCentre + sprite.yDelta, sprite.angle];
   let x2;
   let y2;
   do {
