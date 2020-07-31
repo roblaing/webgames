@@ -20,7 +20,9 @@ partly because there's a
 helpful in getting me going, but it digressed in a bewildering number of add-on packages whose purpose I don't fully grasp.
 
 I like Jasmine in that &mdash; assuming you only want to write tests for client-side scripts as I do &mdash; it simply involves
-copying some files into a project subdirectory I call <code>./test</code>, which Jasmine by defaul calls <code>./spec</code>.
+copying some files into a project subdirectory I call <code>./test</code>, which Jasmine by defaul calls <code>./spec</code>,
+revealing a common misconception <a href="https://www.agilealliance.org/agile101/">Agile</a> pundits have about
+specifications.
 
 Leslie Lamport &mdash; a Turing-award winner who created a specification language called
 <a href="https://lamport.azurewebsites.net/tla/tla.html">TLA+</a> &mdash; explained the difference in an article called
@@ -44,7 +46,24 @@ The first half of the HTDP design recipe is focused on answering the question <e
 to do, leaving aside <em>How?</em> for the second half. (Both these questions should be preceeded by <em>Why?</em>,
 for which the answer here is creating HTML5 games is fun and educational).
 
-My rule about writing specifications is <em>don't</em>: rather do some research and stand on the shoulders of giants.
+Specification languages are a kind of <a href="https://en.wikipedia.org/wiki/Metalanguage">metalanguage</a>,
+which usually are not the same as the <em>object language</em> they describe. For instance, Lamport's TLA+ is a
+design language independent from whatever programing language the design is ultimately implemented in.
+
+I returned to JavaScript after learning Erlang which comes with its own specification language and tools. Writing
+specifications is optional and uses different syntax to Erlang code, but that it can be applied to developing
+Erlang code makes it more practical than TLA+ if you're doing both the designing and coding.
+
+In the enormous jungle of npm packages there are bound to be JavaScript specification languages and type checking tools, 
+but I'm simply going to use <a href="https://jsdoc.app/">JSDoc</a>,
+specifically <a href="https://jsdoc.app/tags-typedef.html">@typedef</a> with 
+<a href="https://jsdoc.app/tags-property.html">@property</a> to <em>declare</em> my compound data structures,
+and <a href="https://jsdoc.app/tags-function.html">@function</a> with
+<a href="https://jsdoc.app/tags-param.html">@param</a> and 
+<a href="https://jsdoc.app/tags-returns.html">@return</a> out of which the automated documentation system creates
+what HTDP would call a <em>signature</em>.
+
+My rule about designing specifications is <em>don't</em>: rather do some research and stand on the shoulders of giants.
 
 The internet is a great example of the power of <em>specification-first programing</em>, with a standards body,
 <a href="https://tools.ietf.org/">IETF</a>, making freely available APIs (one of the many jargon terms for
@@ -72,5 +91,9 @@ Back to web games. Video games and graphics consists of a lot of jargon which is
 along with Racket's <a href="https://docs.racket-lang.org/teachpack/2htdpimage.html">image</a> and
 <a href="https://docs.racket-lang.org/teachpack/2htdpuniverse.html#%28part._world-example%29">
 universe</a> packages a great help, creating a base-specification for my JavaScript modules.
+
+The specification stage is about thinking in what mathematicians call sets and programmers call types or classes.
+Here, HTDP's <a href="https://htdp.org/2020-5-6/Book/part_one.html#%28part._sec~3aarith-images%29">
+The Arithmetic of Images</a> is a great aid.
 
 
