@@ -1,8 +1,0 @@
-<root type="bullet">
-  <scale min="0.45" max="0.45" />
-  <radius min="0.175" max="0.175" />
- 
-  <image filename="data/physicals/bullets/firespark.png" />
-  <effect name="fire" />
-  <destroyEffect name="explosion" />
-</root>
