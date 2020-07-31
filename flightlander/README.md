@@ -50,13 +50,6 @@ between curly braces which client scripts can
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import">import</a> with a
 statement at the top of their files.
 
-<h2>Specification</h2>
-
-<q>Programmers who advocate writing tests before writing code often believe those tests can serve as a specification. Writing tests does force us to think, and anything that gets us to think before coding is helpful. However, writing tests in code does not get us thinking above the code level. We can write a specification as a list of high-level descriptions of tests the program should pass essentially a list of properties the program should satisfy. But that is usually not a good way to write a specification, because it is very difficult to deduce from it what the program should or should not do in every situation.</q>
-
-<a href="https://cacm.acm.org/magazines/2015/4/184705-who-builds-a-house-without-drawing-blueprints/fulltext">
-Who Builds a House Without Drawing Blueprints?</a>, Leslie Lamport
-
 <h2>WorldState</h2>
 
 <h3>Global Conundrum</h3>

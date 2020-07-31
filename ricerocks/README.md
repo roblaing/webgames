@@ -1,18 +1,5 @@
 <h1>Game 1: RiceRocks</h1>
 
-<p><a href="https://twitter.com/RobertLaing6">Robert Laing</a></p>
-
-<q>Writing interactive games and animations is both instructive and fun. Writing such programs is, however,
-often challenging. Interactive programs are complex because the user, not the programmer, is in charge of
-the program’s execution: the program itself is often a passive receiver of commands, reacting only when some 
-stimulus in the external world (whether a user’s keystroke or the tick of a clock) occurs.</q> &mdash;
-<a href="https://world.cs.brown.edu/1/htdw-v1.pdf">How to Design Worlds</a>
-
-The textbook intro quoted above is from a companion volume to my favourite introduction to programming, the free online 
-<a href="https://htdp.org">How to Design Programs</a>. It teaches a Lisp-dialect, Racket, coupled to an application,
-DrRacket, which provides <q>everything in a box</q> a beginner needs to get going (ie a text editor, repl, 
-test framework, ...).
-
 To transfer some of the wonderful knowledge in HTDP to GUI web application development, I selected a video game I originally 
 encountered many years in Rice University's <a href="https://www.coursera.org/learn/interactive-python-1">Interactive Python</a> 
 Mooc called RiceRocks. This meant the sprites and sounds were all readily available on my PC.
@@ -26,11 +13,6 @@ step recipe</a> which tries to get beginners into the habit of test-first develo
 but automating the testing of interactive programs is especially challenging. Developing clean, well-tested interactive 
 programs therefore seems especially daunting to beginners.</q> &mdash;
 <a href="https://world.cs.brown.edu/1/htdw-v1.pdf">How to Design Worlds</a>
-
-The hardest part of this project for me has been learning <a href="https://jasmine.github.io/">Jasmine</a>, a JavaScript
-testing framework I picked somewhat arbritrarily, partly because there's a
-<a href="https://www.udemy.com/course/unit-testing-your-javascript-with-jasmine/">Udemy</a> course which I found very
-helpful.
 
 Since I did writing tests last instead of first, I'm currently refactoring my code since Jasmine refuses to let functions
 it tests see variables which weren't passed to them as arguments, and I used a lot of global variables.

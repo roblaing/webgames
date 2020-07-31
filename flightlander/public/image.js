@@ -5,7 +5,7 @@
 
 /**
  * (struct color (red green blue alpha)...
- * @typedef {Object} Color
+ * @typedef {(String|Object)}} Color
  * @property {0..255} red - byte
  * @property {0..255} green - byte
  * @property {0..255} blue - byte
