@@ -1,0 +1,172 @@
+<root type="nm-desc">
+	<!-- player 1 -->
+	<mat tex="data/player/player-move.png" nm="data/effects/normalmaps/player-move.png" />
+	<mat tex="data/player/player-strafe.png" nm="data/effects/normalmaps/player-strafe.png" />
+	<mat tex="data/player/player-wobble.png" nm="data/effects/normalmaps/player-wobble.png" />
+	<mat tex="data/player/player-cast.png" nm="data/effects/normalmaps/player-cast.png" />
+	<mat tex="data/player/player-cast-forward.png" nm="data/effects/normalmaps/player-cast-forward.png" />
+	<mat tex="data/player/player-cast-onehand.png" nm="data/effects/normalmaps/player-cast-onehand.png" />
+	<mat tex="data/player/player-die.png" nm="data/effects/normalmaps/player-die.png" />
+	
+	<!-- player 2 -->
+	<mat tex="data/player/player2-move.png" nm="data/effects/normalmaps/player-move.png" />
+	<mat tex="data/player/player2-strafe.png" nm="data/effects/normalmaps/player-strafe.png" />
+	<mat tex="data/player/player2-wobble.png" nm="data/effects/normalmaps/player-wobble.png" />
+	<mat tex="data/player/player2-cast.png" nm="data/effects/normalmaps/player-cast.png" />
+	<mat tex="data/player/player2-cast-forward.png" nm="data/effects/normalmaps/player-cast-forward.png" />
+	<mat tex="data/player/player2-cast-onehand.png" nm="data/effects/normalmaps/player-cast-onehand.png" />
+	<mat tex="data/player/player2-die.png" nm="data/effects/normalmaps/player-die.png" />
+	
+	<!-- bandit -->
+	<mat tex="data/physicals/monsters/gfx/bandit-move.png" nm="data/effects/normalmaps/bandit-move.png" />
+	<mat tex="data/physicals/monsters/gfx/bandit-attack.png" nm="data/effects/normalmaps/bandit-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/bandit-death.png" nm="data/effects/normalmaps/bandit-death.png" />
+	
+	<!-- beholder -->
+	<mat tex="data/physicals/monsters/gfx/beholder.png" nm="data/effects/normalmaps/beholder.png" />
+	
+	<!-- chityniac -->
+	<mat tex="data/physicals/monsters/gfx/chitiniac-move.png" nm="data/effects/normalmaps/chitiniac-move.png" />
+	<mat tex="data/physicals/monsters/gfx/chitiniac-attack.png" nm="data/effects/normalmaps/chitiniac-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/chitiniac-death.png" nm="data/effects/normalmaps/chitiniac-death.png" />
+	<mat tex="data/physicals/monsters/gfx/chitiniac-idle.png" nm="data/effects/normalmaps/chitiniac-idle.png" />
+	
+	<!-- cockroach -->
+	<mat tex="data/physicals/monsters/gfx/cockroach-move.png" nm="data/effects/normalmaps/cockroach-move.png" />
+	<mat tex="data/physicals/monsters/gfx/cockroach-attack.png" nm="data/effects/normalmaps/cockroach-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/cockroach-death.png" nm="data/effects/normalmaps/cockroach-death.png" />
+	<mat tex="data/physicals/monsters/gfx/cockroach-move-wounded.png" nm="data/effects/normalmaps/cockroach-move-wounded.png" />
+	<mat tex="data/physicals/monsters/gfx/cockroach-attack-wounded.png" nm="data/effects/normalmaps/cockroach-attack-wounded.png" />
+	
+	<!-- crawler -->
+	<mat tex="data/physicals/monsters/gfx/crawler-move.png" nm="data/effects/normalmaps/crawler-move.png" />
+	<mat tex="data/physicals/monsters/gfx/crawler-attack.png" nm="data/effects/normalmaps/crawler-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/crawler-death.png" nm="data/effects/normalmaps/crawler-death.png" />	
+	
+	<!-- demon -->
+	<mat tex="data/physicals/monsters/gfx/demon.png" nm="data/effects/normalmaps/demon.png" />
+	<mat tex="data/physicals/monsters/gfx/frost-demon.png" nm="data/effects/normalmaps/demon.png" />
+	
+	<!-- desert-pincer -->
+	<mat tex="data/physicals/monsters/gfx/desert-pincer.png" nm="data/effects/normalmaps/desert-pincer.png" />
+	
+	<!-- dragon -->
+	<mat tex="data/physicals/monsters/gfx/dragon.png" nm="data/effects/normalmaps/dragon.png" />
+	
+	<!-- fafmycel -->
+	<mat tex="data/physicals/monsters/gfx/fafmycel.png" nm="data/effects/normalmaps/fafmycel.png" />
+	<mat tex="data/physicals/monsters/gfx/fafmycel-attack.png" nm="data/effects/normalmaps/fafmycel-attack.png" />
+	
+	<!-- gargant -->
+	<mat tex="data/physicals/monsters/gfx/gargant-move.png" nm="data/effects/normalmaps/gargant-move.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-attack.png" nm="data/effects/normalmaps/gargant-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-move-wounded.png" nm="data/effects/normalmaps/gargant-move.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-attack-wounded.png" nm="data/effects/normalmaps/gargant-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-death-0.png" nm="data/effects/normalmaps/gargant-death-0.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-death-1.png" nm="data/effects/normalmaps/gargant-death-1.png" />
+	
+	<mat tex="data/physicals/monsters/gfx/gargant-berserker-move.png" nm="data/effects/normalmaps/gargant-berserker-move.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-berserker-attack.png" nm="data/effects/normalmaps/gargant-berserker-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-berserker-move-wounded.png" nm="data/effects/normalmaps/gargant-berserker-move.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-berserker-attack-wounded.png" nm="data/effects/normalmaps/gargant-berserker-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-berserker-death-0.png" nm="data/effects/normalmaps/gargant-berserker-death-0.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-berserker-death-1.png" nm="data/effects/normalmaps/gargant-berserker-death-1.png" />
+	
+	<mat tex="data/physicals/monsters/gfx/gargant-boss-move.png" nm="data/effects/normalmaps/gargant-boss-move.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-boss-attack.png" nm="data/effects/normalmaps/gargant-boss-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-boss-move-wounded.png" nm="data/effects/normalmaps/gargant-boss-move.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-boss-attack-wounded.png" nm="data/effects/normalmaps/gargant-boss-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-boss-death-0.png" nm="data/effects/normalmaps/gargant-boss-death-0.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-boss-death-1.png" nm="data/effects/normalmaps/gargant-boss-death-1.png" />
+	
+	<mat tex="data/physicals/monsters/gfx/gargant-lord-move.png" nm="data/effects/normalmaps/gargant-lord-move.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-lord-attack.png" nm="data/effects/normalmaps/gargant-lord-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-lord-move-wounded.png" nm="data/effects/normalmaps/gargant-lord-move.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-lord-attack-wounded.png" nm="data/effects/normalmaps/gargant-lord-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-lord-death-0.png" nm="data/effects/normalmaps/gargant-lord-death-0.png" />
+	<mat tex="data/physicals/monsters/gfx/gargant-lord-death-1.png" nm="data/effects/normalmaps/gargant-lord-death-1.png" />
+	
+	<!-- hornet -->
+	<mat tex="data/physicals/monsters/gfx/hornet-move.png" nm="data/effects/normalmaps/hornet-move.png" />
+	<mat tex="data/physicals/monsters/gfx/hornet-attack.png" nm="data/effects/normalmaps/hornet-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/hornet-move-wounded.png" nm="data/effects/normalmaps/hornet-move-wounded.png" />
+	<mat tex="data/physicals/monsters/gfx/hornet-attack-wounded.png" nm="data/effects/normalmaps/hornet-attack-wounded.png" />
+	<mat tex="data/physicals/monsters/gfx/hornet-death.png" nm="data/effects/normalmaps/hornet-death.png" />
+	
+	<!-- kliver -->
+	<mat tex="data/physicals/monsters/gfx/kliver-move.png" nm="data/effects/normalmaps/kliver-move.png" />
+	<mat tex="data/physicals/monsters/gfx/kliver-attack.png" nm="data/effects/normalmaps/kliver-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/kliver-move-wounded.png" nm="data/effects/normalmaps/kliver-move-wounded.png" />
+	<mat tex="data/physicals/monsters/gfx/kliver-attack-wounded.png" nm="data/effects/normalmaps/kliver-attack-wounded.png" />
+	<mat tex="data/physicals/monsters/gfx/kliver-death.png" nm="data/effects/normalmaps/kliver-death.png" />
+	
+	<!-- murion -->
+	<mat tex="data/physicals/monsters/gfx/murion.png" nm="data/effects/normalmaps/murion.png" />
+	<mat tex="data/physicals/monsters/gfx/murion-death.png" nm="data/effects/normalmaps/murion-death.png" />
+	
+	<!-- ogre -->
+	<mat tex="data/physicals/monsters/gfx/ogre-move.png" nm="data/effects/normalmaps/ogre-move.png" />
+	<mat tex="data/physicals/monsters/gfx/ogre-attack-0.png" nm="data/effects/normalmaps/ogre-attack-0.png" />
+	<mat tex="data/physicals/monsters/gfx/ogre-attack-1.png" nm="data/effects/normalmaps/ogre-attack-1.png" />
+	<mat tex="data/physicals/monsters/gfx/ogre-death.png" nm="data/effects/normalmaps/ogre-death.png" />
+	
+	<!-- ogrillion -->
+	<mat tex="data/physicals/monsters/gfx/ogrillion-move.png" nm="data/effects/normalmaps/ogrillion-move.png" />
+	<mat tex="data/physicals/monsters/gfx/ogrillion-attack.png" nm="data/effects/normalmaps/ogrillion-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/ogrillion-death.png" nm="data/effects/normalmaps/ogrillion-death.png" />
+	
+	<!-- poison-haunter -->
+	<mat tex="data/physicals/monsters/gfx/poison-haunter.png" nm="data/effects/normalmaps/poison-haunter.png" />
+	
+	<!-- scorpion -->
+	<mat tex="data/physicals/monsters/gfx/scorpion-move.png" nm="data/effects/normalmaps/scorpion-move.png" />
+	<mat tex="data/physicals/monsters/gfx/scorpion-attack.png" nm="data/effects/normalmaps/scorpion-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/scorpion-move-wounded.png" nm="data/effects/normalmaps/scorpion-move.png" />
+	<mat tex="data/physicals/monsters/gfx/scorpion-attack-wounded.png" nm="data/effects/normalmaps/scorpion-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/scorpion-death-0.png" nm="data/effects/normalmaps/scorpion-death-0.png" />
+	<mat tex="data/physicals/monsters/gfx/scorpion-death-1.png" nm="data/effects/normalmaps/scorpion-death-1.png" />
+	
+	<!-- skeleton -->
+	<mat tex="data/physicals/monsters/gfx/skeleton.png" nm="data/effects/normalmaps/skeleton.png" />
+	<mat tex="data/physicals/monsters/gfx/skeleton-mage.png" nm="data/effects/normalmaps/skeleton-mage.png" />	
+	
+	<!-- timberman -->
+	<mat tex="data/physicals/monsters/gfx/timberman-move.png" nm="data/effects/normalmaps/timberman-move.png" />
+	<mat tex="data/physicals/monsters/gfx/timberman-attack.png" nm="data/effects/normalmaps/timberman-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/timberman-death.png" nm="data/effects/normalmaps/timberman-death.png" />
+	
+	<!-- troll -->
+	<mat tex="data/physicals/monsters/gfx/troll-move.png" nm="data/effects/normalmaps/troll-move.png" />
+	<mat tex="data/physicals/monsters/gfx/troll-attack.png" nm="data/effects/normalmaps/troll-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/troll-move-wounded.png" nm="data/effects/normalmaps/troll-move.png" />
+	<mat tex="data/physicals/monsters/gfx/troll-attack-wounded.png" nm="data/effects/normalmaps/troll-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/troll-death.png" nm="data/effects/normalmaps/troll-death.png" />
+	
+	<!-- ugonoth -->
+	<mat tex="data/physicals/monsters/gfx/ugonoth-move.png" nm="data/effects/normalmaps/ugonoth-move.png" />
+	<mat tex="data/physicals/monsters/gfx/ugonoth-attack.png" nm="data/effects/normalmaps/ugonoth-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/ugonoth-move-wounded.png" nm="data/effects/normalmaps/ugonoth-move.png" />
+	<mat tex="data/physicals/monsters/gfx/ugonoth-attack-wounded.png" nm="data/effects/normalmaps/ugonoth-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/ugonoth-death.png" nm="data/effects/normalmaps/ugonoth-death.png" />
+	
+	<!-- warlock -->
+	<mat tex="data/physicals/monsters/gfx/warlock-move.png" nm="data/effects/normalmaps/warlock-move.png" />
+	<mat tex="data/physicals/monsters/gfx/warlock-attack-0.png" nm="data/effects/normalmaps/warlock-attack-0.png" />
+	<mat tex="data/physicals/monsters/gfx/warlock-attack-1.png" nm="data/effects/normalmaps/warlock-attack-1.png" />
+	<mat tex="data/physicals/monsters/gfx/warlock-death.png" nm="data/effects/normalmaps/warlock-death.png" />
+	
+	<!-- wolfbeast -->
+	<mat tex="data/physicals/monsters/gfx/wolfbeast-move.png" nm="data/effects/normalmaps/wolfbeast-move.png" />
+	<mat tex="data/physicals/monsters/gfx/wolfbeast-attack.png" nm="data/effects/normalmaps/wolfbeast-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/wolfbeast-move-wounded.png" nm="data/effects/normalmaps/wolfbeast-move.png" />
+	<mat tex="data/physicals/monsters/gfx/wolfbeast-attack-wounded.png" nm="data/effects/normalmaps/wolfbeast-attack.png" />
+	<mat tex="data/physicals/monsters/gfx/wolfbeast-death.png" nm="data/effects/normalmaps/wolfbeast-death.png" />
+	
+	<!-- NPC -->
+	<mat tex="data/physicals/npcs/blue-with-knife.png" nm="data/effects/normalmaps/blue-with-knife.png" />
+	<mat tex="data/physicals/npcs/default.png" nm="data/effects/normalmaps/default.png" />
+	<mat tex="data/physicals/npcs/green.png" nm="data/effects/normalmaps/green.png" />
+	<mat tex="data/physicals/npcs/red-with-axe.png" nm="data/effects/normalmaps/red-with-axe.png" />
+	<mat tex="data/physicals/npcs/yellow-with-staff.png" nm="data/effects/normalmaps/yellow-with-staff.png" />
+	
+</root>

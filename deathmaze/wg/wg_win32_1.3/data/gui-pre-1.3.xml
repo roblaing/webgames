@@ -1,0 +1,26 @@
+<root type="config">
+  <fontSetting id="FONT_CONSOLE" name="data/GUI/fonts/free-mono.ttf" size="18.f"/>
+
+  <!-- stalej wielkosci: -->
+  <fontSetting id="FONT_DEFAULT" name="data/GUI/fonts/verdana.ttf" size="14.f" unit="UNIT_PIXEL" />
+  <!-- proporcjonalne, uzywac do buttonow, droplist itepe -->
+  <fontSetting id="FONT_DEFAULT_CONTROL" name="data/GUI/fonts/verdana.ttf" size="50.f" unit="UNIT_PERCENT" />
+  
+  <!-- przyciski w glownym menu, te fikusne: -->
+  <fontSetting id="FONT_MENU_BUTTON" name="data/GUI/fonts/argbrujs.ttf" size="38.f" unit="UNIT_PERCENT" />
+  <!-- niektore napisy w menu, te lekko fikusne: -->
+  <fontSetting id="FONT_MENU_LABEL" name="data/GUI/fonts/argor.ttf" size="55.f" unit="UNIT_PERCENT" />
+
+  <!-- wiadomosci pokazywane u gory ekranu w trakie walki: -->
+  <fontSetting id="FONT_IN_GAME_MESSAGE" name="data/GUI/fonts/argor.ttf" size="22.f" unit="UNIT_PIXEL" />
+  <!-- tekst pokazywany w ekranach abilities, na hudzie, i w ekranie f1 (moze gdzies jeszcze): -->
+  <fontSetting id="FONT_IN_GAME_TEXT" name="data/GUI/fonts/monotype-corsiva.ttf" size="20.f" unit="UNIT_PIXEL" />
+  
+  <!--  mouse cast - uzywamy tego jeszcze? jak nie, to chyba warto wywalic ponizszy wpis i kod w .cpp -->
+  <fontSetting id="FONT_MOUSE_CAST" name="data/GUI/fonts/verdana.ttf" size="16.f" unit="UNIT_PIXEL" />
+
+  <!--  <fontSetting id="FONT_OPTION_CHOOSER" name="data/GUI/verdana.ttf" size="12.f" unit="UNIT_PIXEL" /> -->
+  <!-- todo? bindKey-> jak default, tylko wielkosci 15 zamiast 14 -->
+  
+</root>
+

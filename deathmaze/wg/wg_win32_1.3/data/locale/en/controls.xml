@@ -1,0 +1,220 @@
+<root type="locale" name="English" code="en">
+	<entry>
+		<key>CTRL_ABI-0_DESC</key>
+		<value>Action key 0</value>
+	</entry>
+	<entry>
+		<key>CTRL_ABI-1_DESC</key>
+		<value>Action key 1</value>
+	</entry>
+	<entry>
+		<key>CTRL_ABI-2_DESC</key>
+		<value>Action key 2</value>
+	</entry>
+	<entry>
+		<key>CTRL_ABI-3_DESC</key>
+		<value>Action key 3</value>
+	</entry>
+	<entry>
+		<key>CTRL_ABILITIES_DESC</key>
+		<value>Abilities screen</value>
+	</entry>
+	<entry>
+		<key>CTRL_ABIX-0_DESC</key>
+		<value>Combination key 0</value>
+	</entry>
+	<entry>
+		<key>CTRL_ABIX-1_DESC</key>
+		<value>Combination key 1</value>
+	</entry>
+	<entry>
+		<key>CTRL_ABIX-2_DESC</key>
+		<value>Combination key 2</value>
+	</entry>
+	<entry>
+		<key>CTRL_ABIX-3_DESC</key>
+		<value>Combination key 3</value>
+	</entry>
+	<entry>
+		<key>CTRL_BIND_ABS</key>
+		<value>Absolute</value>
+	</entry>
+	<entry>
+		<key>CTRL_BIND_MOUSE_LOOK</key>
+		<value>Mouse look</value>
+	</entry>
+	<entry>
+		<key>CTRL_BIND_MOUSECAST</key>
+		<value>Mousecast</value>
+	</entry>
+	<entry>
+		<key>CTRL_BIND_SEPARATE_SEQUENCES</key>
+		<value>Separate sequences</value>
+	</entry>
+	<entry>
+		<key>CTRL_HELP_DESC</key>
+		<value>Help screen</value>
+	</entry>
+	<entry>
+		<key>CTRL_MOVEDOWN_DESC</key>
+		<value>Move backward</value>
+	</entry>
+	<entry>
+		<key>CTRL_MOVEDOWNABS_DESC</key>
+		<value>Move down</value>
+	</entry>
+	<entry>
+		<key>CTRL_MOVELEFT_DESC</key>
+		<value>Move left</value>
+	</entry>
+	<entry>
+		<key>CTRL_MOVELEFTABS_DESC</key>
+		<value>Move left</value>
+	</entry>
+	<entry>
+		<key>CTRL_MOVERIGHT_DESC</key>
+		<value>Move right</value>
+	</entry>
+	<entry>
+		<key>CTRL_MOVERIGHTABS_DESC</key>
+		<value>Move right</value>
+	</entry>
+	<entry>
+		<key>CTRL_MOVEUP_DESC</key>
+		<value>Move forward</value>
+	</entry>
+	<entry>
+		<key>CTRL_MOVEUPABS_DESC</key>
+		<value>Move up</value>
+	</entry>
+	<entry>
+		<key>CTRL_QUICKATTACK_DESC</key>
+		<value>Quick attack</value>
+	</entry>
+	<entry>
+		<key>CTRL_SET_KEYBOARD_ONLY</key>
+		<value>Keyboard only</value>
+	</entry>
+	<entry>
+		<key>CTRL_SET_KEYBOARD_ONLY_DESC</key>
+		<value>Movement: arrows.
+Spell casting: QWER</value>
+	</entry>
+	<entry>
+		<key>CTRL_SET_KEYBOARD_ONLY_MENU_DESC</key>
+		<value>Inspired by the original Gauntlet. Use arrows to move the character towards the edges of the screen, and use the other hand to cast spells with the four keys - QWER.
+        </value>
+	</entry>
+	<entry>
+		<key>CTRL_SET_ABSOLUTE</key>
+		<value>Absolute</value>
+	</entry>
+	<entry>
+		<key>CTRL_SET_KEYBOARD_CLASSIC</key>
+		<value>Keyboard classic</value>
+	</entry>
+	<entry>
+		<key>CTRL_SET_KEYBOARD_CLASSIC_DESC</key>
+		<value>Movement: arrows.
+Spell casting: QWER</value>
+	</entry>
+	<entry>
+		<key>CTRL_SET_KEYBOARD_CLASSIC_MENU_DESC</key>
+		<value>This control set is reminescent of the first game in the GTA series. Up and down arrows move the character forwards and backwards, and left-right are used to turn. Use the other hand to cast spells with the four keys - QWER.
+        </value>
+	</entry>
+	<entry>
+		<key>CTRL_SET_MOUSE_AND_KEYBOARD</key>
+		<value>Mouse+Keyboard</value>
+	</entry>
+	<entry>
+		<key>CTRL_SET_MOUSE_AND_KEYBOARD_DESC</key>
+		<value>
+      Movement: WSAD
+      Aiming: mouse
+      Spell casting: mouse buttons
+      Spell combinations: 1234
+    </value>
+	</entry>
+	<entry>
+		<key>CTRL_SET_MOUSE_AND_KEYBOARD_MENU_DESC</key>
+		<value>You can control your hero with WSAD keys. Use mouse to aim and mouse buttons to cast spells from slots. You can cast other spells with additional keys.      
+    </value>
+	</entry>
+	<entry>
+		<key>CTRL_SET_USER</key>
+		<value>User</value>
+	</entry>
+	<entry>
+		<key>CTRL_SET_USER_DESC</key>
+		<value>[defined by user]</value>
+	</entry>
+	<entry>
+		<key>CTRL_SET_USER_MENU_DESC</key>
+		<value>Defined by user.</value>
+	</entry>
+	<entry>
+		<key>CTRL_SLOT-0_DESC</key>
+		<value>Slot #1 key</value>
+	</entry>
+	<entry>
+		<key>CTRL_SLOT-1_DESC</key>
+		<value>Slot #2 key</value>
+	</entry>
+	<entry>
+		<key>CTRL_SLOT-2_DESC</key>
+		<value>Slot #3 key</value>
+	</entry>
+	<entry>
+		<key>CTRL_SPECIALATTACK_DESC</key>
+		<value>Special attack</value>
+	</entry>
+	<entry>
+		<key>CTRL_STEERING</key>
+		<value>Controls</value>
+	</entry>
+	<entry>
+		<key>CTRL_TURNLEFT_DESC</key>
+		<value>Turn left</value>
+	</entry>
+	<entry>
+		<key>CTRL_TURNRIGHT_DESC</key>
+		<value>Turn right</value>
+	</entry>
+	<entry>
+		<key>CTRL_POINTNCLICK_DESC</key>
+		<value>Point&amp;click movement</value>
+	</entry>
+	<entry>
+		<key>CTRL_BIND_POINTNCLICK_MOVEMENT</key>
+		<value>Point&amp;click movement</value>
+	</entry>
+	<entry>
+		<key>CTRL_BIND_POINTNCLICK_MOVEMENT_TOOLTIP</key>
+		<value>Point a location on the map with your mouse and click - hero will head towards it.</value>
+	</entry>
+	<entry>
+		<key>CTRL_SET_MOUSE_ONLY</key>
+		<value>Mouse only</value>
+	</entry>
+	<entry>
+		<key>CTRL_SET_MOUSE_ONLY_DESC</key>
+		<value>Movement: point&amp;click (mouse button)
+Aiming: mouse
+Spell casting: mouse buttons
+</value>
+	</entry>
+	<entry>
+		<key>CTRL_SET_MOUSE_ONLY_MENU_DESC</key>
+		<value>Scheme using mouse for most actions. Click anywhere to move the hero, aim and cast spells with other mouse buttons.
+</value>
+	</entry>
+	<entry>
+		<key>CTRL_NEXTITEM_DESC</key>
+		<value>Next item</value>
+	</entry>
+	<entry>
+		<key>CTRL_PREVITEM_DESC</key>
+		<value>Previous item</value>
+	</entry>
+</root>

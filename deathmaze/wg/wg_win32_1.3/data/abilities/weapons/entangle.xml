@@ -1,0 +1,70 @@
+<root type="ability" class="self">
+
+  <name>Entangle</name>
+  <description>
+Powers of the nature entangle enemy. Talented caster is able to entangle multiple enemies at once.
+  </description>
+  <icon>data/abilities/weapons/entangle.png</icon>
+  <stats desc="immobilize $1 opponents for $2 seconds">
+    <param name="1" calc="rint(6 * ln(1 + (0.33 * power)))" />
+    <param name="2" calc="3.0 * (1 + 0.5 * ln(1 + power))" />
+  </stats>
+                  
+
+  <!-- power = 1x cho, 4x mel, 2x san, 3x phl -->
+  <power calc="0.2 * dot(1, choleric, 4, melancholic, 2, sanguine, 3, phlegmatic)"/>
+  
+  <effect type="retarget">
+    <target-chooser>
+      <filter value="hostiles"/>
+      <range value="6.0"/>
+      <angle value="66.0"/>
+    </target-chooser>
+    <effect type="list" >
+      <effect type="list" tag="entangle-tag">
+        <effect type="sound">
+          <name value="data/sounds/Lugaro/bushrustle.ogg" />
+        </effect>
+        <effect type="non-cumulative">
+          <effect type="list">
+            <effect type="graphical-effect">
+              <name value="entangle" />
+              <time calc="3.0 * (1 + 0.5 * ln(1 + power))" />
+            </effect>
+            <effect type="timed">
+              <time calc="3.0 * (1 + 0.5 * ln(1 + power))" />
+              <effect type="list">
+                <effect type="modify">
+                  <aspect value="speed" />
+                  <amount value="0.0" />
+                </effect>
+                <effect type="modify">
+                  <aspect value="mass" />
+                  <amount value="1000.0" />
+                </effect>
+              </effect>
+            </effect>
+          </effect>
+        </effect>
+      </effect>
+      <effect type="retarget">
+        <target-chooser>
+          <filter value="hostiles"/>
+          <range calc="0.02 + (1.66 * ln(0.5 + power))"/>
+          <angle value="360.0"/>
+          <aim-at-ground value="0"/>
+          <count calc="6 * ln(1 + (0.33 * power))"/>
+        </target-chooser>
+        <effect type="jump">
+          <name value="entangle-tag"/>
+        </effect>
+      </effect>
+    </effect>
+  </effect>
+  
+  <manacost calc="17 * (1 + 0.22 * power)" />
+  <casttime value="0.10" />
+  <delay value="0.05" />
+  <cooldown value="0.90" />
+  
+</root>

@@ -1,0 +1,35 @@
+<root type="loot">
+  <name name="$ITEM_SUPERSPEED" />
+  <genre>superspeed</genre>
+  <image filename="data/loots/superspeed_powerup.png" />
+  <effect type="list">
+      <effect type="console">
+          <text>[
+              msg $MSG_FOUND $ITEM_SUPERSPEED
+              ]</text>
+      </effect>
+
+      <effect type="sound">
+          <name value="data/sounds/Lugaro/jump.ogg" />
+      </effect>
+	  
+	  <effect type="non-cumulative">
+          <effect type="timed">
+              <time value="20.0" />
+              <effect type="modify">
+                  <aspect value="speed" />
+                  <amount value="1.6" />
+              </effect>
+          </effect>
+	  </effect>
+
+      <effect type="graphical-effect">
+          <time value="20.0" />
+          <name value="trail" />
+      </effect>
+      <effect type="graphical-effect">
+          <time value="0.5" />
+          <name value="shield" />
+      </effect>    
+  </effect>
+</root>

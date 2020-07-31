@@ -1,0 +1,54 @@
+<root type="ability" class="melee">
+
+  <name>Kromad&apos;s club</name>
+  <description>
+When the Troll shaman, Kromad the Terrifying, lost his bone club in the midst of a battle, he decided to smack enemies with pure magic energy.
+  </description>
+  <icon>data/abilities/weapons/basher.png</icon>
+  <stats desc="deals $1 of physical damage
+deals $2 of vorpal damage
+stuns for $3 seconds">
+    <param name="1" calc="17.0 * (1 + power)" />
+    <param name="2" calc="11.0 * (1 + power)" />
+    <param name="3" calc="0.6 + ln(1 + power)" />
+  </stats>
+
+  <!-- power = 1x cho, 4x mel, 0x san, 1x phl -->
+  <power calc="0.2 * dot(1, choleric, 4, melancholic, 0, sanguine, 1, phlegmatic)"/>
+
+  <effect type="list">
+    <effect type="knockback">
+      <amount calc="9.2" />
+    </effect>
+    <effect type="damage">
+      <damage-type value="physical"/>
+      <amount calc="17.0 * (1 + power)" />
+    </effect>
+    <effect type="damage">
+      <damage-type value="vorpal"/>
+      <amount calc="11.0 * (1 + power)" />
+    </effect>
+    <effect type="timed">
+      <effect type="stun"/>
+      <time calc="0.6 + ln(1 + power)"/>
+    </effect>
+    <effect type="graphical-effect">
+      <name value="stars" />
+      <time calc="0.6 + ln(1 + power)"/>
+    </effect>
+  </effect>
+
+  <self-effect type="graphical-effect">
+    <name value="magic-circle-2"/>
+    <time value="0.35"/>
+  </self-effect>  
+
+  <range calc="1.1" />
+  <width value="90.0" />
+
+  <manacost calc="12.0 * (1 + 0.22 * power)" />
+  <casttime calc="0.09" />
+  <delay calc="0.05" />
+  <cooldown calc="0.80" />
+
+</root>

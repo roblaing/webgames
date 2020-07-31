@@ -1,10 +1,103 @@
 <h1>Game 1: RiceRocks</h1>
 
+<p><a href="https://twitter.com/RobertLaing6">Robert Laing</a></p>
+
+<q>Writing interactive games and animations is both instructive and fun. Writing such programs is, however,
+often challenging. Interactive programs are complex because the user, not the programmer, is in charge of
+the program’s execution: the program itself is often a passive receiver of commands, reacting only when some 
+stimulus in the external world (whether a user’s keystroke or the tick of a clock) occurs.</q> &mdash;
+<a href="https://world.cs.brown.edu/1/htdw-v1.pdf">How to Design Worlds</a>
+
+The textbook intro quoted above is from a companion volume to my favourite introduction to programming, the free online 
+<a href="https://htdp.org">How to Design Programs</a>. It teaches a Lisp-dialect, Racket, coupled to an application,
+DrRacket, which provides <q>everything in a box</q> a beginner needs to get going (ie a text editor, repl, 
+test framework, ...).
+
+To transfer some of the wonderful knowledge in HTDP to GUI web application development, I selected a video game I originally 
+encountered many years in Rice University's <a href="https://www.coursera.org/learn/interactive-python-1">Interactive Python</a> 
+Mooc called RiceRocks. This meant the sprites and sounds were all readily available on my PC.
+
+The heart of HTDP is its <a href="https://htdp.org/2020-5-6/Book/part_preface.html#%28part._sec~3asystematic-design%29">6
+step recipe</a> which tries to get beginners into the habit of test-first development
+
+<h2>Testing</h2>
+
+<q>Testing such programs appears even harder because without the interaction there appears to be no program to speak of,
+but automating the testing of interactive programs is especially challenging. Developing clean, well-tested interactive 
+programs therefore seems especially daunting to beginners.</q> &mdash;
+<a href="https://world.cs.brown.edu/1/htdw-v1.pdf">How to Design Worlds</a>
+
+The hardest part of this project for me has been learning <a href="https://jasmine.github.io/">Jasmine</a>, a JavaScript
+testing framework I picked somewhat arbritrarily, partly because there's a
+<a href="https://www.udemy.com/course/unit-testing-your-javascript-with-jasmine/">Udemy</a> course which I found very
+helpful.
+
+Since I did writing tests last instead of first, I'm currently refactoring my code since Jasmine refuses to let functions
+it tests see variables which weren't passed to them as arguments, and I used a lot of global variables.
+
+Step 1 is to download the latest <a href="https://github.com/jasmine/jasmine/releases">release</a>. Unziping
+it produces something like:
+
+<code><pre>
+./
+├── lib/
+│   ├── jasmine-3.6.0/jasmine_favicon.png
+│   ├── jasmine-3.6.0/jasmine.js
+│   ├── jasmine-3.6.0/jasmine-html.js
+│   ├── jasmine-3.6.0/jasmine.css
+│   └── jasmine-3.6.0/boot.js
+├── SpecRunner.html
+├── src/
+│   ├── Player.js
+│   └── Song.js
+└── spec/
+.   ├── PlayerSpec.js
+.   └── SpecHelper.js
+</pre></code>
+
+Though I probably should have a lib subdirectory (modularising <a href="http://www.seatavern.co.za/game1.js">game1.js</a>
+to separate and abstract the generic parts is on my todo list), I've decided to put all the necessary testing files into
+one subdirectory, <code>./test</code>. I don't like the Jasmine convention of using <code>./spec</code> since I feel
+<a href="https://lamport.azurewebsites.net/tla/tla.html">specification</a> and testing are not the same thing.
+
+I've copied all the files in <code>lib/jasmine-3.6.0/</code> to <code>./test</code>, along with <code>SpecRunner.html</code>
+which I've renamed <code>index.html</code> to make the report accessible by pointing the browser to the game's URL +
+<code>/test</code>.
+
+A thing that tripped me up was following the standard way of declaring canvas
+
+```javascript
+const canvas = document.querySelector("#board");
+```
+
+resulted in a global constant Jasmine refused to either let functions it was testing see or get replaced. The solution
+was to attach all HTML elements I wanted to make global to the <em>window</em> object
+
+```javascript
+window.canvas = document.querySelector("#board");
+```
+
+which could then be mocked in Jasemin tests with <code>window.canvas = {width: 800, height: 600};</code>
+
+<h2>Documenting</h2>
+
+<q>Most languages come with a large collection of abstractions. Some are contributions by the language design team; 
+others are added by programmers who use the language. To enable effective reuse of these abstractions, their creators 
+must supply the appropriate pieces of documentation — a <em>purpose statement</em>, a <em>signature</em>, and 
+<em>good examples</em> — and programmers use them to apply abstractions.</q>
+
+After testing, the next hardest part fro me has been getting to grips with <a href="https://jsdoc.app/">JSDoc</a>.
+
+I've also tried to follow the <a href="https://google.github.io/styleguide/jsguide.html">Google JavaScript Style Guide</a>,
+with the exception of ignoring its views of trailing commas since I find leading commas far better.
+
+<h2>Coding</h2>
+
 <q>Learning coding is like playing cards — you learn the rules, then you play, then you go back and learn the rules again, 
 then you play again.</q> &mdash; From Mozilla's
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API">Web audio concepts and usage</a> guide.
 
-<h2><a href="https://developer.mozilla.org/en-US/docs/Web/API">Web APIs</a></h2>
+<h3><a href="https://developer.mozilla.org/en-US/docs/Web/API">Web APIs</a></h3>
 
 Frontend web development boils down to familiarisation with the bewildering choice of Web APIs available, and
 the goal of this first game was to learn a minimal subset to get animation, sound, and user interaction working.
@@ -17,7 +110,9 @@ Achieving a desired goal requires an encyclopaedic knowledge of many objects and
 events and their handlers, and methods and their parameters &mdash; mercifully <a href="https://developer.mozilla.org/en-US/">
 MDN</a> is an excellent reference.
 
-These are the ones I've settled on for now.
+These are the ones I've settled on for now. Making the game mobile friendly involved learning yet another Web API,
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Touch_events">Touch Events</a>, which I decided not
+to add the diagram below since it was too crowded already.
 
 I've attempted to draw a hierarchy of the objects I've used, though in JavaScript that's not easy. 
 For instance, though Document is a child of Window, and CanvasRenderingContext2D of HTMLCanvasElement etc, 
@@ -85,24 +180,11 @@ coding convention is to treat each as a separate object.
 .   .   └── stop()
 </pre></code>
 
-<h2><a href="https://jsdoc.app/">JSDoc</a></h2>
-
-Along with getting to grips with the language, I also used developing some games as a way to learn JavaScript's documentation and testing tools.
-
-I haven't got far with the testing tools yet, but found JSDoc's tags a handy way to "think above the code" in trying to abstract RiceRocks into a general game framework.
-
-I've also tried to follow the <a href="https://google.github.io/styleguide/jsguide.html">Google JavaScript Style Guide</a>,
-with the exception of ignoring its views of trailing commans since I find leading commas far better.
-
-Like most automated documentation systems, JSDoc lists things alphabetically, which is good for reference, but not great for explaining
-<a href="https://en.wikipedia.org/wiki/Control_flow">control flow</a>, which I'll attempt in this 
-<a href="https://jsdoc.app/about-including-readme.html">README.md</a> which JSDoc uses for the home page.
-
 <h2><a href="https://en.wikipedia.org/wiki/Event-driven_programming">Event-driven programming</a></h2>
 
 In the fog of the religious war underway between <a href="https://en.wikipedia.org/wiki/Functional_programming">FP</a> vs
 <a href="https://en.wikipedia.org/wiki/Object-oriented_programming">OOP</a>, event-driven programming seems to have been
-forgotten. To me, it seems the most natural approach for writing any kind of GUI application, including games.
+forgotten. To me, it's the most natural approach for writing any kind of GUI application, including games.
 
 Event-driven programming broadly involves three types of things:
 
@@ -112,8 +194,9 @@ target.addEventListener(type, listener [, options]);</a> where
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget">target</a> is Window, Document, or other HTML element,
 and <a href="https://developer.mozilla.org/en-US/docs/Web/Events">type</a> is something like "keyup", "keydown", or "click".
 </li>
-  <li>Handlers: This is addEventListener's second argument, a <a href="">callback</a> called listener in the documentation.</li>
-  <li>A <a href="https://en.wikipedia.org/wiki/Event_loop">listening loop</a>.</li>
+  <li>Handlers: This is addEventListener's second argument, a <a href="">callback</a> called <em>listener</em> 
+     in the documentation.</li>
+  <li>A <a href="https://en.wikipedia.org/wiki/Event_loop">listening loop</a> &mdash; the body of a concurrent system.</li>
 </ol>
 
 <h3>1. Listeners</h3>
@@ -123,7 +206,7 @@ introductory example because its user input only involves four keys &mdash; the 
 the left arrow to rotate counter-clockwise, the right arrow to rotate clockwise, and the up arrow to move in the 
 direction the spaceship is currently pointed.
 
-In JavaScript, this translates to attaching two listeners to the document object which can share a callback 
+In JavaScript, this translates to initially attaching two listeners to the document object which can share a callback 
 I've named keyListener:
 
 ```javascript
@@ -131,14 +214,16 @@ document.addEventListener("keydown", keyListener);
 document.addEventListener("keyup",   keyListener);
 ```
 
-I initially made <em>window</em> rather than <em>document</em> my target, and it doesn't make much difference. JavaScript events are said to
-<a href="https://javascript.info/bubbling-and-capturing">bubble</a> through the DOM, arriving at the Window if nothing has captured them before then.
-It's generally good practice to make the target as close to the event as possible.
-
-The original game had a splash screen which was removed by clicking on the canvas with a mouse, but I left it out since it doesn't add much.
-
 A big adaption of the original game was making the game <em>mobile friendly</em> by making the screen size <em>responsive</em>
 and figuring out touch events, which I'll cover below.
+
+I originally made <em>window</em> rather than <em>document</em> my target, and it doesn't make much difference. 
+JavaScript events are said to
+<a href="https://javascript.info/bubbling-and-capturing">bubble</a> through the DOM, arriving at the Window if nothing 
+has captured them before then. It's generally good practice to make the target as close to the event as possible.
+
+Rice University's version had a splash screen which was removed by clicking on the canvas with a mouse, 
+but I left it out since it doesn't add much.
 
 <h4>Where to start?</h4>
 
@@ -233,7 +318,7 @@ window.addEventListener("unload", function (event) {
 });
 ```
 
-<h3>Adapting for mobile part 1</h3>
+<h4>Adapting for mobile part 1</h4>
 
 I naively thought it would be easy to adapt <em>keydown</em> into
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/touchstart_event">touchstart</a> and <em>keyup</em> into 
@@ -241,22 +326,17 @@ I naively thought it would be easy to adapt <em>keydown</em> into
 Javascript's <a href="https://developer.mozilla.org/en-US/docs/Web/API/TouchEvent">Touch Events</a> are a whole new API.
 
 At this stage, expanding the game to handle touch screens simply involves attaching these two events to the <code>canvas</code> 
-object in the <em>init</em> part of my code. I picked <em>canvas</em> rather than <em>document</em> in accordance with
+object. I picked <em>canvas</em> rather than <em>document</em> in accordance with
 the JavaScript rule of thumb to avoid bubbling as much as possible.
 
 ```javascript
-window.addEventListener("DOMContentLoaded", async function (event1) {
-  await backgroundImage.addEventListener("load", function (event2) {
-    ...
-    canvas.addEventListener("touchstart", touchListener);
-    canvas.addEventListener("touchend",   touchListener);
-    window.requestAnimationFrame(loop);
-  });
-});
+canvas.addEventListener("touchstart", touchListener);
+canvas.addEventListener("touchend",   touchListener);
 ```
 
-I've left the keyboard listeners attached to the docoment in the body of the script, though for the sake of neatness
-I probably should but them with the touch listeners to keep user input code together.
+As I'll explain later, writing <em>touchListener</em> proved harder than I initially thought, but nevertheless adding
+a new kind of user interaction wasn't particularly complex, and didn't involve any modifications to the <em>guts of the game</em>,
+ie the loop, draw, nextTick and other auxiliary functions.
 
 <h3>2. Handlers</h3>
 
@@ -268,18 +348,9 @@ Erlang's approach of creating separate processes which communicate via messages.
 for now am not sure how to apply this here where the listening loop doubles as an animation loop (ie doesn't iterate every time it receives a new message, but every 1/60 second to redraw the board). I'm also confused about browser support
 for web workers, so will leave learning it for later.
 
-Instead of messages, the handlers and listening loop communicate via shared memory &mdash; which works easily in a single thread
-(the default for JavaScript web applications at time of writing), but would be complicated if done in parallel using the 
-multicores of modern hardware.
-
-This makes a data structure, <a href="http://www.seatavern.co.za/doc/inputStates.html">inputStates</a>, stored as a global
-constant, vital since it is the core messaging mechanism between the handlers and the game loop.
-All the propertis of inputStates (with the exception of a sound buffer which should maybe be moved into the spaceship
-<a href="http://www.seatavern.co.za/doc/Sprite.html">sprite</a>) 
-are booleans, and I've followed Google's style of using a
-<a href="https://google.github.io/styleguide/jsguide.html#naming-method-names">isFoo</a> convention. For some, I've gotten
-into the habit of using <a href="https://en.wikipedia.org/wiki/Snake_case">snake case</a>, so find the JavaScript convention
-of camelCase and PascalCase a bit alien, but am getting the hang of it.
+Instead of sending messages, the handlers communicate with the listening loop by mutating shared memory &mdash; which works 
+easily in a single thread (the default for JavaScript web applications at time of writing), but would be complicated if done 
+in parallel using the multicores of modern hardware.
 
 The guts of Erlang programmes follow a <code>pattern -> action</code> template, which emulating in JavaScript involves its
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch">switch</a> statement. 
@@ -310,7 +381,7 @@ has a <a href="https://developer.mozilla.org/en-US/docs/Web/API/UIEvent">UIEvent
 <code>window.addEventListener("resize", resizeListener)</code>. But since I also use this as a normal function to initially
 set <code>scale</code> after the window has loaded and don't use any UIEvent properties, it doesn't have any paramters.
 
-<h3>Adapting for mobile part 2</h3>
+<h4>Adapting for mobile part 2</h4>
 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Touch_events/Using_Touch_Events">Using Touch Events</a> is more
 complicated than keyboard events, partly because the event objects returned by
@@ -369,6 +440,62 @@ function loop() {
   window.requestAnimationFrame(loop);
 }
 ```
+
+<h4>State</h4>
+
+In Erlang, the recursive loop would have an argument &mdash; usually a compound data structure containing the various
+things commonly called a <em>state</em> &mdash; which the body of the loop would alter according to messages sent to
+it by handlers and then call itself with the new value.
+
+Here, instead of what Erlang calls a <em>mailbox</em> and the C-family would call a <em>message queue</em>, messaging is 
+done by the handlers mutating global variables which the loop reads each iteration.
+
+<a href="http://www.seatavern.co.za/doc/inputStates.html">inputStates</a> is the core messaging mechanism the handlers 
+use to communicate to the game loop.
+All the propertis of inputStates (with the exception of a sound buffer) are booleans, and I've followed Google's style of using a
+<a href="https://google.github.io/styleguide/jsguide.html#naming-method-names">isFoo</a> convention. For some, I've gotten
+into the habit of using <a href="https://en.wikipedia.org/wiki/Snake_case">snake case</a>, so find the JavaScript convention
+of camelCase and PascalCase a bit alien, but am getting the hang of it.
+
+Another core state variable is <a href="http://www.seatavern.co.za/doc/global.html#sprites">sprites</a>, a list (or
+array as JavaScript calls lists) of <a href="http://www.seatavern.co.za/doc/Sprite.html">sprite</a> elements. In
+this game, I've made a convention that the spaceship sprite (which somethimes mutates briefly into an explosion
+when it collides with an asteroid) can be accessed as <code>sprites[0]</code>.
+
+<h4>List processing</h4>
+
+A really powerful idea from <em>functional programming</em> (FP to its friends) is breaking problems down iterating over
+lists, applying the same function to each element depending on which of three categories the task at hand falls into:
+
+<ol>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map">map</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter">filter</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce">reduce</a></li>
+</ol>
+
+Map and filter can be built out of reduce, which in pure functional programming languages is usually called <em>foldr</em>
+(JavaScript has <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/ReduceRight">
+for purists).
+
+Since mutation is taboo in FP, the above traditional list processors all produce a new list. If we don't want a new list
+(which for traditional functional programming languages would be for printing data from each list element on a screen), we
+can use
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach">
+forEach</a>, which makes all the whizing stuff on the screen with this one line of code:
+
+```javascript
+  sprites.forEach(function (sprite) {draw(sprite); nextTick(sprite);});
+```
+
+<a href="http://www.seatavern.co.za/doc/global.html#draw">draw(sprite)</a> obviously belongs in <em>forEach</em>
+since it does the GUI equivalent of a print statement, but putting 
+<a href="http://www.seatavern.co.za/doc/global.html#nextTick">nextTick(sprite)</a> there would be frowned on by
+FP purists since the position and other values of each sprite get changed. Since JavaScript encourages mutations
+and changing the properties of objects referenced in the array rather than removing and appending new ones is a lot
+less work for the programmer and computer, I've gone that route.
+
+<h4>Drawing and updating</h4>
+
 As Mozilla's <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_animations">Basic Animations</a>
 guide explains, the <code>...</code> above expands into broadly three steps:
 
@@ -387,13 +514,14 @@ guide explains, the <code>...</code> above expands into broadly three steps:
 <li>Update the position of each sprite before they're drawn again to make them move.</li>
 </ol>
 
-The loop <a href="http://www.seatavern.co.za/doc/global.html#loop">code</a> can be viewed via the documentation.
+Writing nextTick got me to dust off the trigonometry and physics I learned way back in the last century. While my goal
+was to keep the game as simple as possible so as to focus on learning JavaScript and its related tools, I couldn't
+help making the spaceship recoil a bit when it fires a missile to force the player to use the thruster... I was also
+tempted to make the asteroids bounce off each other like billiard balls, but I'll save that for a future version.
 
-An important part is this list iteration in which each sprite is processed by 
-<a href="http://www.seatavern.co.za/doc/global.html#draw">draw(sprite)</a> and then 
-<a href="http://www.seatavern.co.za/doc/global.html#nextTick">nextTick(sprite)</a>:
+In conclusion, writing this game taught me a lot. Besides encountering many of the problems with JavaScript and hopefully
+finding ways to overcome them &mdash; a neverending quest I suspect. 
 
-```javascript
-  sprites.forEach(function (sprite) {draw(sprite); nextTick(sprite);});
-```
+this document will already make most readers say tl;dr so I'll rather proceed to my next project, creating a dungeon crawler
+specifically designed for mobile phones, with only touch user intput.
 

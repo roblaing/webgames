@@ -1,0 +1,54 @@
+<root type="locale" name="English" code="en">
+	<entry>
+		<key>ITEM_ABI_SPECIAL_BALL_MSG</key>
+		<value>You just found one of ancient spell</value>
+	</entry>
+	<entry>
+		<key>ITEM_HEALTH</key>
+		<value>Health elixir</value>
+	</entry>
+	<entry>
+		<key>ITEM_MANA</key>
+		<value>Mana potiom</value>
+	</entry>
+	<entry>
+		<key>ITEM_MANA_REGENERATION</key>
+		<value>Managenerator</value>
+	</entry>
+	<entry>
+		<key>ITEM_REGENERATION</key>
+		<value>Troll regeneration</value>
+	</entry>
+	<entry>
+		<key>ITEM_SKILLPOINT</key>
+		<value>Skill globe</value>
+	</entry>
+	<entry>
+		<key>ITEM_SKILLPOINT_MSG</key>
+		<value>You have found bonus skill point!</value>
+	</entry>
+	<entry>
+		<key>ITEM_SUPERSPEED</key>
+		<value>Superspeed</value>
+	</entry>
+	<entry>
+		<key>ITEM_XP</key>
+		<value>Experience points</value>
+	</entry>
+	<entry>
+		<key>ITEM_PENDANT_OF_IMMORTALITY</key>
+		<value>Pendant of immortality</value>
+	</entry>
+	<entry>
+		<key>ITEM_FIRESTORM</key>
+		<value>Firestorm</value>
+	</entry>
+	<entry>
+		<key>ITEM_EYE_OF_THUNDER</key>
+		<value>Eye of thunder</value>
+	</entry>
+	<entry>
+		<key>ITEM_FIREBURST</key>
+		<value>Fireburst</value>
+	</entry>
+</root>

@@ -50,12 +50,12 @@ const inputStates = { isUp: false
  * [Canvas API]{@link https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API}
  * @constant {HTMLCanvasElement} canvas
 */
-const canvas = document.querySelector("#board");
+window.canvas = document.querySelector("#board");
 /**
  * [Canvas's context]{@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D}
  * @constant {CanvasRenderingContext2D} ctx
  */
-const ctx = canvas.getContext("2d");
+window.ctx = window.canvas.getContext("2d");
 /**
  * First image drawn each loop.
  * @constant {HTMLImageElement} backgroundImage
@@ -63,7 +63,7 @@ const ctx = canvas.getContext("2d");
  * @property {pixels} height - 600, canvas.height if scale = 1.0
  * @property {graphicFile} src - [nebula_blue.f2014.png]{@link http://www.seatavern.co.za/nebula_blue.f2014.png}
  */
-const backgroundImage = new Image();
+window.backgroundImage = new Image();
 /**
  * Two images in one file showing spaceship with rocket on or off.
  * @constant {HTMLImageElement} spaceshipImage
@@ -71,7 +71,7 @@ const backgroundImage = new Image();
  * @property {pixels} height - 90
  * @property {graphicFile} src - [double_ship.png]{@link http://www.seatavern.co.za/double_ship.png}
  */
-const spaceshipImage = new Image();
+window.spaceshipImage = new Image();
 /**
  * Single image with no animation per se, but rotation makes it look lively.
  * @constant {HTMLImageElement} asteroidImage
@@ -79,17 +79,17 @@ const spaceshipImage = new Image();
  * @property {pixels} height - 90
  * @property {graphicFile} src - [asteroid_blue.png]{@link http://www.seatavern.co.za/asteroid_blue.png}
  */
-const asteroidImage = new Image();
+window.asteroidImage = new Image();
 /**
  * The only animated sprite in this game
  * @constant {HTMLImageElement} asteroidImage
  * @property {pixels} width - 90
  * @property {pixels} height - 90
  */
-const explosionImage = new Image();
-const splashImage = new Image();
-const missileImage = new Image();
-const debrisImage = new Image();
+window.explosionImage = new Image();
+window.splashImage = new Image();
+window.missileImage = new Image();
+window.debrisImage = new Image();
 backgroundImage.src = "nebula_blue.f2014.png";
 spaceshipImage.src = "double_ship.png";
 asteroidImage.src = "asteroid_blue.png";
@@ -99,12 +99,16 @@ explosionImage.src = "explosion_alpha.png";
 debrisImage.src = "debris2_blue.png";
 
 // Global Audio assets
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-const backgroundSound = audioCtx.createBufferSource();
-const thrustSound = audioCtx.createBufferSource();
-const missileSound = audioCtx.createBufferSource();
-const explosionSound = audioCtx.createBufferSource();
+window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+window.backgroundSound = audioCtx.createBufferSource();
+window.thrustSound = audioCtx.createBufferSource();
+window.missileSound = audioCtx.createBufferSource();
+window.explosionSound = audioCtx.createBufferSource();
 
+/**
+ * An array holding sprites which are currently alive. sprites[0] is the spaceship
+ * @type {Array}
+ */
 let sprites = [];
 let new_sprites = [];
 let scale = 1.0;
@@ -164,17 +168,19 @@ function random_distance(sprite, r2, ratio) {
 /**
  * Initialises a spaceship Sprite
  * @function
+ * @param {HTMLImageElement} spaceshipImage - A global constant, but passed as a parameter to enable mocking in Jasemine
+ * @param {HTMLCanvasElement} canvas - A global constant, but passed as a parameter to enable mocking in Jasemine
  * @returns {Sprite} A spaceship starting in the centre, facing up, stationary
  */
 function createSpaceship() {
   return { type: "spaceship"
-         , image: spaceshipImage
+         , image: window.spaceshipImage
          , width: 90
          , height: 90
          , row: 0
          , column: 0
-         , xCentre: canvas.width/2
-         , yCentre: canvas.height/2
+         , xCentre: window.canvas.width/2
+         , yCentre: window.canvas.height/2
          , xDelta: 0
          , yDelta: 0
          , radius: 35
@@ -537,8 +543,6 @@ window.addEventListener("DOMContentLoaded", async function (event1) {
       sprites[rock] = createAsteroid();
     }
     window.addEventListener("resize", resizeListener);
-    canvas.addEventListener("touchstart", touchListener);
-    canvas.addEventListener("touchend", touchListener);
     window.requestAnimationFrame(loop);
   });
 });
@@ -560,4 +564,6 @@ backgroundSound.start();
 
 document.addEventListener("keydown", keyListener);
 document.addEventListener("keyup",   keyListener);
+canvas.addEventListener("touchstart", touchListener);
+canvas.addEventListener("touchend", touchListener);
 

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><h1>Flight Lander</h1>
+<p>This is the first exercise from <a href="https://world.cs.brown.edu/1/htdw-v1.pdf">How to Design Worlds</a>,
+a companion volume to <a href="https://htdp.org/">How to Design Programs</a>.</p>
+<h2>kebab-case to camelCase</h2>
+<pre>Today we have naming of parts. Yesterday,
+We had daily cleaning. And tomorrow morning,
+We shall have what to do after firing. But to-day,
+Today we have naming of parts. Japonica
+Glistens like coral in all of the neighbouring gardens,
+And today we have naming of parts. &mdash; <a href="https://www.poetrybyheart.org.uk/poems/naming-of-parts/">Naming of Parts</a>, Henry Reed</pre>
+<p>Something I find tricky is thinking of good function and variable names, so stealing existing ones created by leading
+educators makes life easier, and also follows their recommendation of using existing templates.</p>
+<p>One difference with the original <a href="https://docs.racket-lang.org/teachpack/2htdpuniverse.html#%28part._world-example%29">
+universe</a> library is the Lisp convention is to use <a href="https://en.wiktionary.org/wiki/kebab_case">kebab case</a>,
+whereas the JavaScript convention — at least as recommended by the
+<a href="https://google.github.io/styleguide/jsguide.html">Google JavaScript Style Guide</a> — is to use
+<a href="https://www.urbandictionary.com/define.php?term=dromedary%20case">dromedaryCase</a>, except for classes which use
+<a href="https://techterms.com/definition/pascalcase">PascalCase</a>.</p>
+<p>Lisp has the nice convention of ending <em>predicates</em> (ie functions which return true or false) with question marks, which
+doesn't work with JavaScript since the only non-alphanumerical character allowed in a variable name is an underscore.
+Following the Google style-guide, I'll use <em>isFoo()</em>.</p>
+<p>A general rule is to use verbs as a prefix for functions — eg get, set, calculate, ... — to make them self-descriptive.</p>
+<h2>Modularisation</h2>
+<p>In the current fashion swing from <a href="https://en.wikipedia.org/wiki/Object-oriented_programming">OOP</a> to
+<a href="https://en.wikipedia.org/wiki/Functional_programming">FP</a>, it's becoming clear many of OOP's selling points
+boil down to <a href="https://en.wikipedia.org/wiki/Modular_programming">modular programming</a>, which can be done
+more elegantly with FP.</p>
+<p>JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules">modules</a>,
+are a relatively new addition (circa 2015), and something I've never used, so one of my key learning goals in this project.</p>
+<p>There's quite a lot of overlap between objects and inheritance, and modules and dependencies. In this case, I'm going to
+create a module based on Racket's <a href="https://docs.racket-lang.org/teachpack/2htdpimage.html">image</a> package which
+universe.js is dependent on.</p>
+<h3>Interface</h3>
+<p>In JavaScript, this is an <a href="https://developer.mozilla.org/en-US/docs/web/javascript/reference/statements/export">
+export</a> statement which goes at the bottom of the module file, followed by a comma separated list of names
+between curly braces which client scripts can
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import">import</a> with a
+statement at the top of their files.</p>
+<h2>Specification</h2>
+<p><q>Programmers who advocate writing tests before writing code often believe those tests can serve as a specification. Writing tests does force us to think, and anything that gets us to think before coding is helpful. However, writing tests in code does not get us thinking above the code level. We can write a specification as a list of high-level descriptions of tests the program should pass essentially a list of properties the program should satisfy. But that is usually not a good way to write a specification, because it is very difficult to deduce from it what the program should or should not do in every situation.</q></p>
+<a href="https://cacm.acm.org/magazines/2015/4/184705-who-builds-a-house-without-drawing-blueprints/fulltext">
+Who Builds a House Without Drawing Blueprints?</a>, Leslie Lamport
+<h2>WorldState</h2>
+<h3>Global Conundrum</h3>
+<p>Either a bug or a feature of Jasmine is that functions it tests don't see values which have been set globally in their
+home files. So if you define something like <code>const canvas = document.querySelector(&quot;#board&quot;);&lt;\code&gt;
+near the top of your script — as nearly all canvas tutorials tell you to do — Jasmine neither allows a
+function to see this unless it's passed as a parameter, nor allows you to create a mock <code>window.canvas = {}</code> as could be
+done if canvas hadn't been defined in the script as a global value.</p>
+<p>Those who subscribe to the <a href="https://dl.acm.org/doi/10.1145/953353.953355">Global variable considered harmful</a>
+school would see this as a feature, encouraging good function composition which does not assume anything about the outside
+world.</p></article>
+    </section>
+
+
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>image.js</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description">This is a translation of a Racket package, partly done to learn JavaScript's module conventions.</div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="https://docs.racket-lang.org/teachpack/2htdpimage.html">HTDP image package</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>universe.js</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description">This is a translation of a Racket package, partly done to learn JavaScript's module conventions.</div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="universe.js.html">universe.js</a>, <a href="universe.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="https://docs.racket-lang.org/teachpack/2htdpuniverse.html">HTDP universe package</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#circle">circle</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Jul 30 2020 21:03:22 GMT+0200 (South Africa Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
