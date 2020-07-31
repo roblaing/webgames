@@ -13,7 +13,19 @@ The textbook intro quoted above is from a companion volume to my favourite intro
 DrRacket, which provides <q>everything in a box</q> a beginner needs to get going (ie a text editor, repl, 
 test framework, ...).
 
-JavaScript suffers very much from <em>tool overabundance syndrome</em>. 
+HTDP's motivation for using a somewhat obscure programming language is well explained in the preface's
+<a href="https://htdp.org/2020-5-6/Book/part_preface.html#%28part._drtl%29">DrRacket and the Teaching Languages</a>
+section:
+
+<q>Learning to program in a currently fashionable programming language often sets up students for eventual failure. 
+Fashion in this world is extremely short lived. A typical “quick programming in X” book or course fails to teach principles 
+that transfer to the next fashion language. Worse, the language itself often distracts from the acquisition of 
+transferable skills, at the level of both expressing solutions and dealing with programming mistakes.</q>
+
+A big advantage JavaScript has over Racket is it runs in any web browser, and just about everything today has a web
+browser. Whereas I got claustrophobic in DrRacket's boxed-in environment, JavaScript's <em>tool overabundance syndrome</em>
+moves to the other end of the problem spectrum.
+ 
 For instance, of the many testing frameworks available, I picked <a href="https://jasmine.github.io/">Jasmine</a>,
 partly because there's a
 <a href="https://www.udemy.com/course/unit-testing-your-javascript-with-jasmine/">Udemy</a> course which I found very
