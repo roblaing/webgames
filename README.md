@@ -65,7 +65,13 @@ operating system.  Ten years ago, writing applications meant writing application
 especially when you have the source code of both the language and the operating system, you can use whatever 
 language you want</q> &mdash; <a href="http://www.paulgraham.com/avg.html">Beating the Averages</a>, Paul Graham.
 
-Unlike Graham, I'm not that much of a Lisp-fan that I'd pick it for my server, where I like Prolog, or better yet, Erlang.
+Unlike Graham, I'm not that much of a Lisp-fan that I'd pick it for my server, where I like 
+<a href="https://github.com/roblaing/swipl-webapp-howto">Prolog</a>, or better yet, 
+<a href="https://github.com/roblaing/erlang-webapp-howto">Erlang</a>.
+
+I returned to learning JavaScript after completing some <a href="https://github.com/roblaing/erlang_mooc">
+Erlang Moocs</a>, so my code is a bit Erlangish, and I hope to make it more so be learning JavaScript's
+Web Workers API.
 
 <a href="http://aosabook.org/en/index.html">The Architecture of Open Source Applications</a> contains a nice
 collection of writings by open-source developers on the decicions they made, and one of its lessons is good
