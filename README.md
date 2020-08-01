@@ -75,13 +75,14 @@ documented.
 
 Here I'm going to use <a href="https://jsdoc.app/">JSDoc</a>, and at this stage
 specifically <a href="https://jsdoc.app/tags-typedef.html">@typedef</a> with 
-<a href="https://jsdoc.app/tags-property.html">@property</a> to <em>declare</em> my compound data structures.
+<a href="https://jsdoc.app/tags-property.html">@property</a> to <em>declare</em> my compound data structures 
+&mdash; of which many are needed to describe images, sounds and motion in game programming.
 
 I've expanded step 1 to include specification, though this overlapps somewhat with HTDP's <em>signatures</em> in step 2.
 
 Specification languages are a kind of <a href="https://en.wikipedia.org/wiki/Metalanguage">metalanguage</a>,
 which usually are not the same as the <em>object language</em> they describe. For instance, Lamport's TLA+ is a
-design language independent from whatever programing language the design is ultimately implemented in.
+design language independent of whatever programing language the design is ultimately implemented in.
 
 My rule about designing specifications is <em>don't</em>: rather do some research and stand on the shoulders of giants.
 
@@ -90,7 +91,7 @@ The internet is a great example of the power of <em>specification-first programi
 specifications) for anyone who wants to make their programs interoperable.
 
 There's <a href="https://tools.ietf.org/html/rfc2360">Guide for Internet Standards Writers</a>, an RFC on RFCs,
-which jumps ahead to step 4 of the HTDP recipe, templating.
+which besides being really <em>meta</em>, jumps ahead to step 4 of the HTDP recipe, templating.
 
 JavaScript, similarly, is a product of <em>specification-first programing</em>, with
 <a href="https://www.ecma-international.org/">ECMA</a> making its API freely available, the latest being
@@ -100,8 +101,9 @@ Corporate drones like to recite Andy Tanenbaum's quip: <q>The nice thing about s
 many to choose from; furthermore, if you do not like any of them, you can just wait for next year's model.</q>
 
 For all their faults, open standards are far better than proprietary protocols. I've personally wasted several hours
-making software interoperable with Facebook only to learn the hard way that if an API's documentation mainly consists 
-of marketing waffle and legalese, run away. I've never used React, and never will.
+making software interoperable with Facebook's GraphQL, deciphering documentation which mainly consisted 
+of marketing waffle and legalese, only to have Facebook break all my code a few months later. I've never used
+Facebook's React, and never will. Same applies to Microsoft's TypeScript.
 
 <a href="http://aosabook.org/en/index.html">The Architecture of Open Source Applications</a> contains a nice
 collection of writings by open-source developers on the decicions they made, and one of its lessons is good
