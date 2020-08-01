@@ -22,6 +22,13 @@ Fashion in this world is extremely short lived. A typical “quick programming i
 that transfer to the next fashion language. Worse, the language itself often distracts from the acquisition of 
 transferable skills, at the level of both expressing solutions and dealing with programming mistakes.</q>
 
+My favourite taxonomy of programming languages is this 
+<a href="https://www.famicol.in/language_checklist.html">joke checklist</a> which despite its long list of
+buzzwords, leaves many out.
+
+Among the things I like about HTDP is the vocabulary it provides to generally describe important programming concepts, 
+thereby distilling down all the jargon different programming languages use which are essentially synonymous.
+
 <h2>Why JavaScript?</h2>
 
 A big advantage JavaScript has over Racket is it runs in any web browser, and just about everything today has a web
@@ -76,13 +83,6 @@ I'm broadly following HTDP's <a href="https://htdp.org/2020-5-6/Book/part_prefac
 6 step design recipe</a>. The first half is focused on answering the question <em>What?</em> is the program supposed
 to do, leaving aside <em>How?</em> for the second half. (Both these questions should be preceeded by <em>Why?</em>,
 for which the answer here is creating HTML5 games is fun and educational).
-
-Among the things I like about HTDP is the vocabulary it provides to generally describe important programming concepts, 
-thereby distilling down all the jargon different programming languages use which are essentially synonymous.
-
-My favourite taxonomy of programming languages is this 
-<a href="https://www.famicol.in/language_checklist.html">joke checklist</a> which despite its long list of
-buzzwords, leaves many out.
 
 <h2>1. From Problem Analysis to Data Definitions</h2>
 
