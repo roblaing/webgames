@@ -1,6 +1,7 @@
 describe("game1.js", function() {
   window.canvas = {width: 800, height: 600};
   window.spaceshipImage = {};
+  window.scale = 1.0;
 
   it("should create spaceship", function() {
     expect(createSpaceship()).toEqual(
@@ -22,14 +23,9 @@ describe("game1.js", function() {
       });
   });
 
-  it("pythagorean x = 3, y = 4 should be 5", function() {
-    expect(distance(0, 0, 3, 4)).toBe(5);
-  });
-
-  xit("should be 112.5 pixels apart", function() {
-    // refuses to see global variable scale
+  it("should be 112.5 pixels apart", function() {
     const [x, y] = random_distance(createSpaceship(), 40, 1.5);
-    expect(distance(x, y, 400, 300)).toBeGreaterThanOrEqual(112.5);
+    expect(Math.hypot(x - 400, y - 300)).toBeGreaterThanOrEqual(112.5);
   });
 
 });

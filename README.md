@@ -24,7 +24,7 @@ transferable skills, at the level of both expressing solutions and dealing with 
 
 A big advantage JavaScript has over Racket is it runs in any web browser, and just about everything today has a web
 browser. Whereas I got claustrophobic in DrRacket's boxed-in environment, JavaScript's <em>tool overabundance syndrome</em>
-moves to the other end of the problem spectrum.
+moves to the other end of the anxiety spectrum.
  
 For instance, of the many testing frameworks available, I picked <a href="https://jasmine.github.io/">Jasmine</a>,
 partly because there's a
@@ -48,32 +48,35 @@ descriptions of tests the program should pass essentially a list of properties t
 But that is usually not a good way to write a specification, because it is very difficult to deduce from it what 
 the program should or should not do in every situation.</q>
 
-Broadly following the <a href="https://htdp.org/2020-5-6/Book/part_preface.html#%28part._sec~3asystematic-design%29">
-6 step design recipe</a> advocated by HTDP, I'd call step 1 &mdash;  <q>From Problem Analysis to Data Definitions</q>
-&mdash; specification.
-
-<h2>1. Specification</h2>
-
-The first half of the HTDP design recipe is focused on answering the question <em>What?</em> is the program going
+I'm broadly following HTDP's <a href="https://htdp.org/2020-5-6/Book/part_preface.html#%28part._sec~3asystematic-design%29">
+6 step design recipe</a>. The first half is focused on answering the question <em>What?</em> is the program supposed
 to do, leaving aside <em>How?</em> for the second half. (Both these questions should be preceeded by <em>Why?</em>,
 for which the answer here is creating HTML5 games is fun and educational).
+
+<h2>1. From Problem Analysis to Data Definitions</h2>
+
+This stage is about thinking in what mathematicians call sets and programmers call types or classes.
+Here, HTDP's <a href="https://htdp.org/2020-5-6/Book/part_one.html#%28part._sec~3aarith-images%29">
+The Arithmetic of Images</a> is a great aid.
+
+Before proceeding to step 2 which focuses on
+<a href="https://htdp.org/2020-5-6/Book/part_one.html#%28part._ch~3ahtdp%29">How to Design Programs</a> and their building
+blocks by <a href="https://htdp.org/2020-5-6/Book/part_one.html#%28part._sec~3adesign-func%29">Designing Functions</a>,
+we need to define our data. Unlike SQL where this would be done by creating tables, here we rely on documentation.
+
+Here I'm going to use <a href="https://jsdoc.app/">JSDoc</a>, and at this stage
+specifically <a href="https://jsdoc.app/tags-typedef.html">@typedef</a> with 
+<a href="https://jsdoc.app/tags-property.html">@property</a> to <em>declare</em> my compound data structures.
+
+HTDP modifies its recipe according to data type, so learning its vocabulary &mdash; which helps distilling down
+the many jargon terms describing essentially the same things which clutter tech speak &mdash; points to which
+templates and testing strategies to use.
+
+I've expanded step 1 to include specification, though this overlapps somewhat with HTDP's <em>signatures</em> in step 2.
 
 Specification languages are a kind of <a href="https://en.wikipedia.org/wiki/Metalanguage">metalanguage</a>,
 which usually are not the same as the <em>object language</em> they describe. For instance, Lamport's TLA+ is a
 design language independent from whatever programing language the design is ultimately implemented in.
-
-I returned to JavaScript after learning Erlang which comes with its own specification language and tools. Writing
-specifications is optional and uses different syntax to Erlang code, but that it can be applied to developing
-Erlang code makes it more practical than TLA+ if you're doing both the designing and coding.
-
-In the enormous jungle of npm packages there are bound to be JavaScript specification languages and type checking tools, 
-but I'm simply going to use <a href="https://jsdoc.app/">JSDoc</a>,
-specifically <a href="https://jsdoc.app/tags-typedef.html">@typedef</a> with 
-<a href="https://jsdoc.app/tags-property.html">@property</a> to <em>declare</em> my compound data structures,
-and <a href="https://jsdoc.app/tags-function.html">@function</a> with
-<a href="https://jsdoc.app/tags-param.html">@param</a> and 
-<a href="https://jsdoc.app/tags-returns.html">@return</a> out of which the automated documentation system creates
-what HTDP would call a <em>signature</em>.
 
 My rule about designing specifications is <em>don't</em>: rather do some research and stand on the shoulders of giants.
 
@@ -88,7 +91,7 @@ JavaScript, similarly, is a product of <em>specification-first programing</em>, 
 <a href="https://www.ecma-international.org/">ECMA</a> making its API freely available, the latest being
 <a href="https://www.ecma-international.org/ecma-262/11.0/index.html">ECMAScript 2020</a>.
 
-Corporate drones like to recite Andy Tanenbaum's quip <q>The nice thing about standards is that you have so 
+Corporate drones like to recite Andy Tanenbaum's quip: <q>The nice thing about standards is that you have so 
 many to choose from; furthermore, if you do not like any of them, you can just wait for next year's model.</q>
 
 For all their faults, open standards are far better than proprietary protocols. I've personally wasted several hours
@@ -104,8 +107,16 @@ along with Racket's <a href="https://docs.racket-lang.org/teachpack/2htdpimage.h
 <a href="https://docs.racket-lang.org/teachpack/2htdpuniverse.html#%28part._world-example%29">
 universe</a> packages a great help, creating a base-specification for my JavaScript modules.
 
-The specification stage is about thinking in what mathematicians call sets and programmers call types or classes.
-Here, HTDP's <a href="https://htdp.org/2020-5-6/Book/part_one.html#%28part._sec~3aarith-images%29">
-The Arithmetic of Images</a> is a great aid.
+
+
+<h2>2. Signature, Purpose Statement, Header</h2>
+
+
+For step 2, I'll rely on JSDoc's <a href="https://jsdoc.app/tags-function.html">@function</a> with
+<a href="https://jsdoc.app/tags-param.html">@param</a> and 
+<a href="https://jsdoc.app/tags-returns.html">@return</a> out of which the automated documentation system creates
+what HTDP would call a <em>signature</em>.
+
+
 
 

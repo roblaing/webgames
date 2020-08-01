@@ -90,13 +90,13 @@ window.explosionImage = new Image();
 window.splashImage = new Image();
 window.missileImage = new Image();
 window.debrisImage = new Image();
-backgroundImage.src = "nebula_blue.f2014.png";
-spaceshipImage.src = "double_ship.png";
-asteroidImage.src = "asteroid_blue.png";
-splashImage.src = "splash.png";
-missileImage.src = "shot2.png";
-explosionImage.src = "explosion_alpha.png";
-debrisImage.src = "debris2_blue.png";
+window.backgroundImage.src = "nebula_blue.f2014.png";
+window.spaceshipImage.src = "double_ship.png";
+window.asteroidImage.src = "asteroid_blue.png";
+window.splashImage.src = "splash.png";
+window.missileImage.src = "shot2.png";
+window.explosionImage.src = "explosion_alpha.png";
+window.debrisImage.src = "debris2_blue.png";
 
 // Global Audio assets
 window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -109,11 +109,11 @@ window.explosionSound = audioCtx.createBufferSource();
  * An array holding sprites which are currently alive. sprites[0] is the spaceship
  * @type {Array}
  */
-let sprites = [];
-let new_sprites = [];
-let scale = 1.0;
-let lives = 3;
-let score = 0;
+window.sprites = [];
+window.new_sprites = [];
+window.scale = 1.0;
+window.lives = 3;
+window.score = 0;
 
 // Sprite movement constants
 const THRUST_SPEED = 0.1;
@@ -144,24 +144,26 @@ function get_scale() {
   }
 }
 
-function distance(x1, y1, x2, y2) {
-  return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-}
-
 function collisions(sprite1, type) {
   return sprites.filter((sprite2) => sprite2.type === type &&
-    distance(sprite1.xCentre, sprite1.yCentre, sprite2.xCentre, sprite2.yCentre) <
+    Math.hypot(sprite1.xCentre - sprite2.xCentre, sprite1.yCentre - sprite2.yCentre) <
       (scale * (sprite1.radius + sprite2.radius)));
 }
 
+// https://stackoverflow.com/questions/63197135/intermittent-wrong-answer-from-javascript-float-comparison
 function random_distance(sprite, r2, ratio) {
-  let [x1, y1, r1] = [sprite.xCentre + sprite.xDelta, sprite.yCentre + sprite.yDelta, sprite.angle];
+  const x1 = sprite.xCentre + sprite.xDelta;
+  const y1 = sprite.yCentre + sprite.yDelta;
+  const r1 = sprite.radius;
+  const minDistance = ratio * scale * (r1 + r2);
   let x2;
   let y2;
+  let d;
   do {
-    x2 = Math.floor(Math.random() * (canvas.width + 1));
-    y2 = Math.floor(Math.random() * (canvas.height + 1));
-  } while (distance(x1, y1, x2, y2) < ratio * scale * (r1 + r2));
+    x2 = Math.random() * (canvas.width + 1);
+    y2 = Math.random() * (canvas.height + 1);
+    d = Math.hypot(x2 - x1, y2 - y1);
+  } while (d < minDistance);
   return [x2, y2];
 }
 
@@ -197,7 +199,7 @@ function createSpaceship() {
  * @returns {Sprite} Selects random start (not on top of spaceship), speed and rotation
  */
 function createAsteroid() {
-  const [x, y] = random_distance(sprites[0], 40, 1.5);
+  let [x, y] = random_distance(sprites[0], 40, 1.5);
   const velocity = scale * (Math.random() - 0.5);
   const direction = Math.random() * 2 * Math.PI;
   return { type: "asteroid"
