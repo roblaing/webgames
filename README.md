@@ -56,21 +56,26 @@ for which the answer here is creating HTML5 games is fun and educational).
 <h2>1. From Problem Analysis to Data Definitions</h2>
 
 This stage is about thinking in what mathematicians call sets and programmers call types or classes.
-Here, HTDP's <a href="https://htdp.org/2020-5-6/Book/part_one.html#%28part._sec~3aarith-images%29">
-The Arithmetic of Images</a> is a great aid.
 
 Before proceeding to step 2 which focuses on
 <a href="https://htdp.org/2020-5-6/Book/part_one.html#%28part._ch~3ahtdp%29">How to Design Programs</a> and their building
 blocks by <a href="https://htdp.org/2020-5-6/Book/part_one.html#%28part._sec~3adesign-func%29">Designing Functions</a>,
-we need to define our data. Unlike SQL where this would be done by creating tables, here we rely on documentation.
+we need to define our data. 
+
+My favourite taxonomy of programming languages is this 
+<a href="https://www.famicol.in/language_checklist.html">joke checklist</a> which despite its long list of
+buzzwords, leaves many out.
+
+Another thing I like about HTDP is the vocabulary it provides to generally describe important programming concepts, 
+thereby distilling down all the jargon different programming languages use which are essentially synonymous.
+
+JavaScript is a dynamically-typed language, so unlike, say statically-typed SQL where someone trying to decipher the
+code can look at the <code>CREATE TABLE...</code> blocks, there's no clue if the types haven't been properly
+documented.
 
 Here I'm going to use <a href="https://jsdoc.app/">JSDoc</a>, and at this stage
 specifically <a href="https://jsdoc.app/tags-typedef.html">@typedef</a> with 
 <a href="https://jsdoc.app/tags-property.html">@property</a> to <em>declare</em> my compound data structures.
-
-HTDP modifies its recipe according to data type, so learning its vocabulary &mdash; which helps distilling down
-the many jargon terms describing essentially the same things which clutter tech speak &mdash; points to which
-templates and testing strategies to use.
 
 I've expanded step 1 to include specification, though this overlapps somewhat with HTDP's <em>signatures</em> in step 2.
 
@@ -102,7 +107,11 @@ of marketing waffle and legalese, run away. I've never used React, and never wil
 collection of writings by open-source developers on the decicions they made, and one of its lessons is good
 coders tend to be good writers.
 
-Back to web games. Video games and graphics consists of a lot of jargon which is unfamiliar to me, and here the documentation
+For the types required for a computer game,
+HTDP's <a href="https://htdp.org/2020-5-6/Book/part_one.html#%28part._sec~3aarith-images%29">
+The Arithmetic of Images</a> is a great aid.
+
+Computer games and graphics consists of a lot of jargon which is unfamiliar to me, and here the documentation
 along with Racket's <a href="https://docs.racket-lang.org/teachpack/2htdpimage.html">image</a> and
 <a href="https://docs.racket-lang.org/teachpack/2htdpuniverse.html#%28part._world-example%29">
 universe</a> packages a great help, creating a base-specification for my JavaScript modules.
