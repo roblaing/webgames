@@ -58,12 +58,7 @@ and there's predictably a lot of FUD against JavaScript out there.
 
 I've grown to like JavaScript as I've got to know it better, but I wouldn't use it on the server where I can pick anything.
 
-<q>Back in 1995, we knew something that I don't think our competitors understood, and few understand even now:  
-when you're writing software that only has to run on your own servers, you can use any language you want.  
-When you're writing desktop software, there's a strong bias toward writing applications in the same language as the 
-operating system.  Ten years ago, writing applications meant writing applications in C. But with Web-based software, 
-especially when you have the source code of both the language and the operating system, you can use whatever 
-language you want</q> &mdash; <a href="http://www.paulgraham.com/avg.html">Beating the Averages</a>, Paul Graham.
+<q>Back in 1995, we knew something that I don't think our competitors understood, and few understand even now: when you're writing software that only has to run on your own servers, you can use any language you want. When you're writing desktop software, there's a strong bias toward writing applications in the same language as the operating system.  Ten years ago, writing applications meant writing applications in C. But with Web-based software, especially when you have the source code of both the language and the operating system, you can use whatever language you want</q> &mdash; <a href="http://www.paulgraham.com/avg.html">Beating the Averages</a>, Paul Graham.
 
 Unlike Graham, I'm not that much of a Lisp-fan that I'd pick it for my server, where I like 
 <a href="https://github.com/roblaing/swipl-webapp-howto">Prolog</a>, or better yet, 
