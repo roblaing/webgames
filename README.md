@@ -77,6 +77,13 @@ I'm broadly following HTDP's <a href="https://htdp.org/2020-5-6/Book/part_prefac
 to do, leaving aside <em>How?</em> for the second half. (Both these questions should be preceeded by <em>Why?</em>,
 for which the answer here is creating HTML5 games is fun and educational).
 
+Among the things I like about HTDP is the vocabulary it provides to generally describe important programming concepts, 
+thereby distilling down all the jargon different programming languages use which are essentially synonymous.
+
+My favourite taxonomy of programming languages is this 
+<a href="https://www.famicol.in/language_checklist.html">joke checklist</a> which despite its long list of
+buzzwords, leaves many out.
+
 <h2>1. From Problem Analysis to Data Definitions</h2>
 
 This stage is about thinking in what mathematicians call sets and programmers call types or classes.
@@ -85,13 +92,6 @@ Before proceeding to step 2 which focuses on
 <a href="https://htdp.org/2020-5-6/Book/part_one.html#%28part._ch~3ahtdp%29">How to Design Programs</a> and their building
 blocks by <a href="https://htdp.org/2020-5-6/Book/part_one.html#%28part._sec~3adesign-func%29">Designing Functions</a>,
 we need to define our data. 
-
-My favourite taxonomy of programming languages is this 
-<a href="https://www.famicol.in/language_checklist.html">joke checklist</a> which despite its long list of
-buzzwords, leaves many out.
-
-Another thing I like about HTDP is the vocabulary it provides to generally describe important programming concepts, 
-thereby distilling down all the jargon different programming languages use which are essentially synonymous.
 
 JavaScript is a dynamically-typed language, so unlike, say statically-typed SQL where someone trying to decipher the
 code can look at the <code>CREATE TABLE...</code> blocks, there's no clue if the types haven't been properly
