@@ -100,10 +100,10 @@ JavaScript, similarly, is a product of <em>specification-first programing</em>, 
 Corporate drones like to recite Andy Tanenbaum's quip: <q>The nice thing about standards is that you have so 
 many to choose from; furthermore, if you do not like any of them, you can just wait for next year's model.</q>
 
-For all their faults, open standards are far better than proprietary protocols. I've personally wasted several hours
-making software interoperable with Facebook's GraphQL, deciphering documentation which mainly consisted 
-of marketing waffle and legalese, only to have Facebook break all my code a few months later. I've never used
-Facebook's React, and never will. Same applies to Microsoft's TypeScript.
+For all their faults, open standards inevitably kill their proprietary competitors. Corporations are notorious
+for their <a href="https://en.wikipedia.org/wiki/Embrace,_extend,_and_extinguish">Embrace, extend, and extinguish</a>
+defence, which is why I wouldn't waste any time learning Facebook's React, Microsoft's TypeScript, Google's Angular...
+or any other corporate crap smeared over ECMAScript.
 
 <a href="http://aosabook.org/en/index.html">The Architecture of Open Source Applications</a> contains a nice
 collection of writings by open-source developers on the decicions they made, and one of its lessons is good
