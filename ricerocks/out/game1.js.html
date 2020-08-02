@@ -1,4 +1,32 @@
-"use strict";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: game1.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: game1.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
 /**
  * @file A simple arcade game translated to JavaScript from a
  * [Python Mooc]{@link https://www.coursera.org/learn/interactive-python-1} given by Rice University.
@@ -137,7 +165,7 @@ function playSound(audioNode) {
 }
 
 function get_scale() {
-  if (window.innerWidth/window.innerHeight < backgroundImage.width/backgroundImage.height) {
+  if (window.innerWidth/window.innerHeight &lt; backgroundImage.width/backgroundImage.height) {
     return 0.98 * (window.innerWidth/backgroundImage.width);
   } else {
     return 0.98 * (window.innerHeight/backgroundImage.height);
@@ -145,8 +173,8 @@ function get_scale() {
 }
 
 function collisions(sprite1, type) {
-  return sprites.filter((sprite2) => sprite2.type === type &&
-    Math.hypot(sprite1.xCentre - sprite2.xCentre, sprite1.yCentre - sprite2.yCentre) <
+  return sprites.filter((sprite2) => sprite2.type === type &amp;&amp;
+    Math.hypot(sprite1.xCentre - sprite2.xCentre, sprite1.yCentre - sprite2.yCentre) &lt;
       (scale * (sprite1.radius + sprite2.radius)));
 }
 
@@ -163,7 +191,7 @@ function random_distance(sprite, r2, ratio) {
     x2 = Math.random() * (canvas.width + 1);
     y2 = Math.random() * (canvas.height + 1);
     d = Math.hypot(x2 - x1, y2 - y1);
-  } while (d < minDistance);
+  } while (d &lt; minDistance);
   return [x2, y2];
 }
 
@@ -304,13 +332,13 @@ function nextTick(sprite) {
   sprite.yCentre += sprite.yDelta;
   sprite.angle += sprite.angleDelta;
   // space is toroidal
-  if (sprite.xCentre < 0) {
+  if (sprite.xCentre &lt; 0) {
     sprite.xCentre = canvas.width;
   }
   if (sprite.xCentre > canvas.width) {
     sprite.xCentre = 0;
   }
-  if (sprite.yCentre < 0) {
+  if (sprite.yCentre &lt; 0) {
     sprite.yCentre = canvas.height;
   }
   if (sprite.yCentre > canvas.height) {
@@ -332,10 +360,10 @@ function nextTick(sprite) {
       if (inputStates.isLeft) {
         sprite.angleDelta = -Math.PI/ROTATE_RATE;
       }
-      if (!inputStates.isRight && !inputStates.isLeft) {
+      if (!inputStates.isRight &amp;&amp; !inputStates.isLeft) {
         sprite.angleDelta = 0;
       }
-      if (inputStates.isSpace && inputStates.isLoaded) {
+      if (inputStates.isSpace &amp;&amp; inputStates.isLoaded) {
         new_sprites.push(createMissile(sprite));
         sprite.xDelta = sprite.xDelta + (scale * RECOIL * Math.cos(sprite.angle));
         sprite.yDelta = sprite.yDelta + (scale * RECOIL * Math.sin(sprite.angle));
@@ -385,7 +413,7 @@ function loop() {
   ctx.drawImage(backgroundImage, 0, 0, backgroundImage.width, backgroundImage.height, 0, 0, canvas.width, canvas.height);
   new_sprites = [];
   sprites.forEach(function (sprite) {draw(sprite); nextTick(sprite);});
-  sprites = sprites.filter((sprite) => sprite.tick < sprite.lifespan);
+  sprites = sprites.filter((sprite) => sprite.tick &lt; sprite.lifespan);
   sprites = sprites.concat(new_sprites);
   ctx.drawImage(debrisImage, 0, 0, debrisImage.width, debrisImage.height, 0, 0, canvas.width, canvas.height);
   ctx.fillText("Lives", scale * 50, scale * 50);
@@ -459,18 +487,18 @@ function uiListener(event) {
       return;
     case "ArrowUp":
       inputStates.isUp = bool;
-      if (inputStates.isUp && !inputStates.isThrust) {
+      if (inputStates.isUp &amp;&amp; !inputStates.isThrust) {
         inputStates.soundBuffer = playSound(thrustSound);
         inputStates.isThrust = true;
       }
-      if (!inputStates.isUp && inputStates.isThrust) {
+      if (!inputStates.isUp &amp;&amp; inputStates.isThrust) {
         inputStates.soundBuffer.stop();
         inputStates.isThrust = false;
       }
       return;
     case " ":
       inputStates.isSpace = bool;
-      if (inputStates.isSpace && inputStates.isLoaded) {
+      if (inputStates.isSpace &amp;&amp; inputStates.isLoaded) {
         playSound(missileSound);
       }
       if (!inputStates.isSpace) {
@@ -490,7 +518,7 @@ async function setup(event1) {
   await backgroundImage.addEventListener("load", function (event2) {
     resizeListener();
     sprites[0] = createSpaceship();
-    for (let rock = 1; rock <= 13; rock++) {
+    for (let rock = 1; rock &lt;= 13; rock++) {
       sprites[rock] = createAsteroid();
     }
     window.requestAnimationFrame(loop);
@@ -527,3 +555,26 @@ document.querySelector("#rightButton").addEventListener("pointerup", uiListener)
 document.querySelector("#spaceBar").addEventListener("pointerdown", uiListener);
 document.querySelector("#spaceBar").addEventListener("pointerup", uiListener);
 
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="inputStates.html">inputStates</a></li><li><a href="Sprite.html">Sprite</a></li></ul><h3>Global</h3><ul><li><a href="global.html#asteroidImage">asteroidImage</a></li><li><a href="global.html#backgroundImage">backgroundImage</a></li><li><a href="global.html#canvas">canvas</a></li><li><a href="global.html#createAsteroid">createAsteroid</a></li><li><a href="global.html#createMissile">createMissile</a></li><li><a href="global.html#createSpaceship">createSpaceship</a></li><li><a href="global.html#ctx">ctx</a></li><li><a href="global.html#draw">draw</a></li><li><a href="global.html#loop">loop</a></li><li><a href="global.html#nextTick">nextTick</a></li><li><a href="global.html#resizeListener">resizeListener</a></li><li><a href="global.html#spaceshipImage">spaceshipImage</a></li><li><a href="global.html#uiListener">uiListener</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Sun Aug 02 2020 13:52:49 GMT+0200 (South Africa Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

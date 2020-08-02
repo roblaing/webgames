@@ -1,11 +1,181 @@
 <h1>Game 1: RiceRocks</h1>
 
-To transfer some of the wonderful knowledge in HTDP to GUI web application development, I selected a video game I originally 
-encountered many years in Rice University's <a href="https://www.coursera.org/learn/interactive-python-1">Interactive Python</a> 
+My original goal with this game was to create a minimalist HTML5 arcade-style game to learn the basics. I translated a
+game I originally encountered many years in Rice University's 
+<a href="https://www.coursera.org/learn/interactive-python-1">Interactive Python</a> 
 Mooc called RiceRocks. This meant the sprites and sounds were all readily available on my PC.
 
-The heart of HTDP is its <a href="https://htdp.org/2020-5-6/Book/part_preface.html#%28part._sec~3asystematic-design%29">6
-step recipe</a> which tries to get beginners into the habit of test-first development
+Though translating the game from the original Python to JavaScript wasn't very difficult, it got me thinking on various
+<em>philosophical issues</em>, and I kept refactoring until it strayed far from the original.
+
+The original Python version of RiceRocks was used to teach 
+<a href="https://en.wikipedia.org/wiki/Object-oriented_programming">OOP</a>,
+a style I've become disenchanted with. A lot of OOP's key selling points boil down to 
+<a href="https://en.wikipedia.org/wiki/Modular_programming">modular programming</a>, which JavaScript only relatively
+recently supported with its 
+<a href="https://developer.mozilla.org/en-US/docs/web/javascript/reference/statements/export">
+export</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import">import</a>
+statements, which I added to my list of things to learn.
+
+Neither OOP nor <a href="https://en.wikipedia.org/wiki/Functional_programming">FP</a> comfortably support what
+Erlang's late founder Joe Armstrong termed 
+<a href="https://erlang.org/download/armstrong_thesis_2003.pdf">concurreny-oriented programming</a>, specifically
+<a href="https://en.wikipedia.org/wiki/Event-driven_programming">event-driven programming</a>.
+
+<q>This nomenclature is a bit confusing, and has its origin in early operating-systems research. It refers to how communication is done between multiple concurrent processes. In a thread-based system, communication is done through a synchronized resource such as shared memory. In an event-based system, processes generally communicate through a queue where they post items that describe what they have done or what they want done, which is maintained by our single thread of execution. Since these items generally describe desired or past actions, they are referred to as 'events'</q> &mdash; 
+<a href="http://aosabook.org/en/500L/an-event-driven-web-framework.html">An Event-Driven Web Framework</a>, Leo Zovic
+
+Event-driven programming can broadly be split into three steps:
+
+<ol>
+  <li>Listeners: In JavaScript, these are created with <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener">
+target.addEventListener(type, listener [, options]);</a> where
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget">target</a> is Window, Document, or other HTML element,
+and <a href="https://developer.mozilla.org/en-US/docs/Web/Events">type</a> is something like "keyup", "keydown", or "click".
+</li>
+  <li>Handlers: This is addEventListener's second argument, a <a href="">callback</a> called <em>listener</em> 
+     in the documentation.</li>
+  <li>A <a href="https://en.wikipedia.org/wiki/Event_loop">listening loop</a> &mdash; the body of a concurrent system.</li>
+</ol>
+
+<h2>Step 1: Attaching listeners to <em>targets</em></h2>
+
+Besides traditional user input events &mdash; which part of my adaption from the Python original which assumed the game
+was going to be played on a PC with a keyboard, I needed to add touch for mobile phones. After initially experimenting
+with the <a href="https://developer.mozilla.org/en-US/docs/Web/API/TouchEvent">Touch Events API</a>, using
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/touchstart_event">touchstart</a> and 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/touchend_event">touchend</a> attached the canvas,
+I switched to including buttons in my HTML and then using 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events">Pointer Events</a> 
+which make a mouse and a finger touch on a mobile phone identical. The buttons also provide a visual clue to website
+visitors with keyboards which keys will work.
+
+I'll maybe use what I learned about touch events for mobile specific designs in future.
+
+The user interface was created by attaching event listeners to the DOM as follows:
+
+```javascript
+document.addEventListener("keydown", uiListener);
+document.addEventListener("keyup", uiListener);
+document.querySelector("#upButton").addEventListener("pointerdown", uiListener);
+document.querySelector("#upButton").addEventListener("pointerup", uiListener);
+document.querySelector("#leftButton").addEventListener("pointerdown", uiListener);
+document.querySelector("#leftButton").addEventListener("pointerup", uiListener);
+document.querySelector("#rightButton").addEventListener("pointerdown", uiListener);
+document.querySelector("#rightButton").addEventListener("pointerup", uiListener);
+document.querySelector("#spaceBar").addEventListener("pointerdown", uiListener);
+document.querySelector("#spaceBar").addEventListener("pointerup", uiListener);
+```
+
+Other types of events which weren't immediately obvious to me are the many
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Window#Events">Window events</a> which tell us when to initialise
+the program because a browser has opened the page, stop things like sound loops when the user closes the tab, and also
+react to events like the browser window getting resized or the orientation of a mobile phone getting changed.
+
+```javascript
+window.addEventListener("DOMContentLoaded", setup);
+window.addEventListener("unload", cleanup);
+window.addEventListener("resize", resizeListener);
+```
+
+<h3>The Medium is the Message</h3>
+
+Among the nice things about learning to program by developing games is it brings concurrency to life.
+
+Multithreading has been added to JavaScript via 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API">Web Workers</a>,
+and distributed computing via 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications">
+WebSockets</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API">Service Workers</a>.
+
+These are all triggered by an event type called "message", adding a style of programming known as the
+<a href="https://en.wikipedia.org/wiki/Actor_model">actor model</a>, which though fairly easy once you go "Aha!",
+involves quite a learning curve for anyone schooled in only OOP and FP.
+
+Alan Kay, who coined the term object-oriented programming, saw messaging as a core part of the concept, which sadly
+got completely forgotten by the currently top-of-the-pops OOP languages.
+
+<q>Smalltalk's design — and existence — is due to the insight that everything we can describe can be represented by the recursive composition of a single kind of behavioral building block that hides its combination of state and process inside itself and can be dealt with only through the exchange of messages.</q> &mdash; <a href="http://worrydream.com/EarlyHistoryOfSmalltalk/">The Early History Of Smalltalk</a>, Alan Kay
+
+In JavaScript, an <em>actor</em> &mdash; a sprite for instance &mdash; would be created much like an object, and then be 
+invoked by sending and receiving messages rather than calling it as a function:
+
+```javascript
+const actor = new Worker("foo.js");
+actor.addEventListener("message", (event) => {... do something with event.data ...});
+
+...
+
+actor.postMessage(message);
+```
+
+where <em>message</em> can be any JavaScript type, but would typically be a compound data structure passing the 
+code in the <em>foo.js</em> everything it needs since it can't access the calling script's globals.
+
+One of the advantages of this is encourages modularisation. Another is it makes better use of modern hardware. With even
+cellphones today being multicore computers, it frees the main thread to do animation while other processors do trigonometry etc.
+
+<h3>Step 2. Writing Handlers</h3>
+
+I refreshed my JavaScript knowledge doing this exercise after completing an Erlang course, which has made my JavaScript code fairly Erlangish.
+
+Among JavaScript's <em>newish</em> APIs are 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">Web Workers</a> which follow
+Erlang's approach of creating separate processes which communicate via messages. I'd like to explore this in future, but 
+for now am not sure how to apply this here where the listening loop doubles as an animation loop (ie doesn't iterate every time it receives a new message, but every 1/60 second to redraw the board). I'm also confused about browser support
+for web workers, so will leave learning it for later.
+
+Instead of sending messages, the handlers communicate with the listening loop by mutating shared memory &mdash; which works 
+easily in a single thread (the default for JavaScript web applications at time of writing), but would be complicated if done 
+in parallel using the multicores of modern hardware.
+
+The guts of Erlang programmes follow a <code>pattern -> action</code> template, which emulating in JavaScript involves its
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch">switch</a> statement. 
+A gotcha in JavaScript is that its switch statements are <q>Fall Through</q>, meaning that unlike Erlang's case statements
+which do one action for the first matching pattern, JavaScript will attempt to match further patterns unless the relevant
+<code>case</code> is terminated with <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break">
+break</a> or <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return">return</a>.
+
+I found the choice confusing until I wrote <a href="http://www.seatavern.co.za/doc/global.html#keyListener">keyListener(event)</a>
+which has an initial switch block to find if the event type is "keydown" or "keyup", terminated with <code>break;</code> because
+I want to continue to the second switch block to find what key was pressed or released. These cases are terminated with
+<code>return;</code> since that's the listeners job done, even though it doesn't return anything.
+
+A JSDoc gotcha that tripped me was to try and tag keyListener as <code>@callback</code> instead of <code>@function</code>, which
+resulted in it getting ommited from the documentation.
+
+While I had little difficulty in getting the four user input keys to work, pressing any keys not listened to caused the programme
+to freeze until I discovered that, counter-intuitively, the <code>default</code> statement should be 
+<code>event.preventDefault();</code>.
+
+Another challenge was getting the browser to open a debugging console with F12 &mdash; which stopped working after keyboard
+events were <em>captured</em> by my own function. The trick here was to write a case statement forwarding this key event
+back to the document. To be fancy, I wrote <code>event.target.dispatchEvent(event);</code> rather than
+<code>document.dispatchEvent(event);</code> just to test what the event.target property holds.
+
+There's also <a href="http://www.seatavern.co.za/doc/global.html#resizeListener">resizeListener</a> which
+has a <a href="https://developer.mozilla.org/en-US/docs/Web/API/UIEvent">UIEvent</a> passed to it by
+<code>window.addEventListener("resize", resizeListener)</code>. But since I also use this as a normal function to initially
+set <code>scale</code> after the window has loaded and don't use any UIEvent properties, it doesn't have any paramters.
+
+
+<h3>3. The main/game/listening loop</h3>
+
+This is a function that calls itself recursively &mdash; so it never returns anything since it's an infinite loop. In
+Erlang, it would have a parameter called state which it would update and pass back to itself.
+
+In JavaScript, the loop is initially called and then repeatedly recursively called via 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame">Window.requestAnimationFrame(callback)</a>
+to set the rate the canvas is redrawn for animation to 60/second irrespective of the hardware (thereby avoiding a problem
+old video games have of running unplayably quickly because processor speeds have increased).
+
+```javascript
+function loop() {
+  ...
+  window.requestAnimationFrame(loop);
+}
+```
+
 
 <h2>Testing</h2>
 
@@ -116,7 +286,9 @@ coding convention is to treat each as a separate object.
 │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document">Document</a>
 │   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document#Events">Events</a>
 │   .   │   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keydown_event">keydown</a>
-│   .   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keyup_event">keyup</a>
+│   .   │   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/keyup_event">keyup</a>
+│   .   │   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/pointerdown_event">pointerdown</a>
+│   .   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/pointerup_event">pointerup</a>
 │   .   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document#Methods">Methods</a>
 │   .   .   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector">querySelector()</a>
 ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API">Canvas</a>
@@ -162,60 +334,8 @@ coding convention is to treat each as a separate object.
 .   .   └── stop()
 </pre></code>
 
-<h2><a href="https://en.wikipedia.org/wiki/Event-driven_programming">Event-driven programming</a></h2>
 
-In the fog of the religious war underway between <a href="https://en.wikipedia.org/wiki/Functional_programming">FP</a> vs
-<a href="https://en.wikipedia.org/wiki/Object-oriented_programming">OOP</a>, event-driven programming seems to have been
-forgotten. To me, it's the most natural approach for writing any kind of GUI application, including games.
 
-Event-driven programming broadly involves three types of things:
-
-<ol>
-  <li>Listeners: In JavaScript, these are created with <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener">
-target.addEventListener(type, listener [, options]);</a> where
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget">target</a> is Window, Document, or other HTML element,
-and <a href="https://developer.mozilla.org/en-US/docs/Web/Events">type</a> is something like "keyup", "keydown", or "click".
-</li>
-  <li>Handlers: This is addEventListener's second argument, a <a href="">callback</a> called <em>listener</em> 
-     in the documentation.</li>
-  <li>A <a href="https://en.wikipedia.org/wiki/Event_loop">listening loop</a> &mdash; the body of a concurrent system.</li>
-</ol>
-
-<h3>1. Listeners</h3>
-
-RiceRocks is a game I originally encountered in Rice University's <a href="https://www.coursera.org/learn/interactive-python-1">Interactive Python</a> Mooc which I've translated to JavaScript. It makes a good 
-introductory example because its user input only involves four keys &mdash; the spacebar to fire missiles, 
-the left arrow to rotate counter-clockwise, the right arrow to rotate clockwise, and the up arrow to move in the 
-direction the spaceship is currently pointed.
-
-In JavaScript, this translates to initially attaching two listeners to the document object which can share a callback 
-I've named keyListener:
-
-```javascript
-document.addEventListener("keydown", keyListener);
-document.addEventListener("keyup",   keyListener);
-```
-
-A big adaption of the original game was making the game <em>mobile friendly</em> by making the screen size <em>responsive</em>
-and figuring out touch events, which I'll cover below.
-
-I originally made <em>window</em> rather than <em>document</em> my target, and it doesn't make much difference. 
-JavaScript events are said to
-<a href="https://javascript.info/bubbling-and-capturing">bubble</a> through the DOM, arriving at the Window if nothing 
-has captured them before then. It's generally good practice to make the target as close to the event as possible.
-
-Rice University's version had a splash screen which was removed by clicking on the canvas with a mouse, 
-but I left it out since it doesn't add much.
-
-<h4>Where to start?</h4>
-
-Conventional, sequential programs tend to have block called <em>main</em> or a function called <em>init()</em>, <em>start()</em>,
-or <em>setup()</em> as the entry point to the programme.
-
-The equivalent with JavaScript web applications is an event attached to the root, window object. As with most things JavaScript,
-there's a confusing choice between <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/load_event">load</a> or
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event">DOMContentLoaded</a>, which I've somewhat
-arbitrarily picked.
 
 The entry point of my programme introduced me two notorious horrors of Javascript: the 
 <a href="https://javascript.info/callbacks#pyramid-of-doom">Pyramid of Doom</a> (also known as <q>Callback Hell</q>); 
@@ -300,128 +420,8 @@ window.addEventListener("unload", function (event) {
 });
 ```
 
-<h4>Adapting for mobile part 1</h4>
 
-I naively thought it would be easy to adapt <em>keydown</em> into
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/touchstart_event">touchstart</a> and <em>keyup</em> into 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/touchend_event">touchend</a>, but it turned out
-Javascript's <a href="https://developer.mozilla.org/en-US/docs/Web/API/TouchEvent">Touch Events</a> are a whole new API.
 
-At this stage, expanding the game to handle touch screens simply involves attaching these two events to the <code>canvas</code> 
-object. I picked <em>canvas</em> rather than <em>document</em> in accordance with
-the JavaScript rule of thumb to avoid bubbling as much as possible.
-
-```javascript
-canvas.addEventListener("touchstart", touchListener);
-canvas.addEventListener("touchend",   touchListener);
-```
-
-As I'll explain later, writing <em>touchListener</em> proved harder than I initially thought, but nevertheless adding
-a new kind of user interaction wasn't particularly complex, and didn't involve any modifications to the <em>guts of the game</em>,
-ie the loop, draw, nextTick and other auxiliary functions.
-
-<h3>2. Handlers</h3>
-
-I refreshed my JavaScript knowledge doing this exercise after completing an Erlang course, which has made my JavaScript code fairly Erlangish.
-
-Among JavaScript's <em>newish</em> APIs are 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">Web Workers</a> which follow
-Erlang's approach of creating separate processes which communicate via messages. I'd like to explore this in future, but 
-for now am not sure how to apply this here where the listening loop doubles as an animation loop (ie doesn't iterate every time it receives a new message, but every 1/60 second to redraw the board). I'm also confused about browser support
-for web workers, so will leave learning it for later.
-
-Instead of sending messages, the handlers communicate with the listening loop by mutating shared memory &mdash; which works 
-easily in a single thread (the default for JavaScript web applications at time of writing), but would be complicated if done 
-in parallel using the multicores of modern hardware.
-
-The guts of Erlang programmes follow a <code>pattern -> action</code> template, which emulating in JavaScript involves its
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch">switch</a> statement. 
-A gotcha in JavaScript is that its switch statements are <q>Fall Through</q>, meaning that unlike Erlang's case statements
-which do one action for the first matching pattern, JavaScript will attempt to match further patterns unless the relevant
-<code>case</code> is terminated with <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break">
-break</a> or <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return">return</a>.
-
-I found the choice confusing until I wrote <a href="http://www.seatavern.co.za/doc/global.html#keyListener">keyListener(event)</a>
-which has an initial switch block to find if the event type is "keydown" or "keyup", terminated with <code>break;</code> because
-I want to continue to the second switch block to find what key was pressed or released. These cases are terminated with
-<code>return;</code> since that's the listeners job done, even though it doesn't return anything.
-
-A JSDoc gotcha that tripped me was to try and tag keyListener as <code>@callback</code> instead of <code>@function</code>, which
-resulted in it getting ommited from the documentation.
-
-While I had little difficulty in getting the four user input keys to work, pressing any keys not listened to caused the programme
-to freeze until I discovered that, counter-intuitively, the <code>default</code> statement should be 
-<code>event.preventDefault();</code>.
-
-Another challenge was getting the browser to open a debugging console with F12 &mdash; which stopped working after keyboard
-events were <em>captured</em> by my own function. The trick here was to write a case statement forwarding this key event
-back to the document. To be fancy, I wrote <code>event.target.dispatchEvent(event);</code> rather than
-<code>document.dispatchEvent(event);</code> just to test what the event.target property holds.
-
-There's also <a href="http://www.seatavern.co.za/doc/global.html#resizeListener">resizeListener</a> which
-has a <a href="https://developer.mozilla.org/en-US/docs/Web/API/UIEvent">UIEvent</a> passed to it by
-<code>window.addEventListener("resize", resizeListener)</code>. But since I also use this as a normal function to initially
-set <code>scale</code> after the window has loaded and don't use any UIEvent properties, it doesn't have any paramters.
-
-<h4>Adapting for mobile part 2</h4>
-
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Touch_events/Using_Touch_Events">Using Touch Events</a> is more
-complicated than keyboard events, partly because the event objects returned by
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/touchstart_event">touchstart</a> and 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/touchend_event">touchend</a> are not symmetric.
-
-Among their properies are
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/TouchList">Touch Lists</a> containing
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Touch">Touch Objects</a>.
-
-Of these, <a href="https://developer.mozilla.org/en-US/docs/Web/API/TouchEvent/changedTouches">changedTouches</a> is
-common to both <em>touchstart</em> and <em>touchend</em>. Every touch creates its own event, so there doesn't appear to
-be a need to go through the list of objects in a given touch event to handle games with several fingers.
-
-Using <a href="http://www.seatavern.co.za/doc/global.html#keyListener">keyListener(event)</a> as my template,
-I made touching or "untouching" the left side of the screen equivalent to pressing or releasing the left arrow, the right
-side equivalent to the right arrow, the top of the screen the up arrow, and the bottom the space bar.
-
-```javascript
-function touchListener(event) {
-  const rect = canvas.getBoundingClientRect();
-  const x = event.changedTouches[0].clientX - rect.left;
-  const y = event.changedTouches[0].clientY - rect.top;
-  const h3rd = canvas.width/3;
-  const v3rd = canvas.height/3;
-  let key = " ";
-  if (y < v3rd) {
-    key = "ArrowUp";
-  }
-  if (x < h3rd) {
-    key = "ArrowLeft";
-  }
-  if (x > 2 * h3rd) {
-    key = "ArrowRight";
-  }
-  ...
-```
-
-Adding touch events proved tougher than I initially thought. But after untangling this part of JavaScript's yarn, I
-think it shows how <q>event-driven programming</q> makes it relatively easy to add features to an application, often
-without having to do anything except adding listeners and handlers, as in this case.
-
-<h3>3. The main/game/listening loop</h3>
-
-This is a function that calls itself recursively &mdash; so it never returns anything since it's an infinite loop. In
-Erlang, it would have a parameter called state which it would update and pass back to itself.
-
-In JavaScript, the loop is initially called and then repeatedly recursively called via 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame">Window.requestAnimationFrame(callback)</a>
-to set the rate the canvas is redrawn for animation to 60/second irrespective of the hardware (thereby avoiding a problem
-old video games have of running unplayably quickly because processor speeds have increased).
-
-```javascript
-function loop() {
-  ...
-  window.requestAnimationFrame(loop);
-}
-```
 
 <h4>State</h4>
 

@@ -1,0 +1,33 @@
+@media (orientation: landscape) {
+
+
+  section {
+    display: flex;
+    flex-direction: row;
+  }
+
+  canvas {
+    height: 100%;
+  }
+
+}
+
+@media (orientation: portrait) {
+
+  section {
+    display: flex;
+    flex-direction: column;
+  }
+
+  canvas {
+    width: 100%;
+    height: 75%;
+  }
+
+  aside {
+    width: 100%;
+  }
+
+}
+
+
