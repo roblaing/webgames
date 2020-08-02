@@ -46,6 +46,8 @@ const inputStates = { isUp: false
                     , soundBuffer: null
                     };
 
+const spritesUpdate = new Worker("sprites-updater.js");
+
 /**
  * [Canvas API]{@link https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API}
  * @constant {HTMLCanvasElement} canvas
@@ -526,4 +528,5 @@ document.querySelector("#rightButton").addEventListener("pointerdown", uiListene
 document.querySelector("#rightButton").addEventListener("pointerup", uiListener);
 document.querySelector("#spaceBar").addEventListener("pointerdown", uiListener);
 document.querySelector("#spaceBar").addEventListener("pointerup", uiListener);
+spritesUpdate.addEventListener("message", spritesUpdateListener);
 

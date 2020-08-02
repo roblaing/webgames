@@ -119,41 +119,38 @@ involves quite a learning curve for anyone schooled in only OOP and FP.</p>
 <p>Alan Kay, who coined the term object-oriented programming, saw messaging as a core part of the concept, which sadly
 got completely forgotten by the currently top-of-the-pops OOP languages.</p>
 <p><q>Smalltalk's design — and existence — is due to the insight that everything we can describe can be represented by the recursive composition of a single kind of behavioral building block that hides its combination of state and process inside itself and can be dealt with only through the exchange of messages.</q> — <a href="http://worrydream.com/EarlyHistoryOfSmalltalk/">The Early History Of Smalltalk</a>, Alan Kay</p>
-<p>In JavaScript, an <em>actor</em> — a sprite for instance — would be created much like an object, and then be
-invoked by sending and receiving messages rather than calling it as a function:</p>
-<pre class="prettyprint source lang-javascript"><code>const actor = new Worker(&quot;foo.js&quot;);
-actor.addEventListener(&quot;message&quot;, (event) => {... do something with event.data ...});
-
+<p>Though it's not really necessary for the few sprites in RiceRocks, for the sake of education, I'm going to move the relatively
+maths heavy job of iterating through a list of sprites to update their positions, check for collissions, and filter out
+<em>dead</em> sprites by what in Erlang terminology would be called spawning a process, and JavaScript calls instantiating a
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Worker">Worker</a>. Then I'm going to attach a message listener
+to this worker:</p>
+<pre class="prettyprint source lang-javascript"><code>// Near top of file
+const spritesUpdate = new Worker(&quot;sprites-update.js&quot;);
 ...
 
-actor.postMessage(message);
+// Near bottom of file
+spritesUpdate.addEventListener(&quot;message&quot;, spritesUpdateListener);
 </code></pre>
-<p>where <em>message</em> can be any JavaScript type, but would typically be a compound data structure passing the
-code in the <em>foo.js</em> everything it needs since it can't access the calling script's globals.</p>
 <p>One of the advantages of this is encourages modularisation. Another is it makes better use of modern hardware. With even
 cellphones today being multicore computers, it frees the main thread to do animation while other processors do trigonometry etc.</p>
 <h3>Step 2. Writing Handlers</h3>
-<p>I refreshed my JavaScript knowledge doing this exercise after completing an Erlang course, which has made my JavaScript code fairly Erlangish.</p>
-<p>Among JavaScript's <em>newish</em> APIs are
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">Web Workers</a> which follow
-Erlang's approach of creating separate processes which communicate via messages. I'd like to explore this in future, but
-for now am not sure how to apply this here where the listening loop doubles as an animation loop (ie doesn't iterate every time it receives a new message, but every 1/60 second to redraw the board). I'm also confused about browser support
-for web workers, so will leave learning it for later.</p>
-<p>Instead of sending messages, the handlers communicate with the listening loop by mutating shared memory — which works
-easily in a single thread (the default for JavaScript web applications at time of writing), but would be complicated if done
-in parallel using the multicores of modern hardware.</p>
-<p>The guts of Erlang programmes follow a <code>pattern -&gt; action</code> template, which emulating in JavaScript involves its
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch">switch</a> statement.
-A gotcha in JavaScript is that its switch statements are <q>Fall Through</q>, meaning that unlike Erlang's case statements
-which do one action for the first matching pattern, JavaScript will attempt to match further patterns unless the relevant
-<code>case</code> is terminated with <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break">
-break</a> or <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return">return</a>.</p>
-<p>I found the choice confusing until I wrote <a href="http://www.seatavern.co.za/doc/global.html#keyListener">keyListener(event)</a>
-which has an initial switch block to find if the event type is &quot;keydown&quot; or &quot;keyup&quot;, terminated with <code>break;</code> because
-I want to continue to the second switch block to find what key was pressed or released. These cases are terminated with
-<code>return;</code> since that's the listeners job done, even though it doesn't return anything.</p>
-<p>A JSDoc gotcha that tripped me was to try and tag keyListener as <code>@callback</code> instead of <code>@function</code>, which
-resulted in it getting ommited from the documentation.</p>
+<p>While there are a lot of <em>addEventListeners</em> attached to various targets, the number of handlers is fairly small.</p>
+<p>I managed to abstract all the user interface handlers down to
+<a href="http://www.seatavern.co.za/doc/global.html#uiListener">uiListener(event)</a>. I treat the event object as a pattern
+to be matched with a responding action, falling into what HTDP would call an
+<a href="https://htdp.org/2020-8-1/Book/part_one.html#%28part._sec~3aenums%29">enumeration</a>.</p>
+<p>Here I used JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch">
+switch</a> block — of which I ended up using two in uiListener: the first matches the type of event —
+key or ponter up or down — and then for pointer events the id of the target needs to be obtained to find out
+which screen button was pressed.</p>
+<p>A gotcha in JavaScript is its switch statements are <em>fall through</em>, which means that unless you end a
+<code>case</code> stanza with <code>break;</code> or <code>return;</code>, it continues to check if it matches further
+patterns. I'm a bit confused about how the pattern matching rules work.</p>
+<p>The first <code>switch</code> block in <em>uiListener</em> uses break since I want to continue to the second block. There
+I can use return since that pattern has been actioned.</p>
+<p>A JSDoc gotcha that tripped me was to try and tag uiListener as <code>@callback</code> instead of <code>@function</code>, which
+resulted in it getting ommited from the documentation. Presumably <code>@callback</code> is an alternative to
+<code>@param</code> to only be used when the argument is a callback.</p>
 <p>While I had little difficulty in getting the four user input keys to work, pressing any keys not listened to caused the programme
 to freeze until I discovered that, counter-intuitively, the <code>default</code> statement should be
 <code>event.preventDefault();</code>.</p>
@@ -161,10 +158,6 @@ to freeze until I discovered that, counter-intuitively, the <code>default</code>
 events were <em>captured</em> by my own function. The trick here was to write a case statement forwarding this key event
 back to the document. To be fancy, I wrote <code>event.target.dispatchEvent(event);</code> rather than
 <code>document.dispatchEvent(event);</code> just to test what the event.target property holds.</p>
-<p>There's also <a href="http://www.seatavern.co.za/doc/global.html#resizeListener">resizeListener</a> which
-has a <a href="https://developer.mozilla.org/en-US/docs/Web/API/UIEvent">UIEvent</a> passed to it by
-<code>window.addEventListener(&quot;resize&quot;, resizeListener)</code>. But since I also use this as a normal function to initially
-set <code>scale</code> after the window has loaded and don't use any UIEvent properties, it doesn't have any paramters.</p>
 <h3>3. The main/game/listening loop</h3>
 <p>This is a function that calls itself recursively — so it never returns anything since it's an infinite loop. In
 Erlang, it would have a parameter called state which it would update and pass back to itself.</p>
@@ -553,7 +546,7 @@ specifically designed for mobile phones, with only touch user intput.</p></artic
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Sun Aug 02 2020 13:52:49 GMT+0200 (South Africa Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Sun Aug 02 2020 20:35:10 GMT+0200 (South Africa Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

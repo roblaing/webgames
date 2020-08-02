@@ -1,5 +1,9 @@
-@media (orientation: landscape) {
+button {
+  padding: 1.5em;
+  margin: 1.5em;
+}
 
+@media (orientation: landscape) {
 
   section {
     display: flex;
@@ -8,6 +12,10 @@
 
   canvas {
     height: 100%;
+  }
+
+  nav {
+    align-content: center;
   }
 
 }
@@ -24,8 +32,9 @@
     height: 75%;
   }
 
-  aside {
+  nav {
     width: 100%;
+    align-content: center;
   }
 
 }
