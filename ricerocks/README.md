@@ -11,11 +11,33 @@ Though translating the game from the original Python to JavaScript wasn't very d
 The original Python version of RiceRocks was used to teach 
 <a href="https://en.wikipedia.org/wiki/Object-oriented_programming">OOP</a>,
 a style I've become disenchanted with. A lot of OOP's key selling points boil down to 
-<a href="https://en.wikipedia.org/wiki/Modular_programming">modular programming</a>, which JavaScript only relatively
-recently supported with its 
+<a href="https://en.wikipedia.org/wiki/Modular_programming">modular programming</a>.
+
+<h2>Modularisation</h2>
+
+JavaScript only recently started supporting this, and a few things tripped me up.
+
+Firstly, to get modules to work, the html needs to be modified:
+
+```html
+  <script type="module" src="main.js"></script>
+```
+
+What I found confusing is the module files don't need to be declared here, but the <em>main.js</em> file that imports
+stuff from modules needs the <code>type="module"</code> attribute added.
+
+The gotcha with 
 <a href="https://developer.mozilla.org/en-US/docs/web/javascript/reference/statements/export">
-export</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import">import</a>
-statements, which I added to my list of things to learn.
+export</a> is it needs to be declard at the bottom of the module in a curly bracketed, comma separated list.
+There's no arity declaration, and parameters are not included. The <em>export</em> declaration creates a
+<em>wish list</em> which would initially be made of stubs, a key part of systematic software design.
+
+A gotcha with
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import">import</a>,
+which goes at the top of the file is the module file needs a path, ie <code>./module.js</code> if it is a sibling
+of the main file.
+
+<h2>Event-oriented programming</h2>
 
 Neither OOP nor <a href="https://en.wikipedia.org/wiki/Functional_programming">FP</a> comfortably support what
 Erlang's late founder Joe Armstrong termed 
@@ -40,8 +62,8 @@ and <a href="https://developer.mozilla.org/en-US/docs/Web/Events">type</a> is so
 
 <h2>Step 1: Attaching listeners to <em>targets</em></h2>
 
-Besides traditional user input events &mdash; which part of my adaption from the Python original which assumed the game
-was going to be played on a PC with a keyboard, I needed to add touch for mobile phones. After initially experimenting
+My adaption from the Python original, which assumed the game
+was going to be played on a PC with a keyboard, involved adding touch input for mobile phones. After initially experimenting
 with the <a href="https://developer.mozilla.org/en-US/docs/Web/API/TouchEvent">Touch Events API</a>, using
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/touchstart_event">touchstart</a> and 
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/touchend_event">touchend</a> attached the canvas,
@@ -55,28 +77,57 @@ I'll maybe use what I learned about touch events for mobile specific designs in 
 The user interface was created by attaching event listeners to the DOM as follows:
 
 ```javascript
-document.addEventListener("keydown", uiListener);
-document.addEventListener("keyup", uiListener);
-document.querySelector("#upButton").addEventListener("pointerdown", uiListener);
-document.querySelector("#upButton").addEventListener("pointerup", uiListener);
-document.querySelector("#leftButton").addEventListener("pointerdown", uiListener);
-document.querySelector("#leftButton").addEventListener("pointerup", uiListener);
-document.querySelector("#rightButton").addEventListener("pointerdown", uiListener);
-document.querySelector("#rightButton").addEventListener("pointerup", uiListener);
-document.querySelector("#spaceBar").addEventListener("pointerdown", uiListener);
-document.querySelector("#spaceBar").addEventListener("pointerup", uiListener);
+document.addEventListener("keydown", (event) => uiListener(inputStates, event));
+document.addEventListener("keyup", (event) => uiListener(inputStates, event));
+document.querySelector("#upButton").addEventListener("pointerdown", (event) => uiListener(inputStates, event));
+document.querySelector("#upButton").addEventListener("pointerup", (event) => uiListener(inputStates, event));
+document.querySelector("#leftButton").addEventListener("pointerdown", (event) => uiListener(inputStates, event));
+document.querySelector("#leftButton").addEventListener("pointerup", (event) => uiListener(inputStates, event));
+document.querySelector("#rightButton").addEventListener("pointerdown", (event) => uiListener(inputStates, event));
+document.querySelector("#rightButton").addEventListener("pointerup", (event) => uiListener(inputStates, event));
+document.querySelector("#spaceBar").addEventListener("pointerdown", (event) => uiListener(inputStates, event));
+document.querySelector("#spaceBar").addEventListener("pointerup", (event) => uiListener(inputStates, event));
 ```
 
-Other types of events which weren't immediately obvious to me are the many
+I initially used the shorter <code>document.addEventListener("keydown", uiListener);</code> format &mdash; like many other
+programming languages, JavaScript lets you just use the function name with no arguments when invoking it as a
+<em>first-class citizen</em>, ie a paramater in another function, if the only argument is one generated, 
+which magically reappears, usually as the final argument.
+
+The reason I converted it to pass <code>inputStates</code> as an argument even though it's a global constant is it's a
+discipline enforced by testing framework Jasmine.
+
+Besides user input events, there are other types of events which weren't immediately obvious to me. These include the many
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window#Events">Window events</a> which tell us when to initialise
 the program because a browser has opened the page, stop things like sound loops when the user closes the tab, and also
 react to events like the browser window getting resized or the orientation of a mobile phone getting changed.
 
+A snag I initiallyl hit was JavaScript's dreaded "white screen of death" caused by the background image not loading by the time
+the page was rendered. My initial attempt to fix this worsened the problem by introducing more JavaScript horrors,
+a "pyramid of doom" along with an async-await blockage.
+
+``` javascript
+window.addEventListener("DOMContentLoaded", async function(event1) {
+  await backgroundImage.addEventListener("load", function (event2) {
+    ...
+  });
+});
+```
+
+I taught myself JavaScript testing framework Jasmine concurrently while doing this project, and an important lesson was 
+the value of keeping things separate and independent. All I wanted from the image was two numbers, which could easily 
+be supplied as parameters, thereby solving the mystery of the "white screen of death".
+
 ```javascript
-window.addEventListener("DOMContentLoaded", setup);
+const BASE_WIDTH = 800;
+const BASE_HEIGHT = 600;
+...
+window.addEventListener("DOMContentLoaded", (event) => setup(BASE_WIDTH, BASE_HEIGHT, event));
 window.addEventListener("unload", cleanup);
 window.addEventListener("resize", resizeListener);
 ```
+
+An even less obvious type of event are those required to write concurrent JavaScript, which I'll digress into briefly here.
 
 <h3>The Medium is the Message</h3>
 
@@ -112,26 +163,71 @@ const spritesUpdate = new Worker("sprites-update.js");
 spritesUpdate.addEventListener("message", spritesUpdateListener);
 ```
 
+The main script would then communicate with <code>spritesUpdate.postMessage(request)</code> where <em>request</em>
+acts as arguments which callback function <em>spritesUpdateListener(event)</em> which would receive the result from
+in <em>event.data</em>
+
+The <em>sprites-updates.js</em> file would follow this template:
+
+```javascript
+this.addEventListener("message", function(event) {
+  reply = ... do something with event.data
+  this.postMessage(reply);
+});
+```
+
 One of the advantages of this is encourages modularisation. Another is it makes better use of modern hardware. With even
 cellphones today being multicore computers, it frees the main thread to do animation while other processors do trigonometry etc.
 
-<h3>Step 2. Writing Handlers</h3>
+<h2>Step 2. Writing Handlers</h2>
+
+<h3>Testing events</h3>
+
+I started this project before learning test framework Jasmine, which turned into a lesson of the importance of test-first
+development.
+
+Putting a block like this near the top of the file
+
+```javascript
+const BASE_WIDTH = 800;
+const BASE_HEIGHT = 600;
+const THRUST_SPEED = 0.1;
+const RECOIL = -0.05;
+const ROTATE_RATE = 60;
+const MISSILE_SPEED = 4;
+```
+
+is known as <em>single point of control</em>, a good design principle. A bad habit I got into, however, was then
+using these constants within functions, hitting a snag with Jasmine that it refuses to see globally defined constants 
+or variables, unless they've been attached to the window object.
+
+Though it got me cursing at first, I realised this was an important lesson on modularity: making assumptions about things
+outside a function's local scope is dangerous.
+
 
 While there are a lot of <em>addEventListeners</em> attached to various targets, the number of handlers is fairly small.
 
 I managed to abstract all the user interface handlers down to 
 <a href="http://www.seatavern.co.za/doc/global.html#uiListener">uiListener(event)</a>. I treat the event object as a pattern
-to be matched with a responding action, falling into what HTDP would call an
+to be matched with a responding action, making its template what HTDP would call an
 <a href="https://htdp.org/2020-8-1/Book/part_one.html#%28part._sec~3aenums%29">enumeration</a>.
 
-Here I used JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch">
+For this I used JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch">
 switch</a> block &mdash; of which I ended up using two in uiListener: the first matches the type of event &mdash;
-key or ponter up or down &mdash; and then for pointer events the id of the target needs to be obtained to find out
-which screen button was pressed.
+key or ponter up or down &mdash; and if it was a left, right, up or space button, which for pointer events 
+requires id of the target. Whether it's left, right, up or space is then matched in the second switch block.
+
+From an Erlang perspective, JavaScript <em>pattern -> action</em> code looks very long winded, requiring several
+switch blocks as in <em>addEventListeners</em> for stuff that Erlang's more sophisticated pattern matching and guards
+could do in one.
+
+I've seen some JavaScript stylists advocating avoiding switch statements in
+favour of lots of <code>if (predicate1) {...} else if (predicate2) {...} else if...</code>, which I personally find
+uglier and more prone to bugs.
 
 A gotcha in JavaScript is its switch statements are <em>fall through</em>, which means that unless you end a
 <code>case</code> stanza with <code>break;</code> or <code>return;</code>, it continues to check if it matches further
-patterns. I'm a bit confused about how the pattern matching rules work.
+patterns.
 
 The first <code>switch</code> block in <em>uiListener</em> uses break since I want to continue to the second block. There
 I can use return since that pattern has been actioned.

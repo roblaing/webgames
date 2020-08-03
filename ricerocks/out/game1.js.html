@@ -26,7 +26,8 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>"use strict";
+            <pre class="prettyprint source linenums"><code>import {images} from "./rice-rocks.js";
+
 /**
  * @file A simple arcade game translated to JavaScript from a
  * [Python Mooc]{@link https://www.coursera.org/learn/interactive-python-1} given by Rice University.
@@ -38,7 +39,6 @@
  * @typedef {Object} Sprite
  * @namespace Sprite
  * @property {String} Sprite.type - "spaceship" | "asteroid" | "missile" | "explosion"
- * @property {HTMLImageElement} Sprite.image - initialised and loaded sprite sheet
  * @property {pixels} Sprite.width - pixel width of a sprite tile, which is not necessarily image.width
  * @property {pixels} Sprite.height - pixel height of a sprite tile, which is not necessarily image.height
  * @property {Number} Sprite.row - offset sx is calculated from row * width, ie row = 0 for first tile
@@ -86,54 +86,15 @@ window.canvas = document.querySelector("#board");
  * @constant {CanvasRenderingContext2D} ctx
  */
 window.ctx = window.canvas.getContext("2d");
-/**
- * First image drawn each loop.
- * @constant {HTMLImageElement} backgroundImage
- * @property {pixels} width - 800, canvas.width if scale = 1.0
- * @property {pixels} height - 600, canvas.height if scale = 1.0
- * @property {graphicFile} src - [nebula_blue.f2014.png]{@link http://www.seatavern.co.za/nebula_blue.f2014.png}
- */
-window.backgroundImage = new Image();
-/**
- * Two images in one file showing spaceship with rocket on or off.
- * @constant {HTMLImageElement} spaceshipImage
- * @property {pixels} width - 180, two square tiles in a row
- * @property {pixels} height - 90
- * @property {graphicFile} src - [double_ship.png]{@link http://www.seatavern.co.za/double_ship.png}
- */
-window.spaceshipImage = new Image();
-/**
- * Single image with no animation per se, but rotation makes it look lively.
- * @constant {HTMLImageElement} asteroidImage
- * @property {pixels} width - 90
- * @property {pixels} height - 90
- * @property {graphicFile} src - [asteroid_blue.png]{@link http://www.seatavern.co.za/asteroid_blue.png}
- */
-window.asteroidImage = new Image();
-/**
- * The only animated sprite in this game
- * @constant {HTMLImageElement} asteroidImage
- * @property {pixels} width - 90
- * @property {pixels} height - 90
- */
-window.explosionImage = new Image();
-window.splashImage = new Image();
-window.missileImage = new Image();
-window.debrisImage = new Image();
-window.backgroundImage.src = "nebula_blue.f2014.png";
-window.spaceshipImage.src = "double_ship.png";
-window.asteroidImage.src = "asteroid_blue.png";
-window.splashImage.src = "splash.png";
-window.missileImage.src = "shot2.png";
-window.explosionImage.src = "explosion_alpha.png";
-window.debrisImage.src = "debris2_blue.png";
 
 // Global Audio assets
 window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-window.backgroundSound = audioCtx.createBufferSource();
-window.thrustSound = audioCtx.createBufferSource();
-window.missileSound = audioCtx.createBufferSource();
-window.explosionSound = audioCtx.createBufferSource();
+
+const sounds = { "background": audioCtx.createBufferSource()
+               , "thrust": audioCtx.createBufferSource()
+               , "missile": audioCtx.createBufferSource()
+               , "explosion": audioCtx.createBufferSource()
+               };
 
 /**
  * An array holding sprites which are currently alive. sprites[0] is the spaceship
@@ -146,6 +107,8 @@ window.lives = 3;
 window.score = 0;
 
 // Sprite movement constants
+const BASE_WIDTH = 800;
+const BASE_HEIGHT = 600;
 const THRUST_SPEED = 0.1;
 const RECOIL = -0.05;
 const ROTATE_RATE = 60;
@@ -164,14 +127,6 @@ function playSound(audioNode) {
   sound.connect(audioCtx.destination);
   sound.start();
   return sound;
-}
-
-function get_scale() {
-  if (window.innerWidth/window.innerHeight &lt; backgroundImage.width/backgroundImage.height) {
-    return 0.98 * (window.innerWidth/backgroundImage.width);
-  } else {
-    return 0.98 * (window.innerHeight/backgroundImage.height);
-  }
 }
 
 function collisions(sprite1, type) {
@@ -206,7 +161,6 @@ function random_distance(sprite, r2, ratio) {
  */
 function createSpaceship() {
   return { type: "spaceship"
-         , image: window.spaceshipImage
          , width: 90
          , height: 90
          , row: 0
@@ -233,7 +187,6 @@ function createAsteroid() {
   const velocity = scale * (Math.random() - 0.5);
   const direction = Math.random() * 2 * Math.PI;
   return { type: "asteroid"
-         , image: asteroidImage
          , width: 90
          , height: 90
          , row: 0
@@ -258,7 +211,6 @@ function createAsteroid() {
  */
 function createMissile(spaceship) {
   return { type: "missile"
-         , image: missileImage
          , width: 10
          , height: 10
          , row: 0
@@ -278,7 +230,6 @@ function createMissile(spaceship) {
 function explode(sprite, lifespan) {
   sprite.was = sprite.type;
   sprite.type = "explosion";
-  sprite.image = explosionImage;
   sprite.width = 128;
   sprite.height = 128;
   sprite.row = 0;
@@ -291,7 +242,6 @@ function unexplode(sprite) {
   switch (sprite.was) {
     case "spaceship":
       sprite.type = "spaceship";
-      sprite.image = spaceshipImage;
       sprite.width = 90;
       sprite.height = 90;
       sprite.row = 0;
@@ -312,14 +262,14 @@ function unexplode(sprite) {
  * @returns {undefined} Causes side-effect of drawing image
  */
 function draw(sprite) {
-  ctx.save();
-  ctx.translate(sprite.xCentre, sprite.yCentre);
-  ctx.rotate(sprite.angle);
-  ctx.drawImage(sprite.image, sprite.column * sprite.width, sprite.row * sprite.height,
+  window.ctx.save();
+  window.ctx.translate(sprite.xCentre, sprite.yCentre);
+  window.ctx.rotate(sprite.angle);
+  window.ctx.drawImage(images[sprite.type], sprite.column * sprite.width, sprite.row * sprite.height,
     sprite.width, sprite.height,
     -(scale * sprite.width)/2, -(scale * sprite.height)/2,
     scale * sprite.width, scale * sprite.height);
-  ctx.restore();
+  window.ctx.restore();
 }
 
 /**
@@ -377,7 +327,7 @@ function nextTick(sprite) {
           inputStates.soundBuffer.stop();
           inputStates.isThrust = false;
         }
-        playSound(explosionSound);
+        playSound(sounds["explosion"]);
         lives--;
         explode(sprite, 30);
         hitlist.forEach((sprite2) => explode(sprite2, 120));
@@ -386,9 +336,9 @@ function nextTick(sprite) {
     case "asteroid":
       hitlist = collisions(sprite, "missile");
       if (hitlist.length > 0) {
-        playSound(explosionSound);
+        playSound(sounds["explosion"]);
         score++;
-        hitlist[0].tick = hitlist[0].lifespan; // only the first missileImage kills and gets killed
+        hitlist[0].tick = hitlist[0].lifespan; // only the first missile kills and gets killed
         explode(sprite, 60);
       }
       return;
@@ -412,12 +362,13 @@ function nextTick(sprite) {
  */
 function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(backgroundImage, 0, 0, backgroundImage.width, backgroundImage.height, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(images["background"], 0, 0, images["background"].width, images["background"].height, 
+    0, 0, canvas.width, canvas.height);
   new_sprites = [];
   sprites.forEach(function (sprite) {draw(sprite); nextTick(sprite);});
   sprites = sprites.filter((sprite) => sprite.tick &lt; sprite.lifespan);
   sprites = sprites.concat(new_sprites);
-  ctx.drawImage(debrisImage, 0, 0, debrisImage.width, debrisImage.height, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(images["debris"], 0, 0, images["debris"].width, images["debris"].height, 0, 0, canvas.width, canvas.height);
   ctx.fillText("Lives", scale * 50, scale * 50);
   ctx.fillText("Score", scale * 680, scale * 50);
   ctx.fillText(lives, scale * 50, scale * 80);
@@ -426,15 +377,36 @@ function loop() {
 }
 
 /**
+ * Calculate a ratio to make the canvas larger for big screens, smaller for mobile devices
+ * @function getScale
+ * @returns {float} Amount to multiply the sizes of images
+ * @param {pixels} windowWidth -- originally hardwired to window.innerWidth
+ * @param {pixels} windowHeight -- originally hardwired to window.innerHeight
+ * @param {pixels} baseWidth -- originally hardwired to backgroundImage.width
+ * @param {pixels} baseHeight -- originally hardwired to backgroundImage.height
+ */
+function getScale(windowWidth, windowHeight, baseWidth, baseHeight) {
+  if (windowWidth/windowHeight &lt; baseWidth/baseHeight) {
+    return 0.98 * (windowWidth/baseWidth);
+  } else {
+    return 0.98 * (windowHeight/baseHeight);
+  }
+}
+
+/**
  * The resizeListener event handler
  * @function resizeListener
  * @returns {undefined} Mutates the scale global variable
+ * @param {pixels} windowWidth -- originally hardwired to window.innerWidth
+ * @param {pixels} windowHeight -- originally hardwired to window.innerHeight
+ * @param {pixels} baseWidth -- originally hardwired to backgroundImage.width
+ * @param {pixels} baseHeight -- originally hardwired to backgroundImage.height
  */
-function resizeListener() {
+function resizeListener(baseWidth, baseHeight, event) {
   const oldScale = scale;
-  scale = get_scale();
-  canvas.width = scale * backgroundImage.width;
-  canvas.height = scale * backgroundImage.height;
+  scale = getScale(window.innerWidth, window.innerHeight, baseWidth, baseHeight);
+  canvas.width = scale * baseWidth;
+  canvas.height = scale * baseHeight;
   ctx.fillStyle = "white";
   ctx.font = scale * 22 + "px monospace";
   sprites.forEach(function (sprite) {
@@ -448,13 +420,13 @@ function resizeListener() {
 /**
  * The user input event handler
  * @function uiListener
- * @param {KeyboardEvent|PointerEvent} event - Object sent by target.addEventListener(type, uiListener);
+ * @param {KeyboardEvent|PointerEvent} event - Object sent by target.addEventListener(type, (event) => uiListener(inputStates, event));
  * @returns {undefined} Mutates the inputStates global object
  * @property {DOMString} event.type - Inherited from [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event#Properties}
  * @property {DOMString} event.key - A [Key Value]{@link https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values}
  * @property {DOMString} event.target - document since that's what called this function
  */
-function uiListener(event) {
+function uiListener(inputs, event) {
   const button2key = { "leftButton": "ArrowLeft"
                      , "rightButton": "ArrowRight"
                      , "upButton": "ArrowUp"
@@ -482,29 +454,29 @@ function uiListener(event) {
   }
   switch (key) {
     case "ArrowLeft":
-      inputStates.isLeft = bool;
+      inputs.isLeft = bool;
       return;
     case "ArrowRight":
-      inputStates.isRight = bool;
+      inputs.isRight = bool;
       return;
     case "ArrowUp":
-      inputStates.isUp = bool;
-      if (inputStates.isUp &amp;&amp; !inputStates.isThrust) {
-        inputStates.soundBuffer = playSound(thrustSound);
-        inputStates.isThrust = true;
+      inputs.isUp = bool;
+      if (inputs.isUp &amp;&amp; !inputs.isThrust) {
+        inputs.soundBuffer = playSound(sounds["thrust"]);
+        inputs.isThrust = true;
       }
-      if (!inputStates.isUp &amp;&amp; inputStates.isThrust) {
-        inputStates.soundBuffer.stop();
-        inputStates.isThrust = false;
+      if (!inputs.isUp &amp;&amp; inputs.isThrust) {
+        inputs.soundBuffer.stop();
+        inputs.isThrust = false;
       }
       return;
     case " ":
-      inputStates.isSpace = bool;
-      if (inputStates.isSpace &amp;&amp; inputStates.isLoaded) {
-        playSound(missileSound);
+      inputs.isSpace = bool;
+      if (inputs.isSpace &amp;&amp; inputs.isLoaded) {
+        playSound(sounds["missile"]);
       }
-      if (!inputStates.isSpace) {
-        inputStates.isLoaded = true;
+      if (!inputs.isSpace) {
+        inputs.isLoaded = true;
       }
       return;
     case "F12":  // allows toggling to debug screen, needs mouseclick for game to regain keyboard.
@@ -516,47 +488,45 @@ function uiListener(event) {
   }
 }
 
-async function setup(event1) {
-  await backgroundImage.addEventListener("load", function (event2) {
-    resizeListener();
-    sprites[0] = createSpaceship();
-    for (let rock = 1; rock &lt;= 13; rock++) {
-      sprites[rock] = createAsteroid();
-    }
-    window.requestAnimationFrame(loop);
-  });
+function setup(baseWidth, baseHeight, event) {
+  resizeListener(baseWidth, baseHeight, null);
+  sprites[0] = createSpaceship();
+  for (let idx = 1; idx &lt;= 13; idx++) {
+    sprites[idx] = createAsteroid();
+  }
+  window.requestAnimationFrame(loop);
 }
 
 function cleanup(event) {
-  backgroundSound.stop();
-  thrustSound.stop();
-  missileSound.stop();
-  explosionSound.stop();
+  sounds["background"].stop();
+  sounds["thrust"].stop();
+  sounds["missile"].stop();
+  sounds["explosion"].stop();
 }
 
-window.addEventListener("DOMContentLoaded", setup);
+window.addEventListener("DOMContentLoaded", (event) => setup(BASE_WIDTH, BASE_HEIGHT, event));
 window.addEventListener("unload", cleanup);
-window.addEventListener("resize", resizeListener);
+window.addEventListener("resize", (event) => resizeListener(BASE_WIDTH, BASE_HEIGHT, event));
 
-loadSound("soundtrack.ogg", backgroundSound);
-loadSound("thrust.ogg", thrustSound);
-loadSound("missile.ogg", missileSound);
-loadSound("explosion.ogg", explosionSound);
-backgroundSound.loop = true;
-backgroundSound.connect(audioCtx.destination);
-backgroundSound.start();
+loadSound("soundtrack.ogg", sounds["background"]);
+loadSound("thrust.ogg", sounds["thrust"]);
+loadSound("missile.ogg", sounds["missile"]);
+loadSound("explosion.ogg", sounds["explosion"]);
+sounds["background"].loop = true;
+sounds["background"].connect(audioCtx.destination);
+sounds["background"].start();
 
-document.addEventListener("keydown", uiListener);
-document.addEventListener("keyup", uiListener);
-document.querySelector("#upButton").addEventListener("pointerdown", uiListener);
-document.querySelector("#upButton").addEventListener("pointerup", uiListener);
-document.querySelector("#leftButton").addEventListener("pointerdown", uiListener);
-document.querySelector("#leftButton").addEventListener("pointerup", uiListener);
-document.querySelector("#rightButton").addEventListener("pointerdown", uiListener);
-document.querySelector("#rightButton").addEventListener("pointerup", uiListener);
-document.querySelector("#spaceBar").addEventListener("pointerdown", uiListener);
-document.querySelector("#spaceBar").addEventListener("pointerup", uiListener);
-spritesUpdate.addEventListener("message", spritesUpdateListener);
+document.addEventListener("keydown", (event) => uiListener(inputStates, event));
+document.addEventListener("keyup", (event) => uiListener(inputStates, event));
+document.querySelector("#upButton").addEventListener("pointerdown", (event) => uiListener(inputStates, event));
+document.querySelector("#upButton").addEventListener("pointerup", (event) => uiListener(inputStates, event));
+document.querySelector("#leftButton").addEventListener("pointerdown", (event) => uiListener(inputStates, event));
+document.querySelector("#leftButton").addEventListener("pointerup", (event) => uiListener(inputStates, event));
+document.querySelector("#rightButton").addEventListener("pointerdown", (event) => uiListener(inputStates, event));
+document.querySelector("#rightButton").addEventListener("pointerup", (event) => uiListener(inputStates, event));
+document.querySelector("#spaceBar").addEventListener("pointerdown", (event) => uiListener(inputStates, event));
+document.querySelector("#spaceBar").addEventListener("pointerup", (event) => uiListener(inputStates, event));
+// spritesUpdate.addEventListener("message", spritesUpdateListener);
 
 </code></pre>
         </article>
@@ -568,13 +538,13 @@ spritesUpdate.addEventListener("message", spritesUpdateListener);
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="inputStates.html">inputStates</a></li><li><a href="Sprite.html">Sprite</a></li></ul><h3>Global</h3><ul><li><a href="global.html#asteroidImage">asteroidImage</a></li><li><a href="global.html#backgroundImage">backgroundImage</a></li><li><a href="global.html#canvas">canvas</a></li><li><a href="global.html#createAsteroid">createAsteroid</a></li><li><a href="global.html#createMissile">createMissile</a></li><li><a href="global.html#createSpaceship">createSpaceship</a></li><li><a href="global.html#ctx">ctx</a></li><li><a href="global.html#draw">draw</a></li><li><a href="global.html#loop">loop</a></li><li><a href="global.html#nextTick">nextTick</a></li><li><a href="global.html#resizeListener">resizeListener</a></li><li><a href="global.html#spaceshipImage">spaceshipImage</a></li><li><a href="global.html#uiListener">uiListener</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="inputStates.html">inputStates</a></li><li><a href="Sprite.html">Sprite</a></li></ul><h3>Global</h3><ul><li><a href="global.html#canvas">canvas</a></li><li><a href="global.html#createAsteroid">createAsteroid</a></li><li><a href="global.html#createMissile">createMissile</a></li><li><a href="global.html#createSpaceship">createSpaceship</a></li><li><a href="global.html#ctx">ctx</a></li><li><a href="global.html#draw">draw</a></li><li><a href="global.html#getScale">getScale</a></li><li><a href="global.html#loop">loop</a></li><li><a href="global.html#nextTick">nextTick</a></li><li><a href="global.html#resizeListener">resizeListener</a></li><li><a href="global.html#uiListener">uiListener</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Sun Aug 02 2020 20:35:10 GMT+0200 (South Africa Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Mon Aug 03 2020 18:30:12 GMT+0200 (South Africa Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
