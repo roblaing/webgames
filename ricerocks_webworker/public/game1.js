@@ -5,10 +5,8 @@
  * @requires rice-rocks.js
  */
 
-// image.js attaches canvas to window to make it available across modules
-import { images, draw, clearScene, paintScene, scaleText, writeText } from "./image.js";
+import { canvas, images, draw, clearScene, paintScene, scaleText, writeText } from "./image.js";
 import { sounds, playSound } from "./sound.js";
-import { state, initState, nextTick, updateInputs } from "./state-loop.js";
 
 /**
  * Each Sprite has these 15 common properties
@@ -29,6 +27,22 @@ import { state, initState, nextTick, updateInputs } from "./state-loop.js";
  * @property {Number} Sprite.lifespan - used to filter dead ephemereal sprites
  */
 
+const stateWorker = new Worker("state-loop.js");
+
+/**
+ * This doubles as the message sent to stateWorker 60 ticks a second
+ * @type {Object}
+ */
+let state = { "type": "tick"
+            , "sprites": []
+            , "missiles": []
+            , "lives": 3
+            , "score": 0
+            , "width": 800
+            , "height": 600
+            , "scale": 1.0
+            };
+
 let thrustSound;
 const BASE_WIDTH = 800;
 const BASE_HEIGHT = 600;
@@ -43,15 +57,9 @@ function animationLoop() {
   paintScene(images["background"]);
   state.sprites.forEach((sprite) => draw(sprite, state.scale));
   state.missiles.forEach((missile) => draw(missile, state.scale));
-  state.sprites.forEach((sprite) => nextTick(sprite));
-  state.missiles.forEach((missile) => nextTick(missile));
-  state.missiles = state.missiles.filter((missile) => missile.tick < missile.lifespan);
+  stateWorker.postMessage(state);
   paintScene(images["debris"]);
   writeText(state);
-  if (state.noise !== null) {
-    makeNoise(state.noise);
-    state.noise = null
-  }
   window.requestAnimationFrame(animationLoop);
 }
 
@@ -84,10 +92,10 @@ function getScale(windowWidth, windowHeight, baseWidth, baseHeight) {
 function resizeListener(baseWidth, baseHeight, event) {
   const oldScale = state.scale;
   state.scale = getScale(window.innerWidth, window.innerHeight, baseWidth, baseHeight);
-  window.canvas.width = state.scale * baseWidth;
-  window.canvas.height = state.scale * baseHeight;
-  state.width = window.canvas.width;
-  state.height = window.canvas.height;
+  canvas.width = state.scale * baseWidth;
+  canvas.height = state.scale * baseHeight;
+  state.width = canvas.width;
+  state.height = canvas.height;
   scaleText(state.scale);
   state.sprites.forEach(function (sprite) {
     sprite.xCentre *= state.scale/oldScale;
@@ -140,13 +148,7 @@ function uiListener(event) {
     event.preventDefault();
     return;
   }
-  updateInputs(key, bool);
-}
-
-function setup(event) {
-  initState();
-  resizeListener(BASE_WIDTH, BASE_HEIGHT, null);
-  window.requestAnimationFrame(animationLoop);
+  stateWorker.postMessage({"type": "inputStates", "key": key, "bool": bool});
 }
 
 function cleanup(event) {
@@ -157,17 +159,30 @@ function cleanup(event) {
   stateWorker.terminate();
 }
 
-function makeNoise(sound) {
-  if (sound === "thrustStart") {
-    thrustSound = playSound(sounds["thrust"]);
-  } else if (sound === "thrustStop") {
-    thrustSound.stop();
-  } else {
-    playSound(sounds[sound]);
+function stateWorkerListener(event) {
+  switch (event.data.type) {
+    case "tick":
+      state = event.data;
+      break;
+    case "sound":
+      if (event.data.sound === "thrustStart") {
+        thrustSound = playSound(sounds["thrust"]);
+      } else if (event.data.sound === "thrustStop") {
+        thrustSound.stop();
+      } else {
+        playSound(sounds[event.data.sound]);
+      }
+      break;
+    case "init":
+      state.sprites = event.data.sprites;
+      resizeListener(BASE_WIDTH, BASE_HEIGHT, null);
+      window.requestAnimationFrame(animationLoop);
+      break;
   }
 }
 
-window.addEventListener("DOMContentLoaded", setup);
+stateWorker.addEventListener("message", stateWorkerListener);
+// window.addEventListener("DOMContentLoaded", setup);
 window.addEventListener("unload", cleanup);
 window.addEventListener("resize", (event) => resizeListener(BASE_WIDTH, BASE_HEIGHT, event));
 document.addEventListener("keydown", uiListener);

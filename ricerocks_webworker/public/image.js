@@ -26,15 +26,13 @@ images["explosion"].src = "explosion_alpha.png";
  * [Canvas API]{@link https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API}
  * @constant {HTMLCanvasElement} canvas
 */
-window.canvas = document.querySelector("#board");
-window.canvas.width = 800;
-window.canvas.height = 600;
+const canvas = document.querySelector("#board");
 
 /**
  * [Canvas's context]{@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D}
  * @constant {CanvasRenderingContext2D} ctx
  */
-const ctx = window.canvas.getContext("2d");
+const ctx = canvas.getContext("2d");
 
 /**
  * Uses five of CanvasRenderingContext2D's many methods
@@ -58,12 +56,12 @@ function draw(sprite, scale) {
 }
 
 function clearScene() {
-  ctx.clearRect(0, 0, window.canvas.width, window.canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 function paintScene(image) {
   try {
-    ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, window.canvas.width, window.canvas.height);
+    ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvas.width, canvas.height);
   } catch {
     console.log("ctx.drawImage called before image loaded");
   }
@@ -81,5 +79,5 @@ function writeText(state) {
   ctx.fillText(state.score, state.scale * 680, state.scale * 80);
 }
 
-export { images, draw, clearScene, paintScene, scaleText, writeText };
+export { canvas, images, draw, clearScene, paintScene, scaleText, writeText };
 

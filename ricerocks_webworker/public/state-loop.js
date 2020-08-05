@@ -1,17 +1,5 @@
 /**
- * This doubles as the message sent to stateWorker 60 ticks a second
- * @type {Object}
- */
-const state = { "sprites": []
-              , "missiles": []
-              , "lives": 3
-              , "score": 0
-              , "scale": 1.0
-              , "noise": null
-              };
-
-/**
- * Local object used by handlers to message the loop
+ * Global object used by handlers to message the loop
  * @constant {Object} inputStates
  * @namespace inputStates
  * @property {Boolean} inputStates.isUp - Up arrow pressed or not
@@ -20,6 +8,7 @@ const state = { "sprites": []
  * @property {Boolean} inputStates.isRight - Right arrow pressed or not
  * @property {Boolean} inputStates.isSpace - Space arrow pressed or not
  * @property {Boolean} inputStates.isLoaded - Space bar needs to be released between missiles
+ * @property {AudioBufferSourceNode} inputStates.soundBuffer - Stored to stop rocket noise
  */
 const inputStates = { isUp: false
                     , isThrust: false
@@ -34,6 +23,7 @@ const THRUST_SPEED = 0.1;
 const RECOIL = -0.05;
 const ROTATE_RATE = 60;
 const MISSILE_SPEED = 4;
+let state = {"sprites": [], "width": 800, "height": 600, "scale": 1.0};
 
 function collisions(sprite1, type) {
   if (type === "missile") {
@@ -56,8 +46,8 @@ function random_distance(sprite, r2, ratio) {
   let y2;
   let d;
   do {
-    x2 = Math.random() * (window.canvas.width + 1);
-    y2 = Math.random() * (window.canvas.height + 1);
+    x2 = Math.random() * (state.width + 1);
+    y2 = Math.random() * (state.height + 1);
     d = Math.hypot(x2 - x1, y2 - y1);
   } while (d < minDistance);
   return [x2, y2];
@@ -76,8 +66,8 @@ function createSpaceship() {
          , height: 90
          , row: 0
          , column: 0
-         , xCentre: window.canvas.width/2
-         , yCentre: window.canvas.height/2
+         , xCentre: state.width/2
+         , yCentre: state.height/2
          , xDelta: 0
          , yDelta: 0
          , radius: 35
@@ -179,15 +169,15 @@ function nextTick(sprite) { // best to bring whole object
   sprite.angle += sprite.angleDelta;
   // space is toroidal
   if (sprite.xCentre < 0) {
-    sprite.xCentre = window.canvas.width;
+    sprite.xCentre = state.width;
   }
-  if (sprite.xCentre > window.canvas.width) {
+  if (sprite.xCentre > state.width) {
     sprite.xCentre = 0;
   }
   if (sprite.yCentre < 0) {
-    sprite.yCentre = window.canvas.height;
+    sprite.yCentre = state.height;
   }
-  if (sprite.yCentre > window.canvas.height) {
+  if (sprite.yCentre > state.height) {
     sprite.yCentre = 0;
   }
   // specific to type updates
@@ -212,10 +202,10 @@ function nextTick(sprite) { // best to bring whole object
       hitlist = collisions(sprite, "asteroid");
       if (hitlist.length > 0) {
         if (inputStates.isThrust === true) {
-          state.noise = "thrustStop";
+          postMessage({"type": "sound", "sound": "thrustStop"});
           inputStates.isThrust = false;
         }
-        state.noise = "explosion";
+        postMessage({"type": "sound", "sound": "explosion"});
         state.lives--;
         explode(sprite, 30);
         hitlist.forEach((sprite2) => explode(sprite2, 120));
@@ -224,7 +214,7 @@ function nextTick(sprite) { // best to bring whole object
     case "asteroid":
       hitlist = collisions(sprite, "missile");
       if (hitlist.length > 0) {
-        state.noise = "explosion";
+        postMessage({"type": "sound", "sound": "explosion"});
         state.score++;
         hitlist[0].tick = hitlist[0].lifespan; // only the first missile kills and gets killed
         explode(sprite, 60);
@@ -233,7 +223,7 @@ function nextTick(sprite) { // best to bring whole object
     case "explosion":
       sprite.column = Math.floor((sprite.tick/sprite.lifespan) * 24);
       if ((sprite.lifespan - 1) === sprite.tick) {
-        unexplode(sprite, state.sprites[0], window.canvas.width, window.canvas.height, state.scale);
+        unexplode(sprite, state.sprites[0], state.width, state.height, state.scale);
       }
       sprite.tick++;
       return;
@@ -243,32 +233,33 @@ function nextTick(sprite) { // best to bring whole object
   }
 }
 
-function updateInputs(key, bool) {
-  switch (key) {
+function updateInputs(inputs) {
+  switch (inputs.key) {
     case "ArrowLeft":
-      inputStates.isLeft = bool;
+      inputStates.isLeft = inputs.bool;
       return;
     case "ArrowRight":
-      inputStates.isRight = bool;
+      inputStates.isRight = inputs.bool;
       return;
     case "ArrowUp":
-      inputStates.isUp = bool;
+      inputStates.isUp = inputs.bool;
       if (inputStates.isUp && !inputStates.isThrust) {
-        state.noise = "thrustStart";
+        postMessage({"type": "sound", "sound": "thrustStart"});
         inputStates.isThrust = true;
       }
       if (!inputStates.isUp && inputStates.isThrust) {
-        state.noise = "thrustStop";
+        postMessage({"type": "sound", "sound": "thrustStop"});
         inputStates.isThrust = false;
       }
       return;
     case " ":
-      inputStates.isSpace = bool;
+      inputStates.isSpace = inputs.bool;
       if (inputStates.isSpace && inputStates.isLoaded) {
         state.missiles.push(createMissile(state.sprites[0]));
         state.sprites[0].xDelta = state.sprites[0].xDelta + (state.scale * RECOIL * Math.cos(state.sprites[0].angle));
         state.sprites[0].yDelta = state.sprites[0].yDelta + (state.scale * RECOIL * Math.sin(state.sprites[0].angle));
-        state.noise = "missile";
+        postMessage(state);
+        postMessage({"type": "sound", "sound": "missile"});
         inputStates.isLoaded = false;
       }
       if (!inputStates.isSpace) {
@@ -278,12 +269,26 @@ function updateInputs(key, bool) {
   }
 }
 
-function initState() {
-  state.sprites[0] = createSpaceship();
-  for (let idx = 1; idx <= 13; idx++) {
-    state.sprites[idx] = createAsteroid();
+addEventListener("message", function(event) {
+  switch (event.data.type) {
+    case "tick": {
+      state = event.data;
+      state.sprites.forEach((sprite) => nextTick(sprite));
+      state.missiles.forEach((missile) => nextTick(missile));
+      state.missiles = state.missiles.filter((missile) => missile.tick < missile.lifespan);
+      postMessage(state);
+      break;
+    }
+    case "inputStates":
+      updateInputs(event.data)
+      break;
   }
-}
+});
 
-export { state, initState, nextTick, updateInputs };
+state.sprites[0] = createSpaceship();
+for (let idx = 1; idx <= 13; idx++) {
+  state.sprites[idx] = createAsteroid();
+}
+this.postMessage({"type": "init", "sprites": state.sprites});
+
 
