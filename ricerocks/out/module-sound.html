@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: inputStates</title>
+    <title>JSDoc: Module: sound</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: inputStates</h1>
+    <h1 class="page-title">Module: sound</h1>
 
     
 
@@ -28,7 +28,8 @@
 
 <header>
     
-        <h2>inputStates</h2>
+        
+            
         
     
 </header>
@@ -37,10 +38,296 @@
     <div class="container-overview">
     
         
-            <div class="description">Global object used by handlers to message the loop</div>
+            <div class="description">Module simplifying JavaScript's audio to a public interface of an images dictionary and playSound function</div>
         
 
         
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="sound.js.html">sound.js</a>, <a href="sound.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="~playSound"><span class="type-signature">(inner) </span>playSound<span class="signature">(audioNode)</span><span class="type-signature"> &rarr; {buffer}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Public function to use sound objects
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>audioNode</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">AudioNode</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">eg sounds["missile"]</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="sound.js.html">sound.js</a>, <a href="sound.js.html#line26">line 26</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Return object needed to turn thrust sound off
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">buffer</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Type Definitions</h3>
+
+        
+                
+<h4 class="name" id="~sounds">sounds</h4>
+
+
+
+
+<div class="description">
+    Dictionary of sound objects
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
 
 
     <h5 class="subsection-title">Properties:</h5>
@@ -69,13 +356,13 @@
 
         <tr>
             
-                <td class="name"><code>inputStates.isUp</code></td>
+                <td class="name"><code>audioNode</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Boolean</span>
+<span class="param-type">buffer</span>
 
 
             
@@ -85,145 +372,7 @@
 
             
 
-            <td class="description last">Up arrow pressed or not</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>inputStates.isThrust</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Boolean</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Don't want to add more rocket noise 60 times a second</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>inputStates.isLeft</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Boolean</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Left arrow pressed or not</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>inputStates.isRight</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Boolean</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Right arrow pressed or not</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>inputStates.isSpace</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Boolean</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Space arrow pressed or not</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>inputStates.isLoaded</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Boolean</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Space bar needs to be released between missiles</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>inputStates.soundBuffer</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">AudioBufferSourceNode</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Stored to stop rocket noise</td>
+            <td class="description last">Binary blobs from sound files</td>
         </tr>
 
     
@@ -262,7 +411,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="state-loop.js.html">state-loop.js</a>, <a href="state-loop.js.html#line1">line 1</a>
+        <a href="sound.js.html">sound.js</a>, <a href="sound.js.html#line8">line 8</a>
     </li></ul></dd>
     
 
@@ -274,26 +423,11 @@
 </dl>
 
 
-        
-    
-    </div>
 
-    
 
-    
 
-    
 
-    
-
-    
-
-    
-
-    
-
-    
-
+            
     
 
     

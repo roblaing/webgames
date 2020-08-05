@@ -12,7 +12,7 @@
   <script src="boot.js"></script>
 
   <!-- include source files here... -->
-  <script src="../game1.js"></script>
+  <script type="module" src="../game1.js"></script>
 
   <!-- include spec files here... -->
   <script src="game1Spec.js"></script>
@@ -20,5 +20,10 @@
 </head>
 
 <body>
+<canvas id="board"></canvas>
+<button id="upButton" type="button">▲</button>
+<button id="leftButton" type="button">◀</button>
+<button id="rightButton" type="button">▶</button>
+<button id="spaceBar" type="button">Space Bar</button>
 </body>
 </html>

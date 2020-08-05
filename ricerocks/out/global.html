@@ -98,13 +98,13 @@
 
         
             
-<h4 class="name" id="canvas"><span class="type-signature">(constant) </span>canvas<span class="type-signature"> :HTMLCanvasElement</span></h4>
+<h4 class="name" id="sprites"><span class="type-signature"></span>sprites<span class="type-signature"> :Array</span></h4>
 
 
 
 
 <div class="description">
-    <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API">Canvas API</a>
+    An array holding sprites which are currently alive. sprites[0] is the spaceship
 </div>
 
 
@@ -113,7 +113,7 @@
     <ul>
         <li>
             
-<span class="param-type">HTMLCanvasElement</span>
+<span class="param-type">Array</span>
 
 
         </li>
@@ -152,79 +152,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line51">line 51</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="ctx"><span class="type-signature">(constant) </span>ctx<span class="type-signature"> :CanvasRenderingContext2D</span></h4>
-
-
-
-
-<div class="description">
-    <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">Canvas's context</a>
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">CanvasRenderingContext2D</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line56">line 56</a>
+        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line41">line 41</a>
     </li></ul></dd>
     
 
@@ -304,7 +232,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line157">line 157</a>
+        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line96">line 96</a>
     </li></ul></dd>
     
 
@@ -463,7 +391,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line184">line 184</a>
+        <a href="state-loop.js.html">state-loop.js</a>, <a href="state-loop.js.html#line73">line 73</a>
     </li></ul></dd>
     
 
@@ -645,7 +573,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line134">line 134</a>
+        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line73">line 73</a>
     </li></ul></dd>
     
 
@@ -686,165 +614,6 @@
     <dd>
         
 <span class="param-type"><a href="Sprite.html">Sprite</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="draw"><span class="type-signature"></span>draw<span class="signature">(sprite)</span><span class="type-signature"> &rarr; {undefined}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Uses five of CanvasRenderingContext2D's many methods
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>sprite</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="Sprite.html">Sprite</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The 9 parameters needed by ctx.drawImage, the 2 for ctx.translate, and angle for ctx.rotate</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line230">line 230</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Causes side-effect of drawing image
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">undefined</span>
 
 
     </dd>
@@ -1032,7 +801,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line351">line 351</a>
+        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line143">line 143</a>
     </li></ul></dd>
     
 
@@ -1098,7 +867,7 @@
 
 
 <div class="description">
-    The core body of the application
+    Move to module so don't have to export ctx or draw?
 </div>
 
 
@@ -1142,7 +911,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line330">line 330</a>
+        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line121">line 121</a>
     </li></ul></dd>
     
 
@@ -1301,7 +1070,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line247">line 247</a>
+        <a href="state-loop.js.html">state-loop.js</a>, <a href="state-loop.js.html#line125">line 125</a>
     </li></ul></dd>
     
 
@@ -1529,7 +1298,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line368">line 368</a>
+        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line160">line 160</a>
     </li></ul></dd>
     
 
@@ -1789,7 +1558,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line392">line 392</a>
+        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line183">line 183</a>
     </li></ul></dd>
     
 
@@ -1857,13 +1626,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="inputStates.html">inputStates</a></li><li><a href="Sprite.html">Sprite</a></li></ul><h3>Global</h3><ul><li><a href="global.html#canvas">canvas</a></li><li><a href="global.html#createAsteroid">createAsteroid</a></li><li><a href="global.html#createMissile">createMissile</a></li><li><a href="global.html#createSpaceship">createSpaceship</a></li><li><a href="global.html#ctx">ctx</a></li><li><a href="global.html#draw">draw</a></li><li><a href="global.html#getScale">getScale</a></li><li><a href="global.html#loop">loop</a></li><li><a href="global.html#nextTick">nextTick</a></li><li><a href="global.html#resizeListener">resizeListener</a></li><li><a href="global.html#uiListener">uiListener</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-image.html">image</a></li><li><a href="module-sound.html">sound</a></li></ul><h3>Namespaces</h3><ul><li><a href="inputStates.html">inputStates</a></li><li><a href="Sprite.html">Sprite</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createAsteroid">createAsteroid</a></li><li><a href="global.html#createMissile">createMissile</a></li><li><a href="global.html#createSpaceship">createSpaceship</a></li><li><a href="global.html#getScale">getScale</a></li><li><a href="global.html#loop">loop</a></li><li><a href="global.html#nextTick">nextTick</a></li><li><a href="global.html#resizeListener">resizeListener</a></li><li><a href="global.html#sprites">sprites</a></li><li><a href="global.html#uiListener">uiListener</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Mon Aug 03 2020 18:30:12 GMT+0200 (South Africa Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Wed Aug 05 2020 10:51:34 GMT+0200 (South Africa Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

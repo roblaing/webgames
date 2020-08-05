@@ -50,11 +50,11 @@ game I originally encountered many years in Rice University's
 Mooc called RiceRocks. This meant the sprites and sounds were all readily available on my PC.</p>
 <p>Though translating the game from the original Python to JavaScript wasn't very difficult, it got me thinking on various
 <em>philosophical issues</em>, and I kept refactoring until it strayed far from the original.</p>
+<h2>Modularisation</h2>
 <p>The original Python version of RiceRocks was used to teach
 <a href="https://en.wikipedia.org/wiki/Object-oriented_programming">OOP</a>,
 a style I've become disenchanted with. A lot of OOP's key selling points boil down to
 <a href="https://en.wikipedia.org/wiki/Modular_programming">modular programming</a>.</p>
-<h2>Modularisation</h2>
 <p>JavaScript only recently started supporting this, and a few things tripped me up.</p>
 <p>Firstly, to get modules to work, the html needs to be modified:</p>
 <pre class="prettyprint source lang-html"><code>  &lt;script type=&quot;module&quot; src=&quot;main.js&quot;>&lt;/script>
@@ -64,17 +64,102 @@ stuff from modules needs the <code>type=&quot;module&quot;</code> attribute adde
 <p>The gotcha with
 <a href="https://developer.mozilla.org/en-US/docs/web/javascript/reference/statements/export">
 export</a> is it needs to be declard at the bottom of the module in a curly bracketed, comma separated list.
-There's not arity declaration, and parameters are not included. The <em>export</em> declaration creates a
+There's no arity declaration, and parameters are not included. The <em>export</em> declaration creates a
 <em>wish list</em> which would initially be made of stubs, a key part of systematic software design.</p>
 <p>A gotcha with
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import">import</a>,
-which goes at the top of the file is the module file needs a path, ie <code>./module.js</code> if it is a sibling
+which goes at the top of the client file is the module file needs a path, ie <code>&quot;./module.js&quot;</code> if it is a sibling
 of the main file.</p>
-<h2>Event-oriented programming</h2>
+<p>Once I'd figured out the quirks of JavaScript's modules, I could proceed to enjoy the
+<a href="https://en.wikipedia.org/wiki/Separation_of_concerns">separation of concerns</a>,
+<a href="https://en.wikipedia.org/wiki/Information_hiding">information hiding</a>, and many
+other benefits of modules.</p>
+<p>Another form of JavaScript modularisation — which uses different conventions — are
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">Web Workers</a>,
+where the bulk of my code ended up and I'll elaborate on shortly.</p>
+<h3>Audio</h3>
+<p>In my first draft of this project when I struggling to understand the myriad
+<a href="https://developer.mozilla.org/en-US/docs/Web/API">Web APIs</a>, I kept one hierarchical diagram with links
+to documentation on the many objects and their methods, properties and events I was using. The audio part looked like
+this.</p>
+<p><code><pre>
+├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext">BaseAudioContext</a>
+│   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioContext#Constructor">Constructor</a>
+│   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/AudioContext">AudioContext()</a>
+│   └── Properties
+│       └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/destination">destination</a>
+└── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode">AudioBufferSourceNode</a>
+.   ├── Constructor/Instantiator
+.   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createBufferSource">BaseAudioContext.createBufferSource()</a>
+.   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode#Properties">Properties</a>
+.   │   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/buffer">buffer</a>
+.   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/loop">loop</a>
+.   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode#Methods">Methods</a>
+.   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioNode/connect">connect()</a>
+.   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/start">start()</a>
+.   .   └── stop()
+</pre></code></p>
+<p>I'm more of a graphics than sound guy, and I found all the objects required for audio extremely confusing. It's
+a bit analogous to graphics in that files containing binary blobs in various formats need to downloaded by the browser
+and stored in memory to be referenced by named constants.</p>
+<p>A <em>context</em> is needed which is conventionally made a global constant whose methods are used
+to make noise when desired.</p>
+<p>Thanks to modularisation, I could move all this complexity into a separate file to be access in my main file by</p>
+<pre class="prettyprint source lang-javascript"><code>import { sounds, playSound } from &quot;./sound.js&quot;;
+</code></pre>
+<p>where sounds is a key-value store of the four sounds used in the game which can be passed to one function as in</p>
+<pre class="prettyprint source lang-javascript"><code>playSound(sounds[&quot;missile&quot;]);
+</code></pre>
+<p>Moving from Python to JavaScript, I found it quite eye opening that object-style <code>sounds.missile</code> is
+simply syntactic sugar for associative array-style <code>sounds[&quot;missile&quot;]</code>, revealing that much of OOP is simply
+compound data layered in jargon.</p>
+<p>For some reason, JavaScript linters complain about using <code>sounds[&quot;missile&quot;]</code> instead of <code>sounds.missile</code>,
+but I think it better style since I can use <code>sounds[Variable]</code> but not <code>sounds.Variable</code>, and I prefer
+to keep my keys double quoted because it sticks to the JSON convention, and also makes it easier to differentiate between
+the key name and variable assigned to it name the same.</p>
+<p>The OOP way of writing the playSound standalone function would be to create a class with a name like Sound and then
+write something like <code>Sound.prototype.playSound = function() {...}</code> to be invoked as
+<code>sounds.missile.playSound()</code>, which I find a lot less elegant or reusable.</p>
+<h3>Graphics</h3>
+<p>One of the advantages of modularity I discovered here is it that it improves testability, which I find fairly tricky
+in a game like this.</p>
+<p>Though I couldn't abstract image.js down to just two public names, I similary managed to hide much of this complexity
+in a module accessed with a dictionary of key-value pairs and some functions.</p>
+<p><code><pre>
+├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API">Canvas</a>
+│   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement">HTMLCanvasElement</a>
+│   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement#Properties">Properties</a>
+│   │   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/width">width</a>
+│   │   .   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/height">height</a>
+│   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">CanvasRenderingContext2D</a>
+│   .   ├── Constructor/Instantiator
+│   .   │   └── <a href="developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext">HTMLCanvasElement.getContext()</a>
+│   .   ├── Properties
+│   .   │   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/fillStyle">fillStyle</a>
+│   .   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/font">font</a>
+│   .   └── Methods
+│   .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clearRect">clearRect()</a>
+│   .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage">drawImage()</a>
+│   .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/fillText">fillText()</a>
+│   .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/restore">restore()</a>
+│   .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rotate">rotate()</a>
+│   .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/save">save()</a>
+│   .   .   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/translate">translate()</a>
+└── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement">HTMLImageElement</a>
+.   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Constructor">Constructor</a>
+.   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/Image">Image()</a>
+.   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Properties">Properties</a>
+.   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/width">width</a>
+.   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/height">height</a>
+.   .   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/src">src</a>
+</pre></code></p>
+<h2>Event-driven programming</h2>
 <p>Neither OOP nor <a href="https://en.wikipedia.org/wiki/Functional_programming">FP</a> comfortably support what
 Erlang's late founder Joe Armstrong termed
 <a href="https://erlang.org/download/armstrong_thesis_2003.pdf">concurreny-oriented programming</a>, specifically
-<a href="https://en.wikipedia.org/wiki/Event-driven_programming">event-driven programming</a>.</p>
+<a href="https://en.wikipedia.org/wiki/Event-driven_programming">event-driven programming</a>, which is related to
+<a href="https://developers.redhat.com/blog/2017/06/30/5-things-to-know-about-reactive-programming/">
+reactive programming</a>.</p>
 <p><q>This nomenclature is a bit confusing, and has its origin in early operating-systems research. It refers to how communication is done between multiple concurrent processes. In a thread-based system, communication is done through a synchronized resource such as shared memory. In an event-based system, processes generally communicate through a queue where they post items that describe what they have done or what they want done, which is maintained by our single thread of execution. Since these items generally describe desired or past actions, they are referred to as 'events'</q> —
 <a href="http://aosabook.org/en/500L/an-event-driven-web-framework.html">An Event-Driven Web Framework</a>, Leo Zovic</p>
 <p>Event-driven programming can broadly be split into three steps:</p>
@@ -100,21 +185,20 @@ which make a mouse and a finger touch on a mobile phone identical. The buttons a
 visitors with keyboards which keys will work.</p>
 <p>I'll maybe use what I learned about touch events for mobile specific designs in future.</p>
 <p>The user interface was created by attaching event listeners to the DOM as follows:</p>
-<pre class="prettyprint source lang-javascript"><code>document.addEventListener(&quot;keydown&quot;, (event) => uiListener(inputStates, event));
-document.addEventListener(&quot;keyup&quot;, (event) => uiListener(inputStates, event));
-document.querySelector(&quot;#upButton&quot;).addEventListener(&quot;pointerdown&quot;, (event) => uiListener(inputStates, event));
-document.querySelector(&quot;#upButton&quot;).addEventListener(&quot;pointerup&quot;, (event) => uiListener(inputStates, event));
-document.querySelector(&quot;#leftButton&quot;).addEventListener(&quot;pointerdown&quot;, (event) => uiListener(inputStates, event));
-document.querySelector(&quot;#leftButton&quot;).addEventListener(&quot;pointerup&quot;, (event) => uiListener(inputStates, event));
-document.querySelector(&quot;#rightButton&quot;).addEventListener(&quot;pointerdown&quot;, (event) => uiListener(inputStates, event));
-document.querySelector(&quot;#rightButton&quot;).addEventListener(&quot;pointerup&quot;, (event) => uiListener(inputStates, event));
-document.querySelector(&quot;#spaceBar&quot;).addEventListener(&quot;pointerdown&quot;, (event) => uiListener(inputStates, event));
-document.querySelector(&quot;#spaceBar&quot;).addEventListener(&quot;pointerup&quot;, (event) => uiListener(inputStates, event));
+<pre class="prettyprint source lang-javascript"><code>document.addEventListener(&quot;keydown&quot;, uiListener);
+document.addEventListener(&quot;keyup&quot;, uiListener);
+document.querySelector(&quot;#upButton&quot;).addEventListener(&quot;pointerdown&quot;, uiListener);
+document.querySelector(&quot;#upButton&quot;).addEventListener(&quot;pointerup&quot;, uiListener);
+document.querySelector(&quot;#leftButton&quot;).addEventListener(&quot;pointerdown&quot;, uiListener);
+document.querySelector(&quot;#leftButton&quot;).addEventListener(&quot;pointerup&quot;, uiListener);
+document.querySelector(&quot;#rightButton&quot;).addEventListener(&quot;pointerdown&quot;, uiListener);
+document.querySelector(&quot;#rightButton&quot;).addEventListener(&quot;pointerup&quot;, uiListener);
+document.querySelector(&quot;#spaceBar&quot;).addEventListener(&quot;pointerdown&quot;, uiListener);
+document.querySelector(&quot;#spaceBar&quot;).addEventListener(&quot;pointerup&quot;, uiListener);
 </code></pre>
-<p>I initially used the shorter <code>document.addEventListener(&quot;keydown&quot;, uiListener);</code> format — like many other
-programming languages, JavaScript lets you just use the function name with no arguments when invoking it as a
+<p>Like many other programming languages, JavaScript lets you just use the function name with no arguments when invoking it as a
 <em>first-class citizen</em>, ie a paramater in another function, if the only argument is one generated,
-which magically reappears, usually as the final argument.</p>
+which magically reappears where the function is defined.</p>
 <p>The reason I converted it to pass <code>inputStates</code> as an argument even though it's a global constant is it's a
 discipline enforced by testing framework Jasmine.</p>
 <p>Besides user input events, there are other types of events which weren't immediately obvious to me. These include the many
@@ -154,27 +238,62 @@ involves quite a learning curve for anyone schooled in only OOP and FP.</p>
 <p>Alan Kay, who coined the term object-oriented programming, saw messaging as a core part of the concept, which sadly
 got completely forgotten by the currently top-of-the-pops OOP languages.</p>
 <p><q>Smalltalk's design — and existence — is due to the insight that everything we can describe can be represented by the recursive composition of a single kind of behavioral building block that hides its combination of state and process inside itself and can be dealt with only through the exchange of messages.</q> — <a href="http://worrydream.com/EarlyHistoryOfSmalltalk/">The Early History Of Smalltalk</a>, Alan Kay</p>
-<p>Though it's not really necessary for the few sprites in RiceRocks, for the sake of education, I'm going to move the relatively
-maths heavy job of iterating through a list of sprites to update their positions, check for collissions, and filter out
-<em>dead</em> sprites by what in Erlang terminology would be called spawning a process, and JavaScript calls instantiating a
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Worker">Worker</a>. Then I'm going to attach a message listener
-to this worker:</p>
-<pre class="prettyprint source lang-javascript"><code>// Near top of file
-const spritesUpdate = new Worker(&quot;sprites-update.js&quot;);
-...
-
-// Near bottom of file
-spritesUpdate.addEventListener(&quot;message&quot;, spritesUpdateListener);
+<p>Mercifully I tackled this after teaching myself Erlang, because I don't think I could have figured it out from the
+JavaScript exlanations I've seen.</p>
+<p>Step 1 is what Erlang calls spawning a process, which with JavaScript is done by:</p>
+<pre class="prettyprint source lang-javascript"><code>const stateWorker = new Worker(&quot;state-loop.js&quot;);
 </code></pre>
-<p>The main script would then communicate with <code>spritesUpdate.postMessage(request)</code> where <em>request</em>
+<p>What Erlang does with <em>ProcessID ! Message</em>, JavaScript does with</p>
+<pre class="prettyprint source lang-javascript"><code>&lt;code>stateWorker.postMessage(request)&lt;/code>
+</code></pre>
+<p>I've called the code run by the worker a loop to follow Erlang convention where to keep processes alive to handle repeated
+messages, they need to be written as a recursive loop. JavaScript workers automagically run as infinite listening loops which
+carry on running until <code>stateWorker.terminate()</code> is called.</p>
+<p>The file loaded by the Worker corresponds to an Erlang <code>receive pattern1 -&gt; action1, pattern2 -&gt; action2, ... end</code>
+block.</p>
+<pre class="prettyprint source lang-javascript"><code>this.addEventListener(&quot;message&quot;, function(event) {
+  let reply;
+  case (event.data.type) {
+    &quot;type1&quot;:
+       reply = ...;
+       this.postMessage(reply); // if a reply is needed
+       break;
+    &quot;type2&quot;:
+       reply = ...
+    .... 
+  }
+});
+</code></pre>
+<p>Making the message contained in event.data an object with an attributed called type is my own convention. A big lesson
+from Erlang's OTP patterns is that judicious choice of the compound data structure used as the message and naming
+conventions creates a powerful <a href="https://en.wikipedia.org/wiki/Domain-specific_language">DSL</a>.</p>
+<p>Erlang's OTP uses the convention of making its <em>type</em>call if the listening loop needs to reply, or
+cast if the request only involves changing the loop state. In this example, messages saying the left or right arrow
+have been pressed involve changing local variables, making them <em>casts</em> in Erlang terminology. Pressing the
+space bar or up arrow, on the other hand, require sound effects which the worker thread can't do.</p>
+<p>A early mistake I made learning this was I sent an object to the worker thread containing a pointer to a binary blob
+(a sound buffer, but an image would have been as bad).
+Thereby I discovered an important subtlety is that the main file sends the worker a
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm">structured clone</a>,
+not a reference, so trying to share binary data either doesn't work or slows things down.</p>
+<p>Long story short, limit the data communicated between the worker and main threads to strings and numbers, no references.</p>
+<p>Replies from the worker are received as events by a listener attached to the worker:</p>
+<pre class="prettyprint source lang-javascript"><code>function stateWorkerListener(event) {
+  ... do something with event.data ...
+}
+
+stateWorker.addEventListener(&quot;message&quot;, stateWorkerListener);
+</code></pre>
+<p>Whereas modules and their client files can share globals via their shared <em>window</em> root object, a mantra of this style
+of programming is <em>shared nothing</em>.</p>
+<p>This required quite a lot of refactoring when I decided to move the <em>physics engine</em> portion of the game —
+the relatively maths heavy job of iterating through a list of sprites to update their positions, check for collissions,
+and filter out <em>dead</em> sprites — by what in Erlang terminology would be called spawning a process, and JavaScript
+calls instantiating a <a href="https://developer.mozilla.org/en-US/docs/Web/API/Worker">Worker</a>.</p>
+<p>The main script communicates with  where <em>request</em>
 acts as arguments which callback function <em>spritesUpdateListener(event)</em> which would receive the result from
 in <em>event.data</em></p>
 <p>The <em>sprites-updates.js</em> file would follow this template:</p>
-<pre class="prettyprint source lang-javascript"><code>this.addEventListener(&quot;message&quot;, function(event) {
-  reply = ... do something with event.data
-  this.postMessage(reply);
-});
-</code></pre>
 <p>One of the advantages of this is encourages modularisation. Another is it makes better use of modern hardware. With even
 cellphones today being multicore computers, it frees the main thread to do animation while other processors do trigonometry etc.</p>
 <h2>Step 2. Writing Handlers</h2>
@@ -324,47 +443,6 @@ coding convention is to treat each as a separate object.
 │   .   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/pointerup_event">pointerup</a>
 │   .   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document#Methods">Methods</a>
 │   .   .   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector">querySelector()</a>
-├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API">Canvas</a>
-│   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement">HTMLCanvasElement</a>
-│   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement#Properties">Properties</a>
-│   │   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/width">width</a>
-│   │   .   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/height">height</a>
-│   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">CanvasRenderingContext2D</a>
-│   .   ├── Constructor/Instantiator
-│   .   │   └── <a href="developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext">HTMLCanvasElement.getContext()</a>
-│   .   ├── Properties
-│   .   │   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/fillStyle">fillStyle</a>
-│   .   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/font">font</a>
-│   .   └── Methods
-│   .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clearRect">clearRect()</a>
-│   .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage">drawImage()</a>
-│   .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/fillText">fillText()</a>
-│   .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/restore">restore()</a>
-│   .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rotate">rotate()</a>
-│   .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/save">save()</a>
-│   .   .   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/translate">translate()</a>
-├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement">HTMLImageElement</a>
-│   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Constructor">Constructor</a>
-│   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/Image">Image()</a>
-│   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Properties">Properties</a>
-│   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/width">width</a>
-│   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/height">height</a>
-│   .   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/src">src</a>
-├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext">BaseAudioContext</a>
-│   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioContext#Constructor">Constructor</a>
-│   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/AudioContext">AudioContext()</a>
-│   └── Properties
-│       └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/destination">destination</a>
-└── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode">AudioBufferSourceNode</a>
-.   ├── Constructor/Instantiator
-.   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createBufferSource">BaseAudioContext.createBufferSource()</a>
-.   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode#Properties">Properties</a>
-.   │   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/buffer">buffer</a>
-.   │   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/loop">loop</a>
-.   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode#Methods">Methods</a>
-.   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioNode/connect">connect()</a>
-.   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/start">start()</a>
-.   .   └── stop()
 </pre></code></p>
 <p>The entry point of my programme introduced me two notorious horrors of Javascript: the
 <a href="https://javascript.info/callbacks#pyramid-of-doom">Pyramid of Doom</a> (also known as <q>Callback Hell</q>);
@@ -561,7 +639,7 @@ specifically designed for mobile phones, with only touch user intput.</p></artic
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line3">line 3</a>
+        <a href="game1.js.html">game1.js</a>, <a href="game1.js.html#line1">line 1</a>
     </li></ul></dd>
     
 
@@ -579,6 +657,12 @@ specifically designed for mobile phones, with only touch user intput.</p></artic
 
     
 
+    
+        <h3 class="subsection-title">Requires</h3>
+
+        <ul>
+            <li>module:rice-rocks.js</li>
+        </ul>
     
 
     
@@ -606,13 +690,13 @@ specifically designed for mobile phones, with only touch user intput.</p></artic
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="inputStates.html">inputStates</a></li><li><a href="Sprite.html">Sprite</a></li></ul><h3>Global</h3><ul><li><a href="global.html#canvas">canvas</a></li><li><a href="global.html#createAsteroid">createAsteroid</a></li><li><a href="global.html#createMissile">createMissile</a></li><li><a href="global.html#createSpaceship">createSpaceship</a></li><li><a href="global.html#ctx">ctx</a></li><li><a href="global.html#draw">draw</a></li><li><a href="global.html#getScale">getScale</a></li><li><a href="global.html#loop">loop</a></li><li><a href="global.html#nextTick">nextTick</a></li><li><a href="global.html#resizeListener">resizeListener</a></li><li><a href="global.html#uiListener">uiListener</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-image.html">image</a></li><li><a href="module-sound.html">sound</a></li></ul><h3>Namespaces</h3><ul><li><a href="inputStates.html">inputStates</a></li><li><a href="Sprite.html">Sprite</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createAsteroid">createAsteroid</a></li><li><a href="global.html#createMissile">createMissile</a></li><li><a href="global.html#createSpaceship">createSpaceship</a></li><li><a href="global.html#getScale">getScale</a></li><li><a href="global.html#loop">loop</a></li><li><a href="global.html#nextTick">nextTick</a></li><li><a href="global.html#resizeListener">resizeListener</a></li><li><a href="global.html#sprites">sprites</a></li><li><a href="global.html#uiListener">uiListener</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Mon Aug 03 2020 18:30:12 GMT+0200 (South Africa Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Wed Aug 05 2020 10:51:34 GMT+0200 (South Africa Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

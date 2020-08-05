@@ -157,3 +157,14 @@ descriptions of tests the program should pass essentially a list of properties t
 But that is usually not a good way to write a specification, because it is very difficult to deduce from it what 
 the program should or should not do in every situation.</q>
 
+An initial frustration that I hit with Jasmine is that the html file it uses to build its DOM isn't the one the code it is
+testing will use, but what it calls <em>SpecRunner.html</em> (which I rename index.html and put in a subdirectory called 
+test since I don't like calling unit tests specifications).
+
+What this means is code like <code>const canvas = document.querySelector("#board");</code> sets canvas to null because 
+there's no <code>&lt;canvas id="board">&lt;/canvas></code> in the test environment's html file, which in turn breaks
+<code>const ctx = canvas.getContext("2d");</code>, which in turn breaks all the graphics related functions.
+
+My hack to work around this was to put the html code of elements I accessed in my JavaScript file in Jasmine's html file,
+which would then be rendered at the top of the file unless I removed them
+
