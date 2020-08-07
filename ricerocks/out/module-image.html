@@ -264,7 +264,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="image.js.html">image.js</a>, <a href="image.js.html#line31">line 31</a>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line33">line 33</a>
     </li></ul></dd>
     
 
@@ -414,7 +414,7 @@
             <td class="type">
             
                 
-<span class="param-type"><a href="Sprite.html">Sprite</a></span>
+<span class="param-type">Sprite</span>
 
 
             
@@ -465,7 +465,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="image.js.html">image.js</a>, <a href="image.js.html#line37">line 37</a>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line39">line 39</a>
     </li></ul></dd>
     
 
@@ -518,6 +518,485 @@
 
 
         
+            
+
+    
+
+    
+    <h4 class="name" id="~getScale"><span class="type-signature">(inner) </span>getScale<span class="signature">(windowWidth, windowHeight, baseWidth, baseHeight)</span><span class="type-signature"> &rarr; {float}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Calculate a ratio to make the canvas larger for big screens, smaller for mobile devices
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>windowWidth</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">pixels</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">- originally hardwired to window.innerWidth</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>windowHeight</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">pixels</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">- originally hardwired to window.innerHeight</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>baseWidth</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">pixels</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">- originally hardwired to backgroundImage.width</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>baseHeight</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">pixels</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">- originally hardwired to backgroundImage.height</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line84">line 84</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Amount to multiply the sizes of images
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">float</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="~resizeListener"><span class="type-signature">(inner) </span>resizeListener<span class="signature">(state, windowWidth, windowHeight, baseWidth, baseHeight)</span><span class="type-signature"> &rarr; {undefined}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    The resizeListener event handler
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>state</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">- changes scale and updates sprites and missiles positions</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>windowWidth</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">pixels</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">- originally hardwired to window.innerWidth</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>windowHeight</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">pixels</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">- originally hardwired to window.innerHeight</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>baseWidth</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">pixels</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">- originally hardwired to backgroundImage.width</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>baseHeight</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">pixels</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">- originally hardwired to backgroundImage.height</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line100">line 100</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Mutates the scale attribute of
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">undefined</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
     
 
     
@@ -533,13 +1012,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-image.html">image</a></li><li><a href="module-sound.html">sound</a></li></ul><h3>Namespaces</h3><ul><li><a href="inputStates.html">inputStates</a></li><li><a href="Sprite.html">Sprite</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createAsteroid">createAsteroid</a></li><li><a href="global.html#createMissile">createMissile</a></li><li><a href="global.html#createSpaceship">createSpaceship</a></li><li><a href="global.html#getScale">getScale</a></li><li><a href="global.html#loop">loop</a></li><li><a href="global.html#nextTick">nextTick</a></li><li><a href="global.html#resizeListener">resizeListener</a></li><li><a href="global.html#sprites">sprites</a></li><li><a href="global.html#uiListener">uiListener</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-image.html">image</a></li><li><a href="module-sound.html">sound</a></li><li><a href="module-state-loop.html">state-loop</a></li></ul><h3>Global</h3><ul><li><a href="global.html#animationLoop">animationLoop</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Wed Aug 05 2020 10:51:34 GMT+0200 (South Africa Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Fri Aug 07 2020 12:53:10 GMT+0200 (South Africa Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

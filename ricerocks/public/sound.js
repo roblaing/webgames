@@ -16,6 +16,8 @@ const sounds = { "background": audioCtx.createBufferSource()
                , "explosion": audioCtx.createBufferSource()
                };
 
+let thrustSound = null;
+
 function loadSound(url, audioNode) {
   fetch(url)
   .then((response) => response.arrayBuffer())
@@ -23,13 +25,7 @@ function loadSound(url, audioNode) {
   .then((decodedData) => audioNode.buffer = decodedData);
 }
 
-/**
- * Public function to use sound objects
- * @function playSound
- * @param {AudioNode} audioNode - eg sounds["missile"]
- * @returns {buffer} Return object needed to turn thrust sound off
- */
-function playSound(audioNode) {
+function playSound_(audioNode) {
   const sound = audioCtx.createBufferSource();
   sound.buffer = audioNode.buffer;
   sound.connect(audioCtx.destination);
@@ -37,15 +33,46 @@ function playSound(audioNode) {
   return sound;
 }
 
-loadSound("soundtrack.ogg", sounds["background"]);
-loadSound("thrust.ogg", sounds["thrust"]);
-loadSound("missile.ogg", sounds["missile"]);
-loadSound("explosion.ogg", sounds["explosion"]);
+/**
+ * Public function to use sound objects
+ * @function playSound
+ * @param {"background" | "explosion" | "missile" | "thrust" | 
+ * "backgroundStop" | "thrustStop"} soundName - key in sounds dictionary 
+ * @returns {buffer} Return object needed to turn thrust sound off
+ */
+function playSound() {
+  // state.noise is undefined if files haven't loaded yet
+  if (window.state.noise === null || window.state.noise === undefined) {
+      return;
+  }
+  switch (window.state.noise) {
+    case "thrustStart":
+      if (thrustSound === null) {
+        thrustSound = playSound_(sounds["thrust"]);
+      }
+      break; 
+    case "thrustStop":
+      if (thrustSound !== null) {
+        thrustSound.stop();
+        thrustSound = null;
+      }
+      break;
+    case "backgroundStop":
+      sounds["background"].stop();
+      break;
+    default:
+      playSound_(sounds[window.state.noise]); 
+  }
+  window.state.noise = null;
+}
+
+loadSound("./sounds/soundtrack.ogg", sounds["background"]);
+loadSound("./sounds/thrust.ogg", sounds["thrust"]);
+loadSound("./sounds/missile.ogg", sounds["missile"]);
+loadSound("./sounds/explosion.ogg", sounds["explosion"]);
 sounds["background"].loop = true;
 sounds["background"].connect(audioCtx.destination);
 sounds["background"].start();
 
-export { sounds
-       , playSound
-       };
+export { playSound };
 

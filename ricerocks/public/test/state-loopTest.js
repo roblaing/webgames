@@ -1,15 +1,11 @@
-describe("game1.js", function() {
+describe("state-loop.js", function() {
 
   beforeEach(function() {
-    spyOn(window, "loop");
+
   });
 
   afterAll(function() {
     document.body.removeChild(document.querySelector("#board"));
-    document.body.removeChild(document.querySelector("#upButton"));
-    document.body.removeChild(document.querySelector("#leftButton"));
-    document.body.removeChild(document.querySelector("#rightButton"));
-    document.body.removeChild(document.querySelector("#spaceBar"));
   });
 
   it ("should set scale to about 1.0 if window and bases sizes the same", function() {

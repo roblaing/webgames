@@ -1,19 +1,23 @@
 /**
+ * @file Module that updates state according to clock ticks and user input
+ * @module state-loop
+ */
+
+/**
  * This doubles as the message sent to stateWorker 60 ticks a second
  * @type {Object}
  */
-const state = { "sprites": []
-              , "missiles": []
-              , "lives": 3
-              , "score": 0
-              , "scale": 1.0
-              , "noise": null
-              };
+window.state = { "sprites": []
+               , "missiles": []
+               , "lives": 3
+               , "score": 0
+               , "scale": 1.0
+               , "noise": null
+               };
 
 /**
  * Local object used by handlers to message the loop
  * @constant {Object} inputStates
- * @namespace inputStates
  * @property {Boolean} inputStates.isUp - Up arrow pressed or not
  * @property {Boolean} inputStates.isThrust - Don't want to add more rocket noise 60 times a second
  * @property {Boolean} inputStates.isLeft - Left arrow pressed or not
@@ -37,13 +41,13 @@ const MISSILE_SPEED = 4;
 
 function collisions(sprite1, type) {
   if (type === "missile") {
-    return state.missiles.filter((sprite2) => sprite2.type === type &&
+    return window.state.missiles.filter((sprite2) => sprite2.type === type &&
       Math.hypot(sprite1.xCentre - sprite2.xCentre, sprite1.yCentre - sprite2.yCentre) <
-        (state.scale * (sprite1.radius + sprite2.radius)));
+        (window.state.scale * (sprite1.radius + sprite2.radius)));
   }
-  return state.sprites.filter((sprite2) => sprite2.type === type &&
+  return window.state.sprites.filter((sprite2) => sprite2.type === type &&
     Math.hypot(sprite1.xCentre - sprite2.xCentre, sprite1.yCentre - sprite2.yCentre) <
-      (state.scale * (sprite1.radius + sprite2.radius)));
+      (window.state.scale * (sprite1.radius + sprite2.radius)));
 }
 
 // Duplicated from game1.js, check if can be obtained by self.random_distance
@@ -51,7 +55,7 @@ function random_distance(sprite, r2, ratio) {
   const x1 = sprite.xCentre + sprite.xDelta;
   const y1 = sprite.yCentre + sprite.yDelta;
   const r1 = sprite.radius;
-  const minDistance = ratio * state.scale * (r1 + r2);
+  const minDistance = ratio * window.state.scale * (r1 + r2);
   let x2;
   let y2;
   let d;
@@ -94,8 +98,8 @@ function createSpaceship() {
  * @returns {Sprite} Selects random start (not on top of spaceship), speed and rotation
  */
 function createAsteroid() {
-  let [x, y] = random_distance(state.sprites[0], 40, 1.5);
-  const velocity = state.scale * (Math.random() - 0.5);
+  let [x, y] = random_distance(window.state.sprites[0], 40, 1.5);
+  const velocity = window.state.scale * (Math.random() - 0.5);
   const direction = Math.random() * 2 * Math.PI;
   return { type: "asteroid"
          , width: 90
@@ -117,19 +121,19 @@ function createAsteroid() {
 /**
  * Initialises a missile Sprite, shoots from tip of spaceship
  * @function
- * @param {Sprite} spaceship - needs direction, position and velocity of spaceship
  * @returns {Sprite} Missile shot from spaceship, lives 2 seconds (120 ticks)
  */
-function createMissile(spaceship) {
+function createMissile() {
+  let spaceship = window.state.sprites[0];
   return { type: "missile"
          , width: 10
          , height: 10
          , row: 0
          , column: 0
-         , xCentre: spaceship.xCentre + (state.scale * spaceship.height/2 * Math.cos(spaceship.angle))
-         , yCentre: spaceship.yCentre + (state.scale * spaceship.height/2 * Math.sin(spaceship.angle))
-         , xDelta: spaceship.xDelta + (state.scale * MISSILE_SPEED * Math.cos(spaceship.angle))
-         , yDelta: spaceship.yDelta + (state.scale * MISSILE_SPEED * Math.sin(spaceship.angle))
+         , xCentre: spaceship.xCentre + (window.state.scale * spaceship.height/2 * Math.cos(spaceship.angle))
+         , yCentre: spaceship.yCentre + (window.state.scale * spaceship.height/2 * Math.sin(spaceship.angle))
+         , xDelta: spaceship.xDelta + (window.state.scale * MISSILE_SPEED * Math.cos(spaceship.angle))
+         , yDelta: spaceship.yDelta + (window.state.scale * MISSILE_SPEED * Math.sin(spaceship.angle))
          , radius: 3
          , angle: spaceship.angle
          , angleDelta: 0
@@ -193,30 +197,30 @@ function nextTick(sprite) { // best to bring whole object
   // specific to type updates
   switch (sprite.type) {
     case "spaceship":
-      if (inputStates.isUp) {
-        sprite.column = 1;
-        sprite.xDelta = sprite.xDelta + (state.scale * THRUST_SPEED * Math.cos(sprite.angle));
-        sprite.yDelta = sprite.yDelta + (state.scale * THRUST_SPEED * Math.sin(sprite.angle));
-      } else {
-        sprite.column = 0;
+      if (inputStates.isLeft) {
+        sprite.angleDelta = -Math.PI/ROTATE_RATE;
       }
       if (inputStates.isRight) {
         sprite.angleDelta = Math.PI/ROTATE_RATE;
       }
-      if (inputStates.isLeft) {
-        sprite.angleDelta = -Math.PI/ROTATE_RATE;
-      }
       if (!inputStates.isRight && !inputStates.isLeft) {
         sprite.angleDelta = 0;
+      }
+      if (inputStates.isUp) {
+        sprite.column = 1;
+        sprite.xDelta = sprite.xDelta + (window.state.scale * THRUST_SPEED * Math.cos(sprite.angle));
+        sprite.yDelta = sprite.yDelta + (window.state.scale * THRUST_SPEED * Math.sin(sprite.angle));
+      } else {
+        sprite.column = 0;
       }
       hitlist = collisions(sprite, "asteroid");
       if (hitlist.length > 0) {
         if (inputStates.isThrust === true) {
-          state.noise = "thrustStop";
+          window.state.noise = "thrustStop";
           inputStates.isThrust = false;
         }
-        state.noise = "explosion";
-        state.lives--;
+        window.state.noise = "explosion";
+        window.state.lives--;
         explode(sprite, 30);
         hitlist.forEach((sprite2) => explode(sprite2, 120));
       }
@@ -224,8 +228,8 @@ function nextTick(sprite) { // best to bring whole object
     case "asteroid":
       hitlist = collisions(sprite, "missile");
       if (hitlist.length > 0) {
-        state.noise = "explosion";
-        state.score++;
+        window.state.noise = "explosion";
+        window.state.score++;
         hitlist[0].tick = hitlist[0].lifespan; // only the first missile kills and gets killed
         explode(sprite, 60);
       }
@@ -233,7 +237,7 @@ function nextTick(sprite) { // best to bring whole object
     case "explosion":
       sprite.column = Math.floor((sprite.tick/sprite.lifespan) * 24);
       if ((sprite.lifespan - 1) === sprite.tick) {
-        unexplode(sprite, state.sprites[0], window.canvas.width, window.canvas.height, state.scale);
+        unexplode(sprite, window.state.sprites[0], window.canvas.width, window.canvas.height, window.state.scale);
       }
       sprite.tick++;
       return;
@@ -254,21 +258,23 @@ function updateInputs(key, bool) {
     case "ArrowUp":
       inputStates.isUp = bool;
       if (inputStates.isUp && !inputStates.isThrust) {
-        state.noise = "thrustStart";
+        window.state.noise = "thrustStart";
         inputStates.isThrust = true;
       }
       if (!inputStates.isUp && inputStates.isThrust) {
-        state.noise = "thrustStop";
+        window.state.noise = "thrustStop";
         inputStates.isThrust = false;
       }
       return;
     case " ":
       inputStates.isSpace = bool;
       if (inputStates.isSpace && inputStates.isLoaded) {
-        state.missiles.push(createMissile(state.sprites[0]));
-        state.sprites[0].xDelta = state.sprites[0].xDelta + (state.scale * RECOIL * Math.cos(state.sprites[0].angle));
-        state.sprites[0].yDelta = state.sprites[0].yDelta + (state.scale * RECOIL * Math.sin(state.sprites[0].angle));
-        state.noise = "missile";
+        window.state.missiles.push(createMissile());
+        window.state.sprites[0].xDelta = window.state.sprites[0].xDelta + 
+          (window.state.scale * RECOIL * Math.cos(window.state.sprites[0].angle));
+        window.state.sprites[0].yDelta = window.state.sprites[0].yDelta + 
+          (window.state.scale * RECOIL * Math.sin(window.state.sprites[0].angle));
+        window.state.noise = "missile";
         inputStates.isLoaded = false;
       }
       if (!inputStates.isSpace) {
@@ -278,12 +284,64 @@ function updateInputs(key, bool) {
   }
 }
 
+/**
+ * The user input event handler
+ * @function uiListener
+ * @param {KeyboardEvent|PointerEvent} event - Object sent by target.addEventListener(type, (event) => uiListener(inputStates, event));
+ * @returns {undefined} Mutates the inputStates global object
+ * @property {DOMString} event.type - Inherited from [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event#Properties}
+ * @property {DOMString} event.key - A [Key Value]{@link https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values}
+ * @property {DOMString} event.target - document since that's what called this function
+ */
+function uiListener(event) {
+  const button2key = { "leftButton": "ArrowLeft"
+                     , "rightButton": "ArrowRight"
+                     , "upButton": "ArrowUp"
+                     , "spaceBar": " "
+                     };
+  let bool;
+  let key;
+  switch (event.type) {
+    case "keydown":
+      bool = true;
+      key = event.key;
+      break;
+    case "keyup":
+      bool = false;
+      key = event.key;
+      break;
+    case "pointerdown":
+      bool = true;
+      key = button2key[event.target.id];
+      break;
+    case "pointerup":
+      bool = false;
+      key = button2key[event.target.id];
+      break;
+  }
+  if (key === "F12") { // allow debug screen
+    event.target.dispatchEvent(event);
+    return;
+  }
+  if (!Object.values(button2key).includes(key)) {  // pressing "non-game" key froze game
+    event.preventDefault();
+    return;
+  }
+  updateInputs(key, bool);
+}
+
 function initState() {
-  state.sprites[0] = createSpaceship();
+  window.state.sprites[0] = createSpaceship();
   for (let idx = 1; idx <= 13; idx++) {
-    state.sprites[idx] = createAsteroid();
+    window.state.sprites[idx] = createAsteroid();
   }
 }
 
-export { state, initState, nextTick, updateInputs };
+function updateState() {
+  window.state.sprites.forEach((sprite) => nextTick(sprite));
+  window.state.missiles.forEach((missile) => nextTick(missile));
+  window.state.missiles = window.state.missiles.filter((missile) => missile.tick < missile.lifespan);
+}
+
+export { initState, updateState, uiListener };
 

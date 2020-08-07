@@ -33,246 +33,39 @@
  * @requires rice-rocks.js
  */
 
-import { canvas, images, draw, clearScene, paintScene, scaleText, writeText } from "./image.js";
-import { sounds, playSound } from "./sound.js";
-
-/**
- * Each Sprite has these 15 common properties
- * @typedef {Object} Sprite
- * @namespace Sprite
- * @property {String} Sprite.type - "spaceship" | "asteroid" | "missile" | "explosion"
- * @property {pixels} Sprite.width - pixel width of a sprite tile, which is not necessarily image.width
- * @property {pixels} Sprite.height - pixel height of a sprite tile, which is not necessarily image.height
- * @property {Number} Sprite.row - offset sx is calculated from row * width, ie row = 0 for first tile
- * @property {Number} Sprite.column - offset sy is calculated from column * height, ie column = 0 for first tile
- * @property {pixels} Sprite.xCentre - from 0 in top left corner positive right, horizontal centre co-ordinate of sprite
- * @property {pixels} Sprite.yCentre - from 0 in top left corner positive down, vertical centre co-ordinate of sprite
- * @property {pixels} Sprite.xDelta - Sets horizonal speed of the sprite. xCentre is incremented by xDela each tick
- * @property {pixels} Sprite.yDelta - Sets vertical speed of the sprite. yCentre is incremented by yDelta each tick
- * @property {radians} Sprite.angle - radians to rotate image. -Math.PI/2 is 90 degrees
- * @property {radians} Sprite.angleDelta - increment in radians to angle each tick, clockwise positive
- * @property {Number} Sprite.tick - counter to select sprite tile and measure sprite age
- * @property {Number} Sprite.lifespan - used to filter dead ephemereal sprites
- */
-
-const stateWorker = new Worker("state-loop.js");
-let message;
-
-// shared with image.js module, so must be attached to window
-window.scale = 1.0;
-
-/**
- * An array holding sprites which are currently alive. sprites[0] is the spaceship
- * @type {Array}
- */
-// maybe put into state = {"sprites": [], "scale": 1.0, ...} and pass back and forth from worker
-let sprites = [];
-let lives = 3;
-let score = 0;
+// image.js attaches canvas to window to make it available across modules
+import { resizeListener, clearScene, drawState } from "./image.js";
+import { playSound } from "./sound.js";
+import { initState, updateState, uiListener } from "./state-loop.js";
 
 const BASE_WIDTH = 800;
 const BASE_HEIGHT = 600;
-const ROTATE_RATE = 60; // duplicated in sprites-updater.js
-
-// https://stackoverflow.com/questions/63197135/intermittent-wrong-answer-from-javascript-float-comparison
-function random_distance(sprite, r2, ratio) {
-  const x1 = sprite.xCentre + sprite.xDelta;
-  const y1 = sprite.yCentre + sprite.yDelta;
-  const r1 = sprite.radius;
-  const minDistance = ratio * scale * (r1 + r2);
-  let x2;
-  let y2;
-  let d;
-  do {
-    x2 = Math.random() * (canvas.width + 1);
-    y2 = Math.random() * (canvas.height + 1);
-    d = Math.hypot(x2 - x1, y2 - y1);
-  } while (d &lt; minDistance);
-  return [x2, y2];
-}
 
 /**
- * Initialises a spaceship Sprite
- * @function
- * @param {HTMLImageElement} spaceshipImage - A global constant, but passed as a parameter to enable mocking in Jasemine
- * @param {HTMLCanvasElement} canvas - A global constant, but passed as a parameter to enable mocking in Jasemine
- * @returns {Sprite} A spaceship starting in the centre, facing up, stationary
- */
-function createSpaceship() {
-  return { type: "spaceship"
-         , width: 90
-         , height: 90
-         , row: 0
-         , column: 0
-         , xCentre: canvas.width/2
-         , yCentre: canvas.height/2
-         , xDelta: 0
-         , yDelta: 0
-         , radius: 35
-         , angle: -Math.PI/2
-         , angleDelta: 0
-         , tick: 0
-         , lifespan: Infinity
-         };
-}
-
-/**
- * Initialises an asteroid Sprite
- * @function
- * @returns {Sprite} Selects random start (not on top of spaceship), speed and rotation
- */
-function createAsteroid() {
-  let [x, y] = random_distance(sprites[0], 40, 1.5);
-  const velocity = scale * (Math.random() - 0.5);
-  const direction = Math.random() * 2 * Math.PI;
-  return { type: "asteroid"
-         , width: 90
-         , height: 90
-         , row: 0
-         , column: 0
-         , xCentre: x
-         , yCentre: y
-         , xDelta: velocity * Math.cos(direction)
-         , yDelta: velocity * Math.sin(direction)
-         , radius: 40
-         , angle: Math.random() * 2 * Math.PI
-         , angleDelta: (Math.random() - 0.5) * Math.PI/ROTATE_RATE
-         , tick: 0
-         , lifespan: Infinity
-         };
-}
-
-function stateWorkerListener(event) {
-  sprites = event.data;
-}
-
-/**
- * Move to module so don't have to export ctx or draw?
- * @function loop
+ * The thing that freezes Jasmine to make this untestable
+ * @function animationLoop
  * @returns {undefined} Never returning infinite loop
  */
 function animationLoop() {
-  message = { "type": "tick"
-            , "sprites": sprites
-            // , "inputStates": inputStates
-            , "width": canvas.width
-            , "height": canvas.height
-            , "scale": scale
-            };
   clearScene();
-  paintScene(images["background"]);
-  sprites.forEach((sprite) => draw(sprite, scale));
-  stateWorker.postMessage(message); 
-  paintScene(images["debris"]);
-  writeText(lives, score, scale);
+  drawState();
+  playSound();
+  updateState();
   window.requestAnimationFrame(animationLoop);
 }
 
-/**
- * Calculate a ratio to make the canvas larger for big screens, smaller for mobile devices
- * @function getScale
- * @returns {float} Amount to multiply the sizes of images
- * @param {pixels} windowWidth -- originally hardwired to window.innerWidth
- * @param {pixels} windowHeight -- originally hardwired to window.innerHeight
- * @param {pixels} baseWidth -- originally hardwired to backgroundImage.width
- * @param {pixels} baseHeight -- originally hardwired to backgroundImage.height
- */
-function getScale(windowWidth, windowHeight, baseWidth, baseHeight) {
-  if (windowWidth/windowHeight &lt; baseWidth/baseHeight) {
-    return 0.98 * (windowWidth/baseWidth);
-  } else {
-    return 0.98 * (windowHeight/baseHeight);
-  }
-}
-
-/**
- * The resizeListener event handler
- * @function resizeListener
- * @returns {undefined} Mutates the scale global variable
- * @param {pixels} windowWidth -- originally hardwired to window.innerWidth
- * @param {pixels} windowHeight -- originally hardwired to window.innerHeight
- * @param {pixels} baseWidth -- originally hardwired to backgroundImage.width
- * @param {pixels} baseHeight -- originally hardwired to backgroundImage.height
- */
-function resizeListener(baseWidth, baseHeight, event) {
-  const oldScale = scale;
-  scale = getScale(window.innerWidth, window.innerHeight, baseWidth, baseHeight);
-  canvas.width = scale * baseWidth;
-  canvas.height = scale * baseHeight;
-  scaleText();
-  sprites.forEach(function (sprite) {
-    sprite.xCentre *= scale/oldScale;
-    sprite.yCentre *= scale/oldScale;
-    sprite.xDelta  *= scale/oldScale;
-    sprite.yDelta  *= scale/oldScale;
-  });
-}
-
-/**
- * The user input event handler
- * @function uiListener
- * @param {KeyboardEvent|PointerEvent} event - Object sent by target.addEventListener(type, (event) => uiListener(inputStates, event));
- * @returns {undefined} Mutates the inputStates global object
- * @property {DOMString} event.type - Inherited from [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event#Properties}
- * @property {DOMString} event.key - A [Key Value]{@link https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values}
- * @property {DOMString} event.target - document since that's what called this function
- */
-function uiListener(event) {
-  const button2key = { "leftButton": "ArrowLeft"
-                     , "rightButton": "ArrowRight"
-                     , "upButton": "ArrowUp"
-                     , "spaceBar": " "
-                     };
-  let bool;
-  let key;
-  switch (event.type) {
-    case "keydown":
-      bool = true;
-      key = event.key;
-      break;
-    case "keyup":
-      bool = false;
-      key = event.key;
-      break;
-    case "pointerdown":
-      bool = true;
-      key = button2key[event.target.id];
-      break;
-    case "pointerup":
-      bool = false;
-      key = button2key[event.target.id];
-      break;
-  }
-  if (key === "F12") { // allow debug screen
-    event.target.dispatchEvent(event);
-    return;
-  }
-  if (!Object.values(button2key).includes(key)) {  // pressing "non-game" key froze game
-    event.preventDefault();
-    return;
-  }
-  stateWorker.postMessage({"type": "inputStates", "key": key, "bool": bool});
-}
-
-function setup(baseWidth, baseHeight, event) {
-  resizeListener(baseWidth, baseHeight, null);
-  // move the sprites initialisation to a stateWorker message
-  sprites[0] = createSpaceship();
-  for (let idx = 1; idx &lt;= 13; idx++) {
-    sprites[idx] = createAsteroid();
-  }
+function setup(event) {
+  initState();
+  resizeListener(BASE_WIDTH, BASE_HEIGHT, null);
   window.requestAnimationFrame(animationLoop);
 }
 
 function cleanup(event) {
-  sounds["background"].stop();
-  sounds["thrust"].stop();
-  sounds["missile"].stop();
-  sounds["explosion"].stop();
-  stateWorker.terminate();
+  playSound("thrustStop");
+  playSound("backgroundStop");
 }
 
-window.addEventListener("DOMContentLoaded", (event) => setup(BASE_WIDTH, BASE_HEIGHT, event));
+window.addEventListener("DOMContentLoaded", setup);
 window.addEventListener("unload", cleanup);
 window.addEventListener("resize", (event) => resizeListener(BASE_WIDTH, BASE_HEIGHT, event));
 document.addEventListener("keydown", uiListener);
@@ -285,7 +78,6 @@ document.querySelector("#rightButton").addEventListener("pointerdown", uiListene
 document.querySelector("#rightButton").addEventListener("pointerup", uiListener);
 document.querySelector("#spaceBar").addEventListener("pointerdown", uiListener);
 document.querySelector("#spaceBar").addEventListener("pointerup", uiListener);
-stateWorker.addEventListener("message", stateWorkerListener);
 
 </code></pre>
         </article>
@@ -297,13 +89,13 @@ stateWorker.addEventListener("message", stateWorkerListener);
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-image.html">image</a></li><li><a href="module-sound.html">sound</a></li></ul><h3>Namespaces</h3><ul><li><a href="inputStates.html">inputStates</a></li><li><a href="Sprite.html">Sprite</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createAsteroid">createAsteroid</a></li><li><a href="global.html#createMissile">createMissile</a></li><li><a href="global.html#createSpaceship">createSpaceship</a></li><li><a href="global.html#getScale">getScale</a></li><li><a href="global.html#loop">loop</a></li><li><a href="global.html#nextTick">nextTick</a></li><li><a href="global.html#resizeListener">resizeListener</a></li><li><a href="global.html#sprites">sprites</a></li><li><a href="global.html#uiListener">uiListener</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-image.html">image</a></li><li><a href="module-sound.html">sound</a></li><li><a href="module-state-loop.html">state-loop</a></li></ul><h3>Global</h3><ul><li><a href="global.html#animationLoop">animationLoop</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Wed Aug 05 2020 10:51:34 GMT+0200 (South Africa Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Fri Aug 07 2020 12:53:10 GMT+0200 (South Africa Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -44,39 +44,212 @@
 
     <section>
         <article><h1>Game 1: RiceRocks</h1>
+<p><q>Writing interactive games and animations is both instructive and fun. Writing such programs is, however,
+often challenging. Interactive programs are complex because the user, not the programmer, is in charge of
+the program’s execution: the program itself is often a passive receiver of commands, reacting only when some
+stimulus in the external world (whether a user’s keystroke or the tick of a clock) occurs.</q> —
+<a href="https://world.cs.brown.edu/1/htdw-v1.pdf">How to Design Worlds</a></p>
 <p>My original goal with this game was to create a minimalist HTML5 arcade-style game to learn the basics. I translated a
-game I originally encountered many years in Rice University's
+game I originally encountered many years ago in Rice University's
 <a href="https://www.coursera.org/learn/interactive-python-1">Interactive Python</a>
 Mooc called RiceRocks. This meant the sprites and sounds were all readily available on my PC.</p>
 <p>Though translating the game from the original Python to JavaScript wasn't very difficult, it got me thinking on various
 <em>philosophical issues</em>, and I kept refactoring until it strayed far from the original.</p>
-<h2>Modularisation</h2>
-<p>The original Python version of RiceRocks was used to teach
-<a href="https://en.wikipedia.org/wiki/Object-oriented_programming">OOP</a>,
-a style I've become disenchanted with. A lot of OOP's key selling points boil down to
-<a href="https://en.wikipedia.org/wiki/Modular_programming">modular programming</a>.</p>
-<p>JavaScript only recently started supporting this, and a few things tripped me up.</p>
-<p>Firstly, to get modules to work, the html needs to be modified:</p>
-<pre class="prettyprint source lang-html"><code>  &lt;script type=&quot;module&quot; src=&quot;main.js&quot;>&lt;/script>
+<h2>Structured Design</h2>
+<p><q>Successful design is based on a principle known since the days of Julius Caesar: Divide and conquer.</q> —
+<a href="https://www.win.tue.nl/~wstomv/quotes/structured-design.html">Structured Design</a>,
+Edward Yourdon and Larry L. Constantine</p>
+<p>To avoid a <a href="https://blog.codinghorror.com/the-big-ball-of-mud-and-other-architectural-disasters/">
+big ball of mud</a>, the heart of good design is to compose things out of smaller pieces, which if well
+designed can then be re-used in other projects.</p>
+<p>In software, each of these <em>design units</em> is a separate file. For this game, I split the design
+into one <em>main</em> script and three modules.</p>
+<p>The main script, game1.js, is the file called by index.html, and to use JavaScript's relatively recent (2015) support of
+<a href="https://en.wikipedia.org/wiki/Modular_programming">modular programming</a>, it needs
+<code>type=&quot;module&quot;</code> added:</p>
+<pre class="prettyprint source lang-html"><code>  &lt;script type=&quot;module&quot; src=&quot;game1.js&quot;>&lt;/script>
 </code></pre>
-<p>What I found confusing is the module files don't need to be declared here, but the <em>main.js</em> file that imports
-stuff from modules needs the <code>type=&quot;module&quot;</code> attribute added.</p>
-<p>The gotcha with
-<a href="https://developer.mozilla.org/en-US/docs/web/javascript/reference/statements/export">
-export</a> is it needs to be declard at the bottom of the module in a curly bracketed, comma separated list.
-There's no arity declaration, and parameters are not included. The <em>export</em> declaration creates a
-<em>wish list</em> which would initially be made of stubs, a key part of systematic software design.</p>
-<p>A gotcha with
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import">import</a>,
-which goes at the top of the client file is the module file needs a path, ie <code>&quot;./module.js&quot;</code> if it is a sibling
-of the main file.</p>
-<p>Once I'd figured out the quirks of JavaScript's modules, I could proceed to enjoy the
-<a href="https://en.wikipedia.org/wiki/Separation_of_concerns">separation of concerns</a>,
-<a href="https://en.wikipedia.org/wiki/Information_hiding">information hiding</a>, and many
-other benefits of modules.</p>
-<p>Another form of JavaScript modularisation — which uses different conventions — are
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">Web Workers</a>,
-where the bulk of my code ended up and I'll elaborate on shortly.</p>
+<p>By the way, this only works with served files. If you load an html file statically with a browser, it till complain of
+CORS errors if any of its JavaScript files are <code>type=&quot;module&quot;</code>.</p>
+<p>I found it confusing that the client that loads modules gets labeled a module, and that the modules themselves
+are not listed in the html file, and it took some cursing and frustration to figure this out.</p>
+<p>These units are related to unit testing, and one of my goals in this exercise was to learn a JavaScript testing framework,
+and I somewhat arbitrarily settled on <a href="https://jasmine.github.io/">Jasmine</a>, which was initially extremely frustrating.</p>
+<p>Two traps lay in wait for me with the game1.js file:</p>
+<ol>
+  <li>The html file Jasmine loads &mdash; its default name is SpecRunner.html &mdash; is not the same as my index.html
+with the canvas object and other elements. This meant Jasmine set canvas to null which broke the rest of the code, and
+this couldn't be fixed with mocking, or spying as Jasmine calls it, because it happens before the test code is run. </li>
+  <li>The main file starts an infinite loop, which in turn freezes Jasmine.</li>
+</ol>
+<p>This makes the main file which attaches listeners to html elements and launches the animation loop untestable —
+at least at my skill level.</p>
+<p>But this isn't serious since all the functions which need testing are moved to three modules which the main file
+accesses thus:</p>
+<pre class="prettyprint source lang-javascript"><code>import { resizeListener, clearScene, drawState } from &quot;./image.js&quot;;
+import { playSound } from &quot;./sound.js&quot;;
+import { initState, updateState, uiListener } from &quot;./state-loop.js&quot;;
+</code></pre>
+<p>The decision of what to put in each module Constantine termed
+<a href="https://www.win.tue.nl/~wstomv/quotes/structured-design.html#7">cohesion</a>. To me, it seemed natural to
+hide all the horrors of the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API">Web Audio API</a>
+in one file, exposed to the client as just one function, and similarly the horrors of the
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial">canvas</a> in another.</p>
+<p>The guts of the application in game1.js consists of this infinite loop:</p>
+<pre class="prettyprint source lang-javascript"><code>function animationLoop() {
+  clearScene();
+  drawState();
+  playSound();
+  updateState();
+  window.requestAnimationFrame(animationLoop);
+}
+</code></pre>
+<p>Note none of these functions have any arguments. This is due to using what Constantine termed
+<a href="https://en.wikipedia.org/wiki/Coupling_(computer_programming)#Module_coupling">global coupling</a>.</p>
+<p>I did this project to refresh my JavaScript knowledge after teaching myself Erlang where functions are
+not <em>rewritable</em> (or mutable in computer jargon). Erlang uses recursive infinite loops a lot, and these
+typically have a compound data structure conventionally called <em>state</em> which gets replaced each
+recursion.</p>
+<p>From my <a href="https://github.com/roblaing/erlang_mooc/tree/master/doc">notes</a>, a loop which most Erlang
+programmers would not write themselves, but use the one provided by the OTP framework, looks something like this:</p>
+<pre class="prettyprint source lang-erlang"><code>loop(Module, State0) ->
+  receive
+    {call, Pid, Ref, Request} ->
+      {reply, Reply, State1} = Module:handle_call(Request, {Pid, Ref}, State0),
+      Pid ! {reply, Ref, Reply},
+      loop(Module, State1);
+    {cast, Request} -> 
+      {noreply, State1} = Module:handle_cast(Request, State0),
+      loop(Module, State1);
+    stop -> Module:terminate(normal, State0);
+    Unknown ->
+      {noreply, State1} = Module:handle_info(Unknown, State0),
+      loop(Module, State1)
+  end.  
+</code></pre>
+<p>A reason data is immutable in Erlang is because another processes could be running in another core or another computer,
+so they don't share memory. (Among the nice features of Erlang which JavaScript lacks is its is its Module:Function syntax
+to remind you what comes from where).</p>
+<p>JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">Web Workers</a>
+are Erlangish in that they communicate via <em>message coupling</em>.</p>
+<p>Influenced by Erlang, I initially wrote state-loop.js as a web worker, and hit the snag that I couldn't see a way for the
+web worker to communicate directly with the animation loop. While the animation loop could post messages to the web worker,
+JavaScript doesn't appear to have Erlang's <em>return address</em> mechanism. The animation loop could possibly be made the
+web worker's callback function, but I'm not sure how.</p>
+<p>Rather than gain any efficiency from moving stuff to a separate thread, the animation got more jerky because of all the
+work involved in
+<a href="https://en.wikipedia.org/wiki/Coupling_(computer_programming)#Performance_issues">bouncing messages</a>
+back and forth 60 times a second instead of simply sharing a reference pointer to
+a complex data type representing state. Furthermore, the order of the received messages was shuffled, leading to the
+mystery of the vanishing missiles.</p>
+<h3>In JavaScript, never create when you can mutate</h3>
+<p><q>Since map builds a new array, using it when you aren't using the returned array is an anti-pattern;
+use forEach or for-of instead.</q>
+— <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map">
+MDN's Array.prototype.map()</a> page.</p>
+<p>Due to my prejudice against global variables, my initial design was to have the modules share data via function
+arguments (This may fall under the jargon term <em>semantic coupling</em>, but as is inevitable in the IT industry,
+what was originally a nice, simple concept has been transformed into an unintelligible swamp of BS by consultants).</p>
+<p>The canvas object created by image.js was imported by game1.js and accessed by other modules via a function argument.
+The <em>state</em> compound data structure which just about every function in every module needs was similarly shared
+from state-loop.js with other modules via function arguments.</p>
+<p>Ultimately, I came to accept that by attaching the canvas and state objects to
+<a href="https://javascript.info/global-object">window</a> — the root, global object in a browser which everything
+except a web worker can access — I saved a lot of typing and potential bugs from forgotten function arguments.</p>
+<h2>Testability</h2>
+<p><q>Testing such programs appears even harder because without the interaction there appears to be no program to speak of,
+but automating the testing of interactive programs is especially challenging. Developing clean, well-tested interactive
+programs therefore seems especially daunting to beginners.</q> —
+<a href="https://world.cs.brown.edu/1/htdw-v1.pdf">How to Design Worlds</a></p>
+<p>An advantage of modularity that didn't initially occur to me at first is that it improves testability.</p>
+<p>Jasmine's SpecRunner.html — which I moved to a subdirectory called test and renamed index.html — needs to
+include a <code>&lt;script type=&quot;module&quot; src=&quot;myTest.js&quot;&gt;&lt;/script&gt;</code> line where <em>myTest.js</em> imports
+the functions from the modules to test.</p>
+<p>The test script can't see the <em>non-public</em> functions in the module unless they have been added to the export list,
+making the interface somewhat confusing. So it's important to document what functions are public for the non-test main script
+to import to avoid getting confused.</p>
+<pre class="prettyprint source lang-javascript"><code>export { resizeListener, draw, clearScene, paintScene, writeText  // public interfaces
+       , getScale, scaleText  // private interfaces added here for testing
+       };
+</code></pre>
+<p>My way to make the canvas object available to the test suite was to add this html to the SpecRunner.html template, which
+I moved to a subdirectory called test and renamed index.html:</p>
+<pre class="prettyprint source lang-html"><code>&lt;body>
+&lt;canvas id=&quot;board&quot;>&lt;/canvas>
+&lt;/body>
+</code></pre>
+<p>To avoid it messing up Jasmine's html report page, I included this stanza in myTest.js:</p>
+<pre class="prettyprint source lang-javascript"><code>  afterAll(function() {
+    document.body.removeChild(document.querySelector(&quot;#board&quot;));
+  });
+</code></pre>
+<p>Step 1 is to download the latest <a href="https://github.com/jasmine/jasmine/releases">release</a>. Unziping
+it produces something like:</p>
+<p><code><pre>
+./
+├── lib/
+│   ├── jasmine-3.6.0/jasmine_favicon.png
+│   ├── jasmine-3.6.0/jasmine.js
+│   ├── jasmine-3.6.0/jasmine-html.js
+│   ├── jasmine-3.6.0/jasmine.css
+│   └── jasmine-3.6.0/boot.js
+├── SpecRunner.html
+├── src/
+│   ├── Player.js
+│   └── Song.js
+└── spec/
+.   ├── PlayerSpec.js
+.   └── SpecHelper.js
+</pre></code></p>
+<p>I've copied everything in lib/jasmine-3.6.0/ into test/ along with SpecRunner.html renamed index.html.</p>
+<h2>Style Tips</h2>
+<p>Many of my style tips are frowned upon by JavaScript linters and the
+<a href="https://google.github.io/styleguide/jsguide.html">Google JavaScript Style Guide</a>,
+but they make sense to me.</p>
+<h3>Rule 1: Use strings rather than literals</h3>
+<p>I've tried to design my modules so that their exposed function/s (one is ideal) take a one-word string as an argument, which
+acts as a mini-<a href="https://en.wikipedia.org/wiki/Domain-specific_language">DSL</a> which the public function then uses
+to call the relevant function hidden within its black box, along with the relevant associated data.</p>
+<p>For the image and sound modules, this string is usually a key whose value is some binary blob associated with a file.</p>
+<p>For some reason, JavaScript linters complain about using <code>sounds[&quot;missile&quot;]</code> instead of <code>sounds.missile</code>,
+but I think it better style since I can use <code>sounds[Variable]</code> but not <code>sounds.Variable</code>.</p>
+<h3>Rule 2: Use leading commas</h3>
+<p>A style common in SQL, but frowned in JavaScript and elsewhere is to put separating commas at the front rather than back of
+curly bracketed <em>key: value</em> statements, or round bracketed argument lists in functions with too many
+or too long parameters.</p>
+<p>As primarily a natural language writer, leading commas struck me as alien and ugly at first, but I've grown fond of the
+way they make balancing curly, square, and round brackets easier, and make deeply nested data structures easier to
+understand.</p>
+<p>My way of writing key-value pairs goes like this:</p>
+<pre class="prettyprint source lang-javascript"><code>  const button2key = { &quot;leftButton&quot;: &quot;ArrowLeft&quot;
+                     , &quot;rightButton&quot;: &quot;ArrowRight&quot;
+                     , &quot;upButton&quot;: &quot;ArrowUp&quot;
+                     , &quot;spaceBar&quot;: &quot; &quot;
+                     };
+</code></pre>
+<p>String instead of literal keys in the above example are extraneous, but I find when assigning variables to keys,
+using the same name is a handy mnemonic. If the key isn't quoted, there's confusion over whether it refers to the value
+of the corresponding variable. So as per rule 1, I simply always make my keys strings instead of literals, and reference
+their values as button2key[&quot;leftButton&quot;] rather than button2key.leftButton to keep it clear in my mind this is an associative
+array, even if JavaScript calls it an object.</p>
+<p>Another advantage of keeping keys double quoted is it sticks to the JSON convention.</p>
+<h3>Rule 3: Design with <a href="https://en.wikipedia.org/wiki/Functional_programming">FP</a> and modules, avoid
+<a href="https://en.wikipedia.org/wiki/Object-oriented_programming">OOP</a> when possible</h3>
+<p>While I find some of the rules <a href="https://www.crockford.com/javascript/">Douglas Crockford</a>
+put into <a http="https://jslint.com/">jslint</a> and advises in his
+<a href="https://www.oreilly.com/library/view/javascript-the-good/9780596517748/">book</a> a bit overly pedantic,
+I thoroughly agree with his advice on avoiding the horrors of
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this">this</a>,
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new">new</a>,
+<a href="ttps://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/class">class</a> and
+other OOP goop laddled over an otherwise nice, simple language.</p>
+<p>Moving from Python to JavaScript, I found it quite eye opening that object-style <code>sounds.missile</code> is
+simply syntactic sugar for associative array-style <code>sounds[&quot;missile&quot;]</code>, revealing that much of OOP is simply
+compound data layered in jargon.</p>
+<p>The OOP way of writing the playSound standalone function would be to create a class with a name like Sound and then
+write something like <code>Sound.prototype.playSound = function() {...}</code> to be invoked as
+<code>sounds.missile.playSound()</code>, which I find a lot less elegant or reusable than one function, taking
+one string as an argument, imported from a module encapsulating everything else.</p>
 <h3>Audio</h3>
 <p>In my first draft of this project when I struggling to understand the myriad
 <a href="https://developer.mozilla.org/en-US/docs/Web/API">Web APIs</a>, I kept one hierarchical diagram with links
@@ -105,21 +278,11 @@ and stored in memory to be referenced by named constants.</p>
 <p>A <em>context</em> is needed which is conventionally made a global constant whose methods are used
 to make noise when desired.</p>
 <p>Thanks to modularisation, I could move all this complexity into a separate file to be access in my main file by</p>
-<pre class="prettyprint source lang-javascript"><code>import { sounds, playSound } from &quot;./sound.js&quot;;
+<pre class="prettyprint source lang-javascript"><code>import { playSound } from &quot;./sound.js&quot;;
 </code></pre>
 <p>where sounds is a key-value store of the four sounds used in the game which can be passed to one function as in</p>
-<pre class="prettyprint source lang-javascript"><code>playSound(sounds[&quot;missile&quot;]);
+<pre class="prettyprint source lang-javascript"><code>playSound(&quot;missile&quot;);
 </code></pre>
-<p>Moving from Python to JavaScript, I found it quite eye opening that object-style <code>sounds.missile</code> is
-simply syntactic sugar for associative array-style <code>sounds[&quot;missile&quot;]</code>, revealing that much of OOP is simply
-compound data layered in jargon.</p>
-<p>For some reason, JavaScript linters complain about using <code>sounds[&quot;missile&quot;]</code> instead of <code>sounds.missile</code>,
-but I think it better style since I can use <code>sounds[Variable]</code> but not <code>sounds.Variable</code>, and I prefer
-to keep my keys double quoted because it sticks to the JSON convention, and also makes it easier to differentiate between
-the key name and variable assigned to it name the same.</p>
-<p>The OOP way of writing the playSound standalone function would be to create a class with a name like Sound and then
-write something like <code>Sound.prototype.playSound = function() {...}</code> to be invoked as
-<code>sounds.missile.playSound()</code>, which I find a lot less elegant or reusable.</p>
 <h3>Graphics</h3>
 <p>One of the advantages of modularity I discovered here is it that it improves testability, which I find fairly tricky
 in a game like this.</p>
@@ -284,6 +447,7 @@ not a reference, so trying to share binary data either doesn't work or slows thi
 
 stateWorker.addEventListener(&quot;message&quot;, stateWorkerListener);
 </code></pre>
+<p>https://stackoverflow.com/questions/50812026/is-there-some-kind-of-load-event-for-web-workers</p>
 <p>Whereas modules and their client files can share globals via their shared <em>window</em> root object, a mantra of this style
 of programming is <em>shared nothing</em>.</p>
 <p>This required quite a lot of refactoring when I decided to move the <em>physics engine</em> portion of the game —
@@ -355,46 +519,6 @@ old video games have of running unplayably quickly because processor speeds have
   window.requestAnimationFrame(loop);
 }
 </code></pre>
-<h2>Testing</h2>
-<p><q>Testing such programs appears even harder because without the interaction there appears to be no program to speak of,
-but automating the testing of interactive programs is especially challenging. Developing clean, well-tested interactive
-programs therefore seems especially daunting to beginners.</q> —
-<a href="https://world.cs.brown.edu/1/htdw-v1.pdf">How to Design Worlds</a></p>
-<p>Since I did writing tests last instead of first, I'm currently refactoring my code since Jasmine refuses to let functions
-it tests see variables which weren't passed to them as arguments, and I used a lot of global variables.</p>
-<p>Step 1 is to download the latest <a href="https://github.com/jasmine/jasmine/releases">release</a>. Unziping
-it produces something like:</p>
-<p><code><pre>
-./
-├── lib/
-│   ├── jasmine-3.6.0/jasmine_favicon.png
-│   ├── jasmine-3.6.0/jasmine.js
-│   ├── jasmine-3.6.0/jasmine-html.js
-│   ├── jasmine-3.6.0/jasmine.css
-│   └── jasmine-3.6.0/boot.js
-├── SpecRunner.html
-├── src/
-│   ├── Player.js
-│   └── Song.js
-└── spec/
-.   ├── PlayerSpec.js
-.   └── SpecHelper.js
-</pre></code></p>
-<p>Though I probably should have a lib subdirectory (modularising <a href="http://www.seatavern.co.za/game1.js">game1.js</a>
-to separate and abstract the generic parts is on my todo list), I've decided to put all the necessary testing files into
-one subdirectory, <code>./test</code>. I don't like the Jasmine convention of using <code>./spec</code> since I feel
-<a href="https://lamport.azurewebsites.net/tla/tla.html">specification</a> and testing are not the same thing.</p>
-<p>I've copied all the files in <code>lib/jasmine-3.6.0/</code> to <code>./test</code>, along with <code>SpecRunner.html</code>
-which I've renamed <code>index.html</code> to make the report accessible by pointing the browser to the game's URL +
-<code>/test</code>.</p>
-<p>A thing that tripped me up was following the standard way of declaring canvas</p>
-<pre class="prettyprint source lang-javascript"><code>const canvas = document.querySelector(&quot;#board&quot;);
-</code></pre>
-<p>resulted in a global constant Jasmine refused to either let functions it was testing see or get replaced. The solution
-was to attach all HTML elements I wanted to make global to the <em>window</em> object</p>
-<pre class="prettyprint source lang-javascript"><code>window.canvas = document.querySelector(&quot;#board&quot;);
-</code></pre>
-<p>which could then be mocked in Jasemin tests with <code>window.canvas = {width: 800, height: 600};</code></p>
 <h2>Documenting</h2>
 <p><q>Most languages come with a large collection of abstractions. Some are contributions by the language design team;
 others are added by programmers who use the language. To enable effective reuse of these abstractions, their creators
@@ -690,13 +814,13 @@ specifically designed for mobile phones, with only touch user intput.</p></artic
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-image.html">image</a></li><li><a href="module-sound.html">sound</a></li></ul><h3>Namespaces</h3><ul><li><a href="inputStates.html">inputStates</a></li><li><a href="Sprite.html">Sprite</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createAsteroid">createAsteroid</a></li><li><a href="global.html#createMissile">createMissile</a></li><li><a href="global.html#createSpaceship">createSpaceship</a></li><li><a href="global.html#getScale">getScale</a></li><li><a href="global.html#loop">loop</a></li><li><a href="global.html#nextTick">nextTick</a></li><li><a href="global.html#resizeListener">resizeListener</a></li><li><a href="global.html#sprites">sprites</a></li><li><a href="global.html#uiListener">uiListener</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-image.html">image</a></li><li><a href="module-sound.html">sound</a></li><li><a href="module-state-loop.html">state-loop</a></li></ul><h3>Global</h3><ul><li><a href="global.html#animationLoop">animationLoop</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Wed Aug 05 2020 10:51:34 GMT+0200 (South Africa Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Fri Aug 07 2020 12:53:10 GMT+0200 (South Africa Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
