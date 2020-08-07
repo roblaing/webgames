@@ -75,10 +75,8 @@ function scaleText() {
 }
 
 function writeText() {
-  ctx.fillText("Lives", window.state.scale * 50, window.state.scale * 50);
-  ctx.fillText("Score", window.state.scale * 680, window.state.scale * 50);
-  ctx.fillText(window.state.lives, window.state.scale * 50, window.state.scale * 80);
-  ctx.fillText(window.state.score, window.state.scale * 680, window.state.scale * 80);
+  ctx.fillText(`Lives ${window.state.lives}`, window.state.scale * 50, window.state.scale * 50);
+  ctx.fillText(`Score ${window.state.score}`, window.state.scale * 680, window.state.scale * 50);
 }
 
 /**

@@ -111,9 +111,8 @@ loop(Module, State0) ->
   end.  
 ```
 
-A reason data is immutable in Erlang is because another processes could be running in another core or another computer,
-so they don't share memory. (Among the nice features of Erlang which JavaScript lacks is its is its Module:Function syntax 
-to remind you what comes from where).
+A reason data is immutable in Erlang is because various processes are running in different cores or other computers,
+so they don't share memory.
 
 JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">Web Workers</a>
 are Erlangish in that they communicate via <em>message coupling</em>.
@@ -123,12 +122,14 @@ web worker to communicate directly with the animation loop. While the animation 
 JavaScript doesn't appear to have Erlang's <em>return address</em> mechanism. The animation loop could possibly be made the
 web worker's callback function, but I'm not sure how.
 
-Rather than gain any efficiency from moving stuff to a separate thread, the animation got more jerky because of all the 
+Instead of gaining any efficiency from moving stuff to a separate thread, the animation got more jerky because of all the 
 work involved in 
 <a href="https://en.wikipedia.org/wiki/Coupling_(computer_programming)#Performance_issues">bouncing messages</a>
 back and forth 60 times a second instead of simply sharing a reference pointer to
 a complex data type representing state. Furthermore, the order of the received messages was shuffled, leading to the 
 mystery of the vanishing missiles.
+
+So here I gained this insight:
 
 <h3>In JavaScript, never create when you can mutate</h3>
 

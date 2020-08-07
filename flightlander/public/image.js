@@ -1,5 +1,6 @@
 /**
- * @file This is a translation of a Racket package, partly done to learn JavaScript's module conventions.
+ * This is a translation of a Racket package, partly done to learn JavaScript's module conventions.
+ * @module image
  * @see [HTDP image package]{@link https://docs.racket-lang.org/teachpack/2htdpimage.html}
  */
 
@@ -22,6 +23,21 @@
  * @property {("round"|"bevel"|"miter")} join
  */
 
+// red square
+ctx.beginPath();
+ctx.rect(20, 40, 50, 50);
+ctx.fillStyle = "#FF0000";
+ctx.fill();
+ctx.closePath();
+
+
+ctx.beginPath();
+ctx.rect(160, 10, 100, 40);
+ctx.strokeStyle = "rgba(0, 0, 255, 0.5)";
+ctx.stroke();
+ctx.closePath();
+
+
 /**
  * (circle radius mode color) → image? or (circle radius outline-mode pen-or-color) → image?
  * @see [MDN arc]{@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/arc}
@@ -32,7 +48,12 @@
  * @param {Pen|Color} penOrColor - a Pen or Color type
  */
 function circle(radius, mode, penOrColor) {
-  return "image";
+  ctx.beginPath();
+  ctx.arc(240, 160, 20, 0, Math.PI*2, false);
+  ctx.fillStyle = "green";
+  ctx.fill();
+  ctx.closePath();
+  // return "image";
 }
 
 // above
