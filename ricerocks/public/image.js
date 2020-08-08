@@ -135,7 +135,5 @@ function drawState() {
   paintScene("debris");
 }
 
-export { resizeListener, clearScene, drawState  // public interfaces
-       , getScale, scaleText        // private interfaces here for testing
-       };
+export { resizeListener, clearScene, drawState };
 

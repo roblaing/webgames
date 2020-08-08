@@ -157,127 +157,310 @@ but automating the testing of interactive programs is especially challenging. De
 programs therefore seems especially daunting to beginners.</q> &mdash;
 <a href="https://world.cs.brown.edu/1/htdw-v1.pdf">How to Design Worlds</a>
 
+Step 1 is to download the latest <a href="https://github.com/jasmine/jasmine/releases">release</a>. Unziping
+it unpacks ./SpecRunner.html along with various files in ./lib/jasmine-&lt;version>/* which I copied into a
+subdirectory called ./test. It also unpacks examples in subdirectories called src and spec which don't need to be
+copied.
 
-An advantage of modularity that didn't initially occur to me at first is that it improves testability. 
-
-Jasmine's SpecRunner.html &mdash; which I moved to a subdirectory called test and renamed index.html &mdash; needs to
-include a <code>&lt;script type="module" src="myTest.js">&lt;/script></code> line where <em>myTest.js</em> imports
-the functions from the modules to test.
-
-The test script can't see the <em>non-public</em> functions in the module unless they have been added to the export list,
-making the interface somewhat confusing. So it's important to document what functions are public for the non-test main script
-to import to avoid getting confused.
-
-```javascript
-export { resizeListener, draw, clearScene, paintScene, writeText  // public interfaces
-       , getScale, scaleText  // private interfaces added here for testing
-       };
-```
-
-My way to make the canvas object available to the test suite was to add this html to the SpecRunner.html template, which
-I moved to a subdirectory called test and renamed index.html:
+I edited SpecRunner.html, renamed ./test/index.html, to look like this:
 
 ```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Jasmine Spec Runner v3.6.0</title>
+
+  <link rel="shortcut icon" type="image/png" href="jasmine_favicon.png">
+  <link rel="stylesheet" href="jasmine.css">
+
+  <script src="jasmine.js"></script>
+  <script src="jasmine-html.js"></script>
+  <script src="boot.js"></script>
+
+  <script type="module" src="unitTests.js"></script>
+</head>
+
 <body>
-<canvas id="board"></canvas>
+  <canvas id="board"></canvas>
 </body>
+</html>
 ```
 
-To avoid it messing up Jasmine's html report page, I included this stanza in myTest.js:
+The reason I added canvas to the body is that <code>document.querySelector("#board")</code> in image.js will otherwise
+return null, breaking all the ctx... statements. My unitTests.js file started like this:
 
 ```javascript
+import { resizeListener } from "../image.js";
+
+describe("image.js", function() {
+
+  beforeEach(function() {
+    window.state = { "sprites": []
+                   , "missiles": []
+                   , "lives": 3
+                   , "score": 0
+                   , "scale": 1.0
+                   , "noise": null
+                   };
+  });
+
   afterAll(function() {
     document.body.removeChild(document.querySelector("#board"));
   });
+
+  it ("800x600 screen should set scale to 1.0", function() {
+    spyOnProperty(window, "innerWidth").and.returnValue(800);
+    spyOnProperty(window, "innerHeight").and.returnValue(600);
+    resizeListener(800, 600, null);
+    expect(window.state.scale).toBe(1.0);
+  });
+});
 ```
 
-Step 1 is to download the latest <a href="https://github.com/jasmine/jasmine/releases">release</a>. Unziping
-it produces something like:
+In the afterAll stanza, I remove the canvas so it doesn't mess up the screen Jasmine writes its repot on.
+The window size needs to be <em>mocked</em> to known values, else resizeListener will set scale by whatever
+the actual values of window.innerWidth and window.innerHeight happen to be.
 
-<code><pre>
-./
-├── lib/
-│   ├── jasmine-3.6.0/jasmine_favicon.png
-│   ├── jasmine-3.6.0/jasmine.js
-│   ├── jasmine-3.6.0/jasmine-html.js
-│   ├── jasmine-3.6.0/jasmine.css
-│   └── jasmine-3.6.0/boot.js
-├── SpecRunner.html
-├── src/
-│   ├── Player.js
-│   └── Song.js
-└── spec/
-.   ├── PlayerSpec.js
-.   └── SpecHelper.js
-</pre></code>
+resizeListener uses and auxiliary function, getScale, which isn't exported. During development, I start by writing
+tests for the auxiliary functions, and subsequently <em>hide</em> then and redo the tests with the exposed functions
+as above. This is possibly considered cheating by unit test purists, but works for me.
 
-I've copied everything in lib/jasmine-3.6.0/ into test/ along with SpecRunner.html renamed index.html.
+A reason I don't like Jasmine's convention of call the subdirectory holding the unit tests ./spec and giving calling
+its examples PlayerSpec.js and SpecHelper.js is that thinking unit tests are specifications seems to be a common
+misconception amongst the Agile crowd.
 
-<h2>Style Tips</h2>
+<q>Programmers who advocate writing tests before writing code often believe those tests can serve as a specification. 
+Writing tests does force us to think, and anything that gets us to think before coding is helpful. However, writing 
+tests in code does not get us thinking above the code level. We can write a specification as a list of high-level 
+descriptions of tests the program should pass essentially a list of properties the program should satisfy. 
+But that is usually not a good way to write a specification, because it is very difficult to deduce from it what 
+the program should or should not do in every situation.</q> &mdash; 
+<a href="https://cacm.acm.org/magazines/2015/4/184705-who-builds-a-house-without-drawing-blueprints/fulltext">
+Who Builds a House Without Drawing Blueprints?</a>, Leslie Lamport
 
-Many of my style tips are frowned upon by JavaScript linters and the 
-<a href="https://google.github.io/styleguide/jsguide.html">Google JavaScript Style Guide</a>,
-but they make sense to me.
+<h2>Patterns</h2>
 
-<h3>Rule 1: Use strings rather than literals</h3>
+I've never studied the <a href="https://en.wikipedia.org/wiki/Design_Patterns">Gang of Four's</a> 23 design patterns,
+but influenced by Robert Nystrom's <a href="http://gameprogrammingpatterns.com/contents.html">Game Programming Patterns</a> 
+I decided to refactor my code.
 
-I've tried to design my modules so that their exposed function/s (one is ideal) take a one-word string as an argument, which
-acts as a mini-<a href="https://en.wikipedia.org/wiki/Domain-specific_language">DSL</a> which the public function then uses
-to call the relevant function hidden within its black box, along with the relevant associated data.
+<h3>Object Literal Pattern</h3>
 
-For the image and sound modules, this string is usually a key whose value is some binary blob associated with a file.
+This is not one of the GoF's <a href="https://en.wikipedia.org/wiki/Design_Patterns">23 classics</a>,
+but is one I use a lot.
 
-For some reason, JavaScript linters complain about using <code>sounds["missile"]</code> instead of <code>sounds.missile</code>,
-but I think it better style since I can use <code>sounds[Variable]</code> but not <code>sounds.Variable</code>.
+<a href="http://rmurphey.com/blog/2009/10/15/using-objects-to-organize-your-code">
+Object Literals</a> are comma separated key-value pairs between curly brackets which differ from
+traditional OOP classes in that they don't require instantiation using the <em>new</em> operator. 
 
-<h3>Rule 2: Use leading commas</h3>
+A quirk of mine &mdash; which result in warnings
+from <a href="https://www.jslint.com/">jslint</a> and <a href="https://jshint.com/">jshint</a> is addressing
+values stored in object literals as <code>images["missile"]</code> rather than <code>images.missile</code>. This is
+because <code>images[Variable]</code> is legal and <code>images.Variable</code> isn't, and remembering different conventions
+to achieve exactly the same thing is a waste of memory.
 
-A style common in SQL, but frowned in JavaScript and elsewhere is to put separating commas at the front rather than back of
-curly bracketed <em>key: value</em> statements, or round bracketed argument lists in functions with too many 
-or too long parameters.
+Another reason I like using double quoted keys is it helps the declarations of object literals double as legal JSON. Another
+quirk of mine is using leading commas, a habit I picked up from reading SQL code. Using leading commas makes it 
+easier to balance parenthesis in deeply nested data structures &mdash; which mercifully I don't have any of in this example.
 
-As primarily a natural language writer, leading commas struck me as alien and ugly at first, but I've grown fond of the
-way they make balancing curly, square, and round brackets easier, and make deeply nested data structures easier to
-understand.
+Refactoring to the six GoF design patterns Nystrom devoted chapters to resulted in more of my code getting moved into 
+object literals.
 
-My way of writing key-value pairs goes like this:
+<h3>Command Pattern</h3>
+
+<q>Encapsulate a request as an object, thereby letting users parameterize clients with different requests, 
+queue or log requests, and support undoable operations.</q> &mdash; GoF
+
+This classified a a behvioural pattern, meaning it deals with communication between objects.
+
+I originally wrote the dispatcher which translated the patterns of user input events as switch blocks with case statements
+in JavaScript.
+
+After reading the chapter on command patterns in <a href="http://gameprogrammingpatterns.com/command.html">Nystrom</a>
+and Addy Osmani's <a href="https://addyosmani.com/resources/essentialjsdesignpatterns/book/#commandpatternjavascript">
+Learning JavaScript Design Patterns</a>, I decided a more elegant way would be to write the pattern to be matched as 
+```javascript
+command["keydown"]["ArrowLeft"]
+```
+where "keydown" is the value of event.type and "ArrowLeft"
+the value of event.key of the <a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent">KeyboardEvent</a>
+object, so in theory this just meant calling a required action with 
+```javascript
+command[event.type][event.code]
+```
+
+In practice, the spacebar event.code " " had to be translated to "Spacebar" since it has to be a valid function name,
+for touch events the event.code needed to be obtained from event.target.id, plus command needed to be guarded from
+F12 and "non-game" keys, so uiListener still ended up filled with conditionals.
+
+Furthermore, implementing this required me to learn about JavaScript's
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get">getter</a> syntax
+which I hadn't used before. But ultimately, it led to more elegant code than my original two switch blocks, with
+the first having cases for event.type and the second for event.key. It also disciplined me to write action functions
+for different user commands instead of putting the statements in case blocks, resulting in an overly long dispatcher.
+
+So conforming to the <a href="https://en.wikipedia.org/wiki/Chain-of-responsibility_pattern">chain of command</a>
+pattern (at least my interpretation of it), resulted in this nice template for future games:
 
 ```javascript
-  const button2key = { "leftButton": "ArrowLeft"
-                     , "rightButton": "ArrowRight"
-                     , "upButton": "ArrowUp"
-                     , "spaceBar": " "
-                     };
+const command = { "keydown": { get ArrowLeft() {return turnLeft(true)}
+                             , get ArrowRight() {return turnRight(true)}
+                             , get ArrowUp() {return burnRocket(true)}
+                             , get Spacebar() {return fireMissile(true)}
+                             }
+                , "keyup":   { get ArrowLeft() {return turnLeft(false)}
+                             , get ArrowRight() {return turnRight(false)}
+                             , get ArrowUp() {return burnRocket(false)}
+                             , get Spacebar() {return fireMissile(false)}
+                             }
+                };
 ```
 
-String instead of literal keys in the above example are extraneous, but I find when assigning variables to keys, 
-using the same name is a handy mnemonic. If the key isn't quoted, there's confusion over whether it refers to the value
-of the corresponding variable. So as per rule 1, I simply always make my keys strings instead of literals, and reference
-their values as button2key["leftButton"] rather than button2key.leftButton to keep it clear in my mind this is an associative
-array, even if JavaScript calls it an object.
+<a href="https://en.wikipedia.org/wiki/Command_pattern">Wikipedia's</a> description lists four requirements:
 
-Another advantage of keeping keys double quoted is it sticks to the JSON convention.
+<dl>
+  <dt>command</dt><dd>eg "ArrowLeft"</dd>
+  <dt>receiver</dt><dd>eg <code>turnLeft(true)</code> &mdash; it executes the work requested by command</dd>
+  <dt>invoker</dt><dd>eg "keydown"</dd>
+  <dt>client</dt><dd>In this game, that's always the spaceship. But if there were more than one
+ <a href="http://gameprogrammingpatterns.com/command.html#directions-for-actors">player controlled sprite</a>, 
+something like <code>command["spaceship"]["keydown"]["ArrowLeft"]</code> would be needed</dd>
+</dl>
 
-<h3>Rule 3: Design with <a href="https://en.wikipedia.org/wiki/Functional_programming">FP</a> and modules, avoid
-<a href="https://en.wikipedia.org/wiki/Object-oriented_programming">OOP</a> when possible</h3>
+Besides simply <a href="http://gameprogrammingpatterns.com/command.html#configuring-input">configuring input</a>,
+which is all I've used the command object for here, Nystrom suggests also using it for 
+<a href="http://gameprogrammingpatterns.com/command.html#undo-and-redo">undo and redo</a>, which ties into
+Jakob Nielsen's <a href="https://www.nngroup.com/articles/ten-usability-heuristics/">usability top 10</a>.
 
-While I find some of the rules <a href="https://www.crockford.com/javascript/">Douglas Crockford</a> 
-put into <a http="https://jslint.com/">jslint</a> and advises in his 
-<a href="https://www.oreilly.com/library/view/javascript-the-good/9780596517748/">book</a> a bit overly pedantic,
-I thoroughly agree with his advice on avoiding the horrors of
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this">this</a>,
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new">new</a>, 
-<a href="ttps://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/class">class</a> and
-other OOP goop laddled over an otherwise nice, simple language.
+<h3>Flyweight Pattern</h3>
 
-Moving from Python to JavaScript, I found it quite eye opening that object-style <code>sounds.missile</code> is
-simply syntactic sugar for associative array-style <code>sounds["missile"]</code>, revealing that much of OOP is simply
-compound data layered in jargon.
+<q>The pattern was first conceived by Paul Calder and Mark Linton in 1990 and was named after the boxing weight class that 
+includes fighters weighing less than 112lb. The name Flyweight itself is derived from this weight classification as it 
+refers to the small weight (memory footprint) the pattern aims to help us achieve.</q>
+&mdash; <a href="https://addyosmani.com/resources/essentialjsdesignpatterns/book/#detailflyweight">
+Learning JavaScript Design Patterns</a>, Addy Osmani
 
-The OOP way of writing the playSound standalone function would be to create a class with a name like Sound and then
-write something like <code>Sound.prototype.playSound = function() {...}</code> to be invoked as 
-<code>sounds.missile.playSound()</code>, which I find a lot less elegant or reusable than one function, taking
-one string as an argument, imported from a module encapsulating everything else.
+This is the only <em>structural</em> design pattern listed here. Structural means it deals with object composition.
+
+While RiceRocks has a dozen asteroids spinning at any given time, they all share the same blob of binary data
+stored in image.js as:
+
+```javascript
+const images = { "background": new Image()
+               , "debris": new Image()
+               , "spaceship": new Image()
+               , "asteroid": new Image()
+               , "explosion": new Image()
+               , "missile": new Image()
+               };
+```
+
+I initially stored pointers to these binary blobs in each sprite as an attribute called image, but thanks to my experiment 
+with web workers where references can't be shared and JavaScript wisely refuses to clone big blobs of binary, I realise
+all the sprite needed was a string corresponding to a key in the image dictionary.
+
+The same applies to sound.
+
+I discovered I'd already unwittingly implemented the flyweight pattern by not duplicating blobs read from png or ogg files,
+storing them once in dictionaries and refencing them via short string names.
+
+<h3>Observer Pattern</h3>
+
+<q>One or more observers are interested in the state of a subject and register their interest with the subject by 
+attaching themselves. When something changes in our subject that the observer may be interested in, a notify message 
+is sent which calls the update method in each observer. When the observer is no longer interested in the subject's state, 
+they can simply detach themselves.</q> &mdash; GoF
+
+This is a behavioral pattern, dealing with communication between objects.
+
+There's quite a lot of overlap between the GoF terminology here and 
+<a href="https://en.wikipedia.org/wiki/Event-driven_programming">event-driven programming</a> or
+<a href="https://developers.redhat.com/blog/2017/06/30/5-things-to-know-about-reactive-programming/">
+reactive programming</a>.
+
+In GoF terminology, observers can <em>attach</em> themselves &mdash; done in JavaScript with
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener">
+target.addEventListener(type, listener)</a> which I've used a lot &mdash; or <em>detach</em> using
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/removeEventListener">
+target.removeEventListener(type, listener)</a> which I've found no need for yet. 
+
+```javascript
+window.addEventListener("DOMContentLoaded", setup);
+window.addEventListener("unload", cleanup);
+window.addEventListener("resize", (event) => resizeListener(BASE_WIDTH, BASE_HEIGHT, event));
+document.addEventListener("keydown", uiListener);
+document.addEventListener("keyup", uiListener);
+document.querySelector("#upButton").addEventListener("pointerdown", uiListener);
+document.querySelector("#upButton").addEventListener("pointerup", uiListener);
+document.querySelector("#leftButton").addEventListener("pointerdown", uiListener);
+document.querySelector("#leftButton").addEventListener("pointerup", uiListener);
+document.querySelector("#rightButton").addEventListener("pointerdown", uiListener);
+document.querySelector("#rightButton").addEventListener("pointerup", uiListener);
+document.querySelector("#spaceBar").addEventListener("pointerdown", uiListener);
+document.querySelector("#spaceBar").addEventListener("pointerup", uiListener);
+```
+
+In JavaScript, "message" events used for multithreading by 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API">Web Workers</a>,
+and distributed computing via 
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications">
+WebSockets</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API">Service Workers</a>
+&mdash; none of which are used in this simple game, but will become important later &mdash; would also fall
+under the observer pattern.
+
+<h3>Prototype Pattern</h3>
+
+This is another <em>creational</em> pattern, and fortuitously, before learning this, I called my three functions which
+use it <code>createSpaceship()</code>, <code>createAsteroid()</code>, and <code>createMissile()</code>.
+
+These all return an object literal conforming to a template I've called 
+<a href="http://www.seatavern.co.za/doc/module-state-loop-Sprite.html">Sprite</a>, 
+which is defined by documentation using conventions I've tried to establish with JSDoc rather than any programing code.
+
+There's no <code>createExplosion()</code> because the spaceship and asteroids only temporarily become explosions, and
+the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign">
+Object.assign(sprite, createAsteroid());</a> statement used to <em>clone</em> a replacement asteroid for one hit
+by a missile is possibly closer to the GoF's definition.
+
+<h3>Singleton Pattern</h3>
+
+<q>There must be exactly one instance of a class, and it must be accessible to clients from 
+a well-known access point.</q> &mdash; GoF
+
+This is a creational pattern, and I've attached two objects to the <em>window</em> objects so that all functions
+in all modules can access their attributes: <a href="http://www.seatavern.co.za/doc/global.html#state">state</a>
+and canvas whose width and height is needed in various places &mdash; making them singletons.
+
+Global state is generally considered an anti-pattern, and Nystrom's
+<a href="http://gameprogrammingpatterns.com/singleton.html">chapter on singleton</a> is mainly a warning 
+to avoid it, if you can.
+
+<q>The goal of removing all global state is admirable, but rarely practical. Most codebases will still have a couple 
+of globally available objects, such as a single Game or World object representing the entire game state.</q>
+&mdash; <a href="http://gameprogrammingpatterns.com/singleton.html#to-provide-convenient-access-to-an-instance">
+Nystrom</a>
+
+So other than renaming state as game or world, there doesn't really seem much alternative to making it global.
+
+<h3>State Pattern</h3>
+
+The GoF clasify this as a behavioural pattern.
+
+Rather than just the singleton holding the state at a given tick, this broader, involving the <em>rules</em> of
+the game as in what transitions are legal from a given node.
+
+<h2>Documenting</h2>
+
+<q>Most languages come with a large collection of abstractions. Some are contributions by the language design team; 
+others are added by programmers who use the language. To enable effective reuse of these abstractions, their creators 
+must supply the appropriate pieces of documentation — a <em>purpose statement</em>, a <em>signature</em>, and 
+<em>good examples</em> — and programmers use them to apply abstractions.</q>
+
+After testing, the next hardest part fro me has been getting to grips with <a href="https://jsdoc.app/">JSDoc</a>.
+
+I've also tried to follow the <a href="https://google.github.io/styleguide/jsguide.html">Google JavaScript Style Guide</a>,
+with the exception of ignoring its views of trailing commas since I find leading commas far better.
 
 <h3>Audio</h3>
 
@@ -360,303 +543,6 @@ in a module accessed with a dictionary of key-value pairs and some functions.
 .   .   ├── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/height">height</a>
 .   .   └── <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/src">src</a>
 </pre></code>
-
-<h2>Event-driven programming</h2>
-
-Neither OOP nor <a href="https://en.wikipedia.org/wiki/Functional_programming">FP</a> comfortably support what
-Erlang's late founder Joe Armstrong termed 
-<a href="https://erlang.org/download/armstrong_thesis_2003.pdf">concurreny-oriented programming</a>, specifically
-<a href="https://en.wikipedia.org/wiki/Event-driven_programming">event-driven programming</a>, which is related to
-<a href="https://developers.redhat.com/blog/2017/06/30/5-things-to-know-about-reactive-programming/">
-reactive programming</a>.
-
-<q>This nomenclature is a bit confusing, and has its origin in early operating-systems research. It refers to how communication is done between multiple concurrent processes. In a thread-based system, communication is done through a synchronized resource such as shared memory. In an event-based system, processes generally communicate through a queue where they post items that describe what they have done or what they want done, which is maintained by our single thread of execution. Since these items generally describe desired or past actions, they are referred to as 'events'</q> &mdash; 
-<a href="http://aosabook.org/en/500L/an-event-driven-web-framework.html">An Event-Driven Web Framework</a>, Leo Zovic
-
-Event-driven programming can broadly be split into three steps:
-
-<ol>
-  <li>Listeners: In JavaScript, these are created with <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener">
-target.addEventListener(type, listener [, options]);</a> where
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget">target</a> is Window, Document, or other HTML element,
-and <a href="https://developer.mozilla.org/en-US/docs/Web/Events">type</a> is something like "keyup", "keydown", or "click".
-</li>
-  <li>Handlers: This is addEventListener's second argument, a <a href="">callback</a> called <em>listener</em> 
-     in the documentation.</li>
-  <li>A <a href="https://en.wikipedia.org/wiki/Event_loop">listening loop</a> &mdash; the body of a concurrent system.</li>
-</ol>
-
-<h2>Step 1: Attaching listeners to <em>targets</em></h2>
-
-My adaption from the Python original, which assumed the game
-was going to be played on a PC with a keyboard, involved adding touch input for mobile phones. After initially experimenting
-with the <a href="https://developer.mozilla.org/en-US/docs/Web/API/TouchEvent">Touch Events API</a>, using
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/touchstart_event">touchstart</a> and 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/touchend_event">touchend</a> attached the canvas,
-I switched to including buttons in my HTML and then using 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events">Pointer Events</a> 
-which make a mouse and a finger touch on a mobile phone identical. The buttons also provide a visual clue to website
-visitors with keyboards which keys will work.
-
-I'll maybe use what I learned about touch events for mobile specific designs in future.
-
-The user interface was created by attaching event listeners to the DOM as follows:
-
-```javascript
-document.addEventListener("keydown", uiListener);
-document.addEventListener("keyup", uiListener);
-document.querySelector("#upButton").addEventListener("pointerdown", uiListener);
-document.querySelector("#upButton").addEventListener("pointerup", uiListener);
-document.querySelector("#leftButton").addEventListener("pointerdown", uiListener);
-document.querySelector("#leftButton").addEventListener("pointerup", uiListener);
-document.querySelector("#rightButton").addEventListener("pointerdown", uiListener);
-document.querySelector("#rightButton").addEventListener("pointerup", uiListener);
-document.querySelector("#spaceBar").addEventListener("pointerdown", uiListener);
-document.querySelector("#spaceBar").addEventListener("pointerup", uiListener);
-```
-
-Like many other programming languages, JavaScript lets you just use the function name with no arguments when invoking it as a
-<em>first-class citizen</em>, ie a paramater in another function, if the only argument is one generated, 
-which magically reappears where the function is defined.
-
-The reason I converted it to pass <code>inputStates</code> as an argument even though it's a global constant is it's a
-discipline enforced by testing framework Jasmine.
-
-Besides user input events, there are other types of events which weren't immediately obvious to me. These include the many
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Window#Events">Window events</a> which tell us when to initialise
-the program because a browser has opened the page, stop things like sound loops when the user closes the tab, and also
-react to events like the browser window getting resized or the orientation of a mobile phone getting changed.
-
-A snag I initiallyl hit was JavaScript's dreaded "white screen of death" caused by the background image not loading by the time
-the page was rendered. My initial attempt to fix this worsened the problem by introducing more JavaScript horrors,
-a "pyramid of doom" along with an async-await blockage.
-
-``` javascript
-window.addEventListener("DOMContentLoaded", async function(event1) {
-  await backgroundImage.addEventListener("load", function (event2) {
-    ...
-  });
-});
-```
-
-I taught myself JavaScript testing framework Jasmine concurrently while doing this project, and an important lesson was 
-the value of keeping things separate and independent. All I wanted from the image was two numbers, which could easily 
-be supplied as parameters, thereby solving the mystery of the "white screen of death".
-
-```javascript
-const BASE_WIDTH = 800;
-const BASE_HEIGHT = 600;
-...
-window.addEventListener("DOMContentLoaded", (event) => setup(BASE_WIDTH, BASE_HEIGHT, event));
-window.addEventListener("unload", cleanup);
-window.addEventListener("resize", resizeListener);
-```
-
-An even less obvious type of event are those required to write concurrent JavaScript, which I'll digress into briefly here.
-
-<h3>The Medium is the Message</h3>
-
-Among the nice things about learning to program by developing games is it brings concurrency to life.
-
-Multithreading has been added to JavaScript via 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API">Web Workers</a>,
-and distributed computing via 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications">
-WebSockets</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API">Service Workers</a>.
-
-These are all triggered by an event type called "message", adding a style of programming known as the
-<a href="https://en.wikipedia.org/wiki/Actor_model">actor model</a>, which though fairly easy once you go "Aha!",
-involves quite a learning curve for anyone schooled in only OOP and FP.
-
-Alan Kay, who coined the term object-oriented programming, saw messaging as a core part of the concept, which sadly
-got completely forgotten by the currently top-of-the-pops OOP languages.
-
-<q>Smalltalk's design — and existence — is due to the insight that everything we can describe can be represented by the recursive composition of a single kind of behavioral building block that hides its combination of state and process inside itself and can be dealt with only through the exchange of messages.</q> &mdash; <a href="http://worrydream.com/EarlyHistoryOfSmalltalk/">The Early History Of Smalltalk</a>, Alan Kay
-
-Mercifully I tackled this after teaching myself Erlang, because I don't think I could have figured it out from the
-JavaScript exlanations I've seen.
-
-Step 1 is what Erlang calls spawning a process, which with JavaScript is done by:
-
-```javascript
-const stateWorker = new Worker("state-loop.js");
-```
-
-What Erlang does with <em>ProcessID ! Message</em>, JavaScript does with 
-
-```javascript
-<code>stateWorker.postMessage(request)</code>
-```
-
-I've called the code run by the worker a loop to follow Erlang convention where to keep processes alive to handle repeated
-messages, they need to be written as a recursive loop. JavaScript workers automagically run as infinite listening loops which
-carry on running until <code>stateWorker.terminate()</code> is called.
-
-The file loaded by the Worker corresponds to an Erlang <code>receive pattern1 -> action1, pattern2 -> action2, ... end</code>
-block.
-
-```javascript
-this.addEventListener("message", function(event) {
-  let reply;
-  case (event.data.type) {
-    "type1":
-       reply = ...;
-       this.postMessage(reply); // if a reply is needed
-       break;
-    "type2":
-       reply = ...
-    .... 
-  }
-});
-```
-
-Making the message contained in event.data an object with an attributed called type is my own convention. A big lesson
-from Erlang's OTP patterns is that judicious choice of the compound data structure used as the message and naming
-conventions creates a powerful <a href="https://en.wikipedia.org/wiki/Domain-specific_language">DSL</a>.
-
-Erlang's OTP uses the convention of making its <em>type</em>call if the listening loop needs to reply, or
-cast if the request only involves changing the loop state. In this example, messages saying the left or right arrow
-have been pressed involve changing local variables, making them <em>casts</em> in Erlang terminology. Pressing the
-space bar or up arrow, on the other hand, require sound effects which the worker thread can't do.
-
-A early mistake I made learning this was I sent an object to the worker thread containing a pointer to a binary blob
-(a sound buffer, but an image would have been as bad).
-Thereby I discovered an important subtlety is that the main file sends the worker a
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm">structured clone</a>,
-not a reference, so trying to share binary data either doesn't work or slows things down.
-
-Long story short, limit the data communicated between the worker and main threads to strings and numbers, no references.
-
-Replies from the worker are received as events by a listener attached to the worker:
-
-```javascript
-function stateWorkerListener(event) {
-  ... do something with event.data ...
-}
-
-stateWorker.addEventListener("message", stateWorkerListener);
-```
-
-
-https://stackoverflow.com/questions/50812026/is-there-some-kind-of-load-event-for-web-workers
-
-
-
-
-Whereas modules and their client files can share globals via their shared <em>window</em> root object, a mantra of this style
-of programming is <em>shared nothing</em>. 
-
-This required quite a lot of refactoring when I decided to move the <em>physics engine</em> portion of the game &mdash;
-the relatively maths heavy job of iterating through a list of sprites to update their positions, check for collissions, 
-and filter out <em>dead</em> sprites &mdash; by what in Erlang terminology would be called spawning a process, and JavaScript 
-calls instantiating a <a href="https://developer.mozilla.org/en-US/docs/Web/API/Worker">Worker</a>. 
-
-
-The main script communicates with  where <em>request</em>
-acts as arguments which callback function <em>spritesUpdateListener(event)</em> which would receive the result from
-in <em>event.data</em>
-
-The <em>sprites-updates.js</em> file would follow this template:
-
-
-One of the advantages of this is encourages modularisation. Another is it makes better use of modern hardware. With even
-cellphones today being multicore computers, it frees the main thread to do animation while other processors do trigonometry etc.
-
-
-<h2>Step 2. Writing Handlers</h2>
-
-<h3>Testing events</h3>
-
-I started this project before learning test framework Jasmine, which turned into a lesson of the importance of test-first
-development.
-
-Putting a block like this near the top of the file
-
-```javascript
-const BASE_WIDTH = 800;
-const BASE_HEIGHT = 600;
-const THRUST_SPEED = 0.1;
-const RECOIL = -0.05;
-const ROTATE_RATE = 60;
-const MISSILE_SPEED = 4;
-```
-
-is known as <em>single point of control</em>, a good design principle. A bad habit I got into, however, was then
-using these constants within functions, hitting a snag with Jasmine that it refuses to see globally defined constants 
-or variables, unless they've been attached to the window object.
-
-Though it got me cursing at first, I realised this was an important lesson on modularity: making assumptions about things
-outside a function's local scope is dangerous.
-
-
-While there are a lot of <em>addEventListeners</em> attached to various targets, the number of handlers is fairly small.
-
-I managed to abstract all the user interface handlers down to 
-<a href="http://www.seatavern.co.za/doc/global.html#uiListener">uiListener(event)</a>. I treat the event object as a pattern
-to be matched with a responding action, making its template what HTDP would call an
-<a href="https://htdp.org/2020-8-1/Book/part_one.html#%28part._sec~3aenums%29">enumeration</a>.
-
-For this I used JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch">
-switch</a> block &mdash; of which I ended up using two in uiListener: the first matches the type of event &mdash;
-key or ponter up or down &mdash; and if it was a left, right, up or space button, which for pointer events 
-requires id of the target. Whether it's left, right, up or space is then matched in the second switch block.
-
-From an Erlang perspective, JavaScript <em>pattern -> action</em> code looks very long winded, requiring several
-switch blocks as in <em>addEventListeners</em> for stuff that Erlang's more sophisticated pattern matching and guards
-could do in one.
-
-I've seen some JavaScript stylists advocating avoiding switch statements in
-favour of lots of <code>if (predicate1) {...} else if (predicate2) {...} else if...</code>, which I personally find
-uglier and more prone to bugs.
-
-A gotcha in JavaScript is its switch statements are <em>fall through</em>, which means that unless you end a
-<code>case</code> stanza with <code>break;</code> or <code>return;</code>, it continues to check if it matches further
-patterns.
-
-The first <code>switch</code> block in <em>uiListener</em> uses break since I want to continue to the second block. There
-I can use return since that pattern has been actioned.
-
-A JSDoc gotcha that tripped me was to try and tag uiListener as <code>@callback</code> instead of <code>@function</code>, which
-resulted in it getting ommited from the documentation. Presumably <code>@callback</code> is an alternative to
-<code>@param</code> to only be used when the argument is a callback.
-
-While I had little difficulty in getting the four user input keys to work, pressing any keys not listened to caused the programme
-to freeze until I discovered that, counter-intuitively, the <code>default</code> statement should be 
-<code>event.preventDefault();</code>.
-
-Another challenge was getting the browser to open a debugging console with F12 &mdash; which stopped working after keyboard
-events were <em>captured</em> by my own function. The trick here was to write a case statement forwarding this key event
-back to the document. To be fancy, I wrote <code>event.target.dispatchEvent(event);</code> rather than
-<code>document.dispatchEvent(event);</code> just to test what the event.target property holds.
-
-<h3>3. The main/game/listening loop</h3>
-
-This is a function that calls itself recursively &mdash; so it never returns anything since it's an infinite loop. In
-Erlang, it would have a parameter called state which it would update and pass back to itself.
-
-In JavaScript, the loop is initially called and then repeatedly recursively called via 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame">Window.requestAnimationFrame(callback)</a>
-to set the rate the canvas is redrawn for animation to 60/second irrespective of the hardware (thereby avoiding a problem
-old video games have of running unplayably quickly because processor speeds have increased).
-
-```javascript
-function loop() {
-  ...
-  window.requestAnimationFrame(loop);
-}
-```
-
-<h2>Documenting</h2>
-
-<q>Most languages come with a large collection of abstractions. Some are contributions by the language design team; 
-others are added by programmers who use the language. To enable effective reuse of these abstractions, their creators 
-must supply the appropriate pieces of documentation — a <em>purpose statement</em>, a <em>signature</em>, and 
-<em>good examples</em> — and programmers use them to apply abstractions.</q>
-
-After testing, the next hardest part fro me has been getting to grips with <a href="https://jsdoc.app/">JSDoc</a>.
-
-I've also tried to follow the <a href="https://google.github.io/styleguide/jsguide.html">Google JavaScript Style Guide</a>,
-with the exception of ignoring its views of trailing commas since I find leading commas far better.
 
 <h2>Coding</h2>
 
@@ -793,92 +679,4 @@ window.addEventListener("unload", function (event) {
   explosionSound.stop();
 });
 ```
-
-
-
-
-<h4>State</h4>
-
-In Erlang, the recursive loop would have an argument &mdash; usually a compound data structure containing the various
-things commonly called a <em>state</em> &mdash; which the body of the loop would alter according to messages sent to
-it by handlers and then call itself with the new value.
-
-Here, instead of what Erlang calls a <em>mailbox</em> and the C-family would call a <em>message queue</em>, messaging is 
-done by the handlers mutating global variables which the loop reads each iteration.
-
-<a href="http://www.seatavern.co.za/doc/inputStates.html">inputStates</a> is the core messaging mechanism the handlers 
-use to communicate to the game loop.
-All the propertis of inputStates (with the exception of a sound buffer) are booleans, and I've followed Google's style of using a
-<a href="https://google.github.io/styleguide/jsguide.html#naming-method-names">isFoo</a> convention. For some, I've gotten
-into the habit of using <a href="https://en.wikipedia.org/wiki/Snake_case">snake case</a>, so find the JavaScript convention
-of camelCase and PascalCase a bit alien, but am getting the hang of it.
-
-Another core state variable is <a href="http://www.seatavern.co.za/doc/global.html#sprites">sprites</a>, a list (or
-array as JavaScript calls lists) of <a href="http://www.seatavern.co.za/doc/Sprite.html">sprite</a> elements. In
-this game, I've made a convention that the spaceship sprite (which somethimes mutates briefly into an explosion
-when it collides with an asteroid) can be accessed as <code>sprites[0]</code>.
-
-<h4>List processing</h4>
-
-A really powerful idea from <em>functional programming</em> (FP to its friends) is breaking problems down iterating over
-lists, applying the same function to each element depending on which of three categories the task at hand falls into:
-
-<ol>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map">map</a></li>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter">filter</a></li>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce">reduce</a></li>
-</ol>
-
-Map and filter can be built out of reduce, which in pure functional programming languages is usually called <em>foldr</em>
-(JavaScript has <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/ReduceRight">
-for purists).
-
-Since mutation is taboo in FP, the above traditional list processors all produce a new list. If we don't want a new list
-(which for traditional functional programming languages would be for printing data from each list element on a screen), we
-can use
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach">
-forEach</a>, which makes all the whizing stuff on the screen with this one line of code:
-
-```javascript
-  sprites.forEach(function (sprite) {draw(sprite); nextTick(sprite);});
-```
-
-<a href="http://www.seatavern.co.za/doc/global.html#draw">draw(sprite)</a> obviously belongs in <em>forEach</em>
-since it does the GUI equivalent of a print statement, but putting 
-<a href="http://www.seatavern.co.za/doc/global.html#nextTick">nextTick(sprite)</a> there would be frowned on by
-FP purists since the position and other values of each sprite get changed. Since JavaScript encourages mutations
-and changing the properties of objects referenced in the array rather than removing and appending new ones is a lot
-less work for the programmer and computer, I've gone that route.
-
-<h4>Drawing and updating</h4>
-
-As Mozilla's <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_animations">Basic Animations</a>
-guide explains, the <code>...</code> above expands into broadly three steps:
-
-<ol>
-<li>Clear the canvas with <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clearRect">ctx.clearRect()</a> and create a fresh background.</li>
-<li>Iteratively draw each sprite in these steps:
-  <ol>
-    <li>Save the canvas state with <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/save">ctx.save();</a></li>
-    <li>Move to centre of rotation <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/translate">ctx.translate(x, y);</a></li>
-    <li>Swivel image <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rotate">ctx.rotate(angle);</a></li>
-    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage">
-      ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);</a></li>
-    <li>Restore the canvas state with <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/restore">ctx.restore();</a></li>
-  </ol>
-</li>
-<li>Update the position of each sprite before they're drawn again to make them move.</li>
-</ol>
-
-Writing nextTick got me to dust off the trigonometry and physics I learned way back in the last century. While my goal
-was to keep the game as simple as possible so as to focus on learning JavaScript and its related tools, I couldn't
-help making the spaceship recoil a bit when it fires a missile to force the player to use the thruster... I was also
-tempted to make the asteroids bounce off each other like billiard balls, but I'll save that for a future version.
-
-In conclusion, writing this game taught me a lot. Besides encountering many of the problems with JavaScript and hopefully
-finding ways to overcome them &mdash; a neverending quest I suspect. 
-
-this document will already make most readers say tl;dr so I'll rather proceed to my next project, creating a dungeon crawler
-specifically designed for mobile phones, with only touch user intput.
-
 

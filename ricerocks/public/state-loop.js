@@ -4,8 +4,10 @@
  */
 
 /**
- * This doubles as the message sent to stateWorker 60 ticks a second
- * @type {Object}
+ * The animation loop and event handlers communicate via this global object
+ * @global
+ * @constant {Object} state
+ * @property {Sprite[]} sprites - spaceship and 12 asteroids in list
  */
 window.state = { "sprites": []
                , "missiles": []
@@ -32,6 +34,26 @@ const inputStates = { isUp: false
                     , isSpace: false
                     , isLoaded: true
                     };
+
+const button2key = { "pointerdown": "keydown"
+                   , "pointerup": "keyup"
+                   , "leftButton": "ArrowLeft"
+                   , "rightButton": "ArrowRight"
+                   , "upButton": "ArrowUp"
+                   , "spaceBar": "Spacebar"
+                   };
+
+const command = { "keydown": { get ArrowLeft() {return turnLeft(true)}
+                             , get ArrowRight() {return turnRight(true)}
+                             , get ArrowUp() {return burnRocket(true)}
+                             , get Spacebar() {return fireMissile(true)}
+                             }
+                , "keyup":   { get ArrowLeft() {return turnLeft(false)}
+                             , get ArrowRight() {return turnRight(false)}
+                             , get ArrowUp() {return burnRocket(false)}
+                             , get Spacebar() {return fireMissile(false)}
+                             }
+                };
 
 // Sprite movement constants
 const THRUST_SPEED = 0.1;
@@ -68,10 +90,14 @@ function random_distance(sprite, r2, ratio) {
 }
 
 /**
+ * Prototype of each "thing" on the canvas
+ * @namespace {Object} Sprite
+ * @property {"spaceship"|"asteroid"|"missile"|"explosion"} type -- key shared with images and sounds dictionaries
+ */
+
+/**
  * Initialises a spaceship Sprite
  * @function
- * @param {HTMLImageElement} spaceshipImage - A global constant, but passed as a parameter to enable mocking in Jasemine
- * @param {HTMLCanvasElement} canvas - A global constant, but passed as a parameter to enable mocking in Jasemine
  * @returns {Sprite} A spaceship starting in the centre, facing up, stationary
  */
 function createSpaceship() {
@@ -247,40 +273,40 @@ function nextTick(sprite) { // best to bring whole object
   }
 }
 
-function updateInputs(key, bool) {
-  switch (key) {
-    case "ArrowLeft":
-      inputStates.isLeft = bool;
-      return;
-    case "ArrowRight":
-      inputStates.isRight = bool;
-      return;
-    case "ArrowUp":
-      inputStates.isUp = bool;
-      if (inputStates.isUp && !inputStates.isThrust) {
-        window.state.noise = "thrustStart";
-        inputStates.isThrust = true;
-      }
-      if (!inputStates.isUp && inputStates.isThrust) {
-        window.state.noise = "thrustStop";
-        inputStates.isThrust = false;
-      }
-      return;
-    case " ":
-      inputStates.isSpace = bool;
-      if (inputStates.isSpace && inputStates.isLoaded) {
-        window.state.missiles.push(createMissile());
-        window.state.sprites[0].xDelta = window.state.sprites[0].xDelta + 
-          (window.state.scale * RECOIL * Math.cos(window.state.sprites[0].angle));
-        window.state.sprites[0].yDelta = window.state.sprites[0].yDelta + 
-          (window.state.scale * RECOIL * Math.sin(window.state.sprites[0].angle));
-        window.state.noise = "missile";
-        inputStates.isLoaded = false;
-      }
-      if (!inputStates.isSpace) {
-        inputStates.isLoaded = true;
-      }
-      return;
+
+function turnLeft(bool) {
+  inputStates.isLeft = bool;
+}
+
+function turnRight(bool) {
+  inputStates.isRight = bool;
+}
+
+function burnRocket(bool) {
+  inputStates.isUp = bool;
+  if (inputStates.isUp && !inputStates.isThrust) {
+    window.state.noise = "thrustStart";
+    inputStates.isThrust = true;
+  }
+  if (!inputStates.isUp && inputStates.isThrust) {
+    window.state.noise = "thrustStop";
+    inputStates.isThrust = false;
+  }
+}
+
+function fireMissile(bool) {
+  inputStates.isSpace = bool;
+  if (inputStates.isSpace && inputStates.isLoaded) {
+    window.state.missiles.push(createMissile());
+    window.state.sprites[0].xDelta = window.state.sprites[0].xDelta
+      + (window.state.scale * RECOIL * Math.cos(window.state.sprites[0].angle));
+    window.state.sprites[0].yDelta = window.state.sprites[0].yDelta
+      + (window.state.scale * RECOIL * Math.sin(window.state.sprites[0].angle));
+    window.state.noise = "missile";
+    inputStates.isLoaded = false;
+  }
+  if (!inputStates.isSpace) {
+    inputStates.isLoaded = true;
   }
 }
 
@@ -294,32 +320,18 @@ function updateInputs(key, bool) {
  * @property {DOMString} event.target - document since that's what called this function
  */
 function uiListener(event) {
-  const button2key = { "leftButton": "ArrowLeft"
-                     , "rightButton": "ArrowRight"
-                     , "upButton": "ArrowUp"
-                     , "spaceBar": " "
-                     };
-  let bool;
-  let key;
-  switch (event.type) {
-    case "keydown":
-      bool = true;
-      key = event.key;
-      break;
-    case "keyup":
-      bool = false;
-      key = event.key;
-      break;
-    case "pointerdown":
-      bool = true;
-      key = button2key[event.target.id];
-      break;
-    case "pointerup":
-      bool = false;
-      key = button2key[event.target.id];
-      break;
+  if (["keydown", "keyup"].includes(event.type)) {
+    if (event.key === " ") {
+      command[event.type]["Spacebar"];
+    }
+    command[event.type][event.key];
+    return;
   }
-  if (key === "F12") { // allow debug screen
+  if (["pointerdown", "pointerup"].includes(event.type)) {
+    command[button2key[event.type]][button2key[event.target.id]];
+    return;
+  }
+  if (event.key === "F12") { // allow debug screen
     event.target.dispatchEvent(event);
     return;
   }
@@ -327,7 +339,6 @@ function uiListener(event) {
     event.preventDefault();
     return;
   }
-  updateInputs(key, bool);
 }
 
 function initState() {
