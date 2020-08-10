@@ -5,14 +5,6 @@
  * @requires rice-rocks.js
  */
 
-// image.js attaches canvas to window to make it available across modules
-import { resizeListener, clearScene, drawState } from "./image.js";
-import { playSound } from "./sound.js";
-import { initState, updateState, uiListener } from "./state-loop.js";
-
-const BASE_WIDTH = 800;
-const BASE_HEIGHT = 600;
-
 /**
  * The thing that freezes Jasmine to make this untestable
  * @function animationLoop
@@ -28,7 +20,7 @@ function animationLoop() {
 
 function setup(event) {
   initState();
-  resizeListener(BASE_WIDTH, BASE_HEIGHT, null);
+  resizeListener(null);
   window.requestAnimationFrame(animationLoop);
 }
 
@@ -37,9 +29,31 @@ function cleanup(event) {
   playSound("backgroundStop");
 }
 
+fetch("ricerocks.json")
+.then(response => response.json())
+.then(data => {
+  Object.keys(data.images).forEach(img => {
+    images[img] = new Promise((resolve, reject) => {
+      let image = new Image();
+      image.src = data.images[img];
+      image.addEventListener("load", () => resolve(image));
+    });
+  });
+  /* Needs be fixed with promises
+  Object.keys(data.sounds).forEach(sound => {
+    sounds[sound] = audioCtx.createBufferSource();
+    loadSound(data.sounds[sound], sounds[sound]);
+    // should be moved to promise
+    sounds["background"].loop = true;
+    sounds["background"].connect(audioCtx.destination);
+    sounds["background"].start();
+  });
+  */
+});
+
 window.addEventListener("DOMContentLoaded", setup);
 window.addEventListener("unload", cleanup);
-window.addEventListener("resize", (event) => resizeListener(BASE_WIDTH, BASE_HEIGHT, event));
+window.addEventListener("resize", resizeListener);
 document.addEventListener("keydown", uiListener);
 document.addEventListener("keyup", uiListener);
 document.querySelector("#upButton").addEventListener("pointerdown", uiListener);

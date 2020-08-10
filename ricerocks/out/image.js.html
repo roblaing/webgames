@@ -28,7 +28,6 @@
         <article>
             <pre class="prettyprint source linenums"><code>/**
  * @file Module holding audio and image data and functions
- * @module image
  */
 
 /**
@@ -54,15 +53,15 @@ images["explosion"].src = "./images/explosion_alpha.png";
  * [Canvas API]{@link https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API}
  * @constant {HTMLCanvasElement} canvas
 */
-window.canvas = document.querySelector("#board");
-window.canvas.width = 800;
-window.canvas.height = 600;
+const canvas = document.querySelector("#board");
+const BASE_WIDTH = canvas.width; // set in index.html
+const BASE_HEIGHT = canvas.height;
 
 /**
  * [Canvas's context]{@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D}
  * @constant {CanvasRenderingContext2D} ctx
  */
-const ctx = window.canvas.getContext("2d");
+const ctx = canvas.getContext("2d");
 
 /**
  * Uses five of CanvasRenderingContext2D's many methods
@@ -86,7 +85,7 @@ function draw(sprite) {
 }
 
 function clearScene() {
-  ctx.clearRect(0, 0, window.canvas.width, window.canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 function paintScene(imageName) {
@@ -94,7 +93,7 @@ function paintScene(imageName) {
   if (image === undefined || !image.complete) {
     return;
   }
-  ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, window.canvas.width, window.canvas.height);
+  ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvas.width, canvas.height);
 }
 
 function scaleText() {
@@ -113,14 +112,14 @@ function writeText() {
  * @returns {float} Amount to multiply the sizes of images
  * @param {pixels} windowWidth -- originally hardwired to window.innerWidth
  * @param {pixels} windowHeight -- originally hardwired to window.innerHeight
- * @param {pixels} baseWidth -- originally hardwired to backgroundImage.width
- * @param {pixels} baseHeight -- originally hardwired to backgroundImage.height
+ * @param {pixels} BASE_WIDTH -- originally hardwired to backgroundImage.width
+ * @param {pixels} BASE_HEIGHT -- originally hardwired to backgroundImage.height
  */
 function getScale(baseWidth, baseHeight) {
   if (window.innerHeight > window.innerWidth) { // portrait
     return window.innerWidth/baseWidth;         // maximise width
   }
-  return window.innerHeight/baseHeight;         // maximise height
+  return window.innerHeight/baseWidth;         // maximise height
 }
 
 /**
@@ -130,16 +129,16 @@ function getScale(baseWidth, baseHeight) {
  * @param {Object} state -- changes scale and updates sprites and missiles positions
  * @param {pixels} windowWidth -- originally hardwired to window.innerWidth
  * @param {pixels} windowHeight -- originally hardwired to window.innerHeight
- * @param {pixels} baseWidth -- originally hardwired to backgroundImage.width
- * @param {pixels} baseHeight -- originally hardwired to backgroundImage.height
+ * @param {pixels} BASE_WIDTH -- originally hardwired to backgroundImage.width
+ * @param {pixels} BASE_HEIGHT -- originally hardwired to backgroundImage.height
  */
-function resizeListener(baseWidth, baseHeight, event) {
+function resizeListener(event) {
   const oldScale = window.state.scale;
-  window.state.scale = getScale(baseWidth, baseHeight);
-  window.canvas.width = window.state.scale * baseWidth;
-  window.canvas.height = window.state.scale * baseHeight;
-  window.state.width = window.canvas.width;
-  window.state.height = window.canvas.height;
+  window.state.scale = getScale(BASE_WIDTH, BASE_HEIGHT);
+  canvas.width = window.state.scale * BASE_WIDTH;
+  canvas.height = window.state.scale * BASE_HEIGHT;
+  window.state.width = canvas.width;
+  window.state.height = canvas.height;
   scaleText(window.state.scale);
   window.state.sprites.forEach(function (sprite) {
     sprite.xCentre *= window.state.scale/oldScale;
@@ -163,7 +162,7 @@ function drawState() {
   paintScene("debris");
 }
 
-export { resizeListener, clearScene, drawState };
+// export { resizeListener, clearScene, drawState };
 
 </code></pre>
         </article>
@@ -175,13 +174,13 @@ export { resizeListener, clearScene, drawState };
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-image.html">image</a></li><li><a href="module-sound.html">sound</a></li><li><a href="module-state-loop.html">state-loop</a></li></ul><h3>Namespaces</h3><ul><li><a href="module-state-loop-Sprite.html">Sprite</a></li></ul><h3>Global</h3><ul><li><a href="global.html#animationLoop">animationLoop</a></li><li><a href="global.html#state">state</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Sprite.html">Sprite</a></li></ul><h3>Global</h3><ul><li><a href="global.html#animationLoop">animationLoop</a></li><li><a href="global.html#canvas">canvas</a></li><li><a href="global.html#createAsteroid">createAsteroid</a></li><li><a href="global.html#createMissile">createMissile</a></li><li><a href="global.html#createSpaceship">createSpaceship</a></li><li><a href="global.html#ctx">ctx</a></li><li><a href="global.html#draw">draw</a></li><li><a href="global.html#getScale">getScale</a></li><li><a href="global.html#images">images</a></li><li><a href="global.html#inputStates">inputStates</a></li><li><a href="global.html#nextTick">nextTick</a></li><li><a href="global.html#playSound">playSound</a></li><li><a href="global.html#resizeListener">resizeListener</a></li><li><a href="global.html#state">state</a></li><li><a href="global.html#uiListener">uiListener</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Sat Aug 08 2020 19:01:11 GMT+0200 (South Africa Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Mon Aug 10 2020 17:47:45 GMT+0200 (South Africa Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

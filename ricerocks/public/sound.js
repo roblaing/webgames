@@ -1,6 +1,5 @@
 /**
  * @file Module simplifying JavaScript's audio to a public interface of an images dictionary and playSound function
- * @module sound
  */
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -74,5 +73,5 @@ sounds["background"].loop = true;
 sounds["background"].connect(audioCtx.destination);
 sounds["background"].start();
 
-export { playSound };
+// export { playSound };
 

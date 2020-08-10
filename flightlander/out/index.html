@@ -51,43 +51,43 @@ or any other kind of graphical programming.</p>
 <p>One of Eddi Woo's excellent youtube lessons <a href="https://www.youtube.com/watch?v=JsduHKckB04&t=2s">
 What is the basic building block of all mathematics? (A surprising answer!)</a> explains that sets and
 what operations hold between elements of a given set form the foundation of the subject.</p>
-<p>This used to be called <em>calculus</em>, which has become synonymous with &quot;the calculus of infinitesimals&quot;,
-thereby robbing language of an important concept which is possibly why the HTDP authors used <em>arithmetic</em>
-for the same concept.</p>
-<p>I prefer <em>calculus of images</em> since we can actually also use images to do differentiation and integration.</p>
+<p>A reason HTDP started with <em>arithmetic</em> of various types was because it lead to <em>algebra</em>
+where things are assigned to variables, which can be done with images &amp;mash; though that requires different
+thinking to most <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial">canvas tutorials</a>
+which don't encourage thinking of images as being akin to integers, strings and other atomic types.</p>
 <h3>What is the type of an image?</h3>
-<p>JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/Image">Image Object</a> is
-the natural choice, but it took quite a bit of frustration to figure out how to get functions to return this object
-instead of drawing on the canvas. It involved trip down the rabbit hole of ImageData and other extraneous stuff,
-but I eventually found what I wanted was
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL">toDataURL</a> which stores
-the object as a png bitmap (for some reason, keeping drawings in vector format would require third party libraries).</p>
-<p>Images are not created in the actual canvas, but in a hidden doodling area:</p>
-<pre class="prettyprint source lang-javascript"><code>const shadowCanvas = document.createElement(&quot;canvas&quot;);
-const shadowCtx = shadowCanvas.getContext(&quot;2d&quot;);
+<p>Instead of drawing things on a screen, the idea is that functions like circle, square etc return something to
+pass functions like overlay, underlay, above, and beside which in turn return something that can be drawn.</p>
+<p>Figuring out what should be returned lead into a maze whose dead ends included ImageData and Image Obects themselves.
+Finally, I reached the enlightenment that what should be returned is a
+<a href="https://javascript.info/promise-basics">promise</a>.</p>
+<p>To draw what is returned from what Racket calls
+<a href="https://docs.racket-lang.org/teachpack/2htdpimage.html#%28def._%28%28lib._2htdp%2Fimage..rkt%29._image~3f%29%29">
+image?</a> requires <em>then</em> chaining:</p>
+<pre class="prettyprint source lang-javascript"><code>circle(20, &quot;solid&quot;, &quot;red&quot;)
+.then(image => ctx.drawImage(image, 0, 0));
 </code></pre>
-<p>An image creation function follows these steps:</p>
-<ol>
-  <li>The bounding box &mdash; maximum width and height of the given shape &mdash; is calcuated. On gotcha is
-for stroked shapes, the width of the line needs to be added to these.</li>
-  <li>The shadow canvas is sized to this box</li>
-  <li>shadowCtx.clearRect(0, 0, width, height);</li>
-  <li>The shape gets drawn on the shadowCtx using some of the 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">CanvasRenderingContext2D's</a>
-many, many methods</li>
-  <li>image.src = shadowCanvas.toDataURL(); return image;</li>
-</ol>
-<h3>What operations can be done on an image?</h3>
-<p>So now that we have some kinde of <em>atoms</em> which can be allocated to literals to build things out of,
-how can we assemble things out of them?</p>
+<p>Though a little ugly and alien at first, it sidesteps many other complexities of web application development.</p>
+<h3>What operations can be done on images?</h3>
+<p>Much as summing a list of integers would return a new integer, the basic idea here is that functions that consume
+any number of images returns a new image. (Due to the nitty-gritty of JavaScript, in the same way that the basic
+image creation functions return promises containing the image, these functions similarly have promises as an
+outer wrapper).</p>
 <p>Again, here I'm going to use <a href="https://docs.racket-lang.org/teachpack/2htdpimage-guide.html">HTDP</a> as a guide
 and translate it's examples to JavaScript.</p>
-<pre class="prettyprint source lang-javascript"><code>above(createTriangle(40, &quot;solid&quot;, &quot;red&quot;), createRectangle(40, 30, &quot;solid&quot; &quot;black&quot;));
+<pre class="prettyprint source lang-javascript"><code>above(triangle(40, &quot;solid&quot;, &quot;red&quot;), rectangle(40, 30, &quot;solid&quot; &quot;black&quot;));
 </code></pre>
-<p>should create a simple picture of a house. Note there are no co-ordinates, the above function hides all the maths.</p>
+<p>creates a simple picture of a house.</p>
+<img src="house1.png" />
+<p>Note there are no co-ordinates, the above function hides all the maths.</p>
 <p>This function was my introduction to JavaScript's relatively new
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters">funName(...args)</a>
 syntax which allows a function to take any number of parameters and converts them into a list.</p>
+<p>The next step was to emulate 2htdpimage's beside operator, which only needed slight addaption of the above operator:</p>
+<pre class="prettyprint source lang-javascript"><code>above( beside(triangle(40, &quot;solid&quot;, &quot;red&quot;), triangle(40, &quot;solid&quot;, &quot;red&quot;))
+     , rectangle(80, 30, &quot;solid&quot;, &quot;black&quot;));
+</code></pre>
+<img src="house2.png" />
 <h2>Drawing traditional maths graphs</h2>
 <p>The first gotcha in trying to use Cartesian co-ordinates is the <em>center</em>, ie x=0 and y=0,
 is the top left corner. Is is easily moved to wherever we want the center to be with</p>
@@ -301,7 +301,7 @@ the sign of y needs to be flipped (ie -y).</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="image.js.html">image.js</a>, <a href="image.js.html#line1">line 1</a>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line3">line 3</a>
     </li></ul></dd>
     
 
@@ -453,13 +453,13 @@ the sign of y needs to be flipped (ie -y).</p>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#createCircle">createCircle</a></li><li><a href="global.html#createRectangle">createRectangle</a></li><li><a href="global.html#createTriangle">createTriangle</a></li><li><a href="global.html#graphF">graphF</a></li><li><a href="global.html#placeImage">placeImage</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#above">above</a></li><li><a href="global.html#beside">beside</a></li><li><a href="global.html#besideAlign">besideAlign</a></li><li><a href="global.html#createCircle">createCircle</a></li><li><a href="global.html#graphF">graphF</a></li><li><a href="global.html#overlay">overlay</a></li><li><a href="global.html#placeImage">placeImage</a></li><li><a href="global.html#rectangle">rectangle</a></li><li><a href="global.html#square">square</a></li><li><a href="global.html#triangle">triangle</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Sun Aug 09 2020 19:02:17 GMT+0200 (South Africa Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Mon Aug 10 2020 20:42:50 GMT+0200 (South Africa Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

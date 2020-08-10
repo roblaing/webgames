@@ -27,8 +27,13 @@ designed can then be re-used in other projects.
 In software, each of these <em>design units</em> is a separate file. For this game, I split the design 
 into one <em>main</em> script and three modules.
 
-The main script, game1.js, is the file called by index.html, and to use JavaScript's relatively recent (2015) support of
-<a href="https://en.wikipedia.org/wiki/Modular_programming">modular programming</a>, it needs
+<h3>My lost love of JavaScript's module system</h3>
+
+This learning project lead down quite a lot of passages which at first seemed very promising, but I subsequenly
+decided were blind alleys.
+
+One of them was to use JavaScript's relatively recent (2015) support of
+<a href="https://en.wikipedia.org/wiki/Modular_programming">modular programming</a>, needing
 <code>type="module"</code> added:
 
 ```html
@@ -41,23 +46,7 @@ CORS errors if any of its JavaScript files are <code>type="module"</code>.
 I found it confusing that the client that loads modules gets labeled a module, and that the modules themselves
 are not listed in the html file, and it took some cursing and frustration to figure this out.
 
-These units are related to unit testing, and one of my goals in this exercise was to learn a JavaScript testing framework, 
-and I somewhat arbitrarily settled on <a href="https://jasmine.github.io/">Jasmine</a>, which was initially extremely frustrating.
-
-Two traps lay in wait for me with the game1.js file:
-
-<ol>
-  <li>The html file Jasmine loads &mdash; its default name is SpecRunner.html &mdash; is not the same as my index.html
-with the canvas object and other elements. This meant Jasmine set canvas to null which broke the rest of the code, and
-this couldn't be fixed with mocking, or spying as Jasmine calls it, because it happens before the test code is run. </li>
-  <li>The main file starts an infinite loop, which in turn freezes Jasmine.</li>
-</ol>
-
-This makes the main file which attaches listeners to html elements and launches the animation loop untestable &mdash; 
-at least at my skill level.
-
-But this isn't serious since all the functions which need testing are moved to three modules which the main file
-accesses thus:
+Anyways, the game1.js got all it needed from the three module files like this:
 
 ```javascript
 import { resizeListener, clearScene, drawState } from "./image.js";
@@ -70,6 +59,25 @@ The decision of what to put in each module Constantine termed
 hide all the horrors of the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API">Web Audio API</a>
 in one file, exposed to the client as just one function, and similarly the horrors of the
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial">canvas</a> in another.
+
+Doing it like this turned into a good exercise on the power of encapsulation and information hiding. Unfortunately, it
+also made testing and documenting way harder. Furthemore, when I wanted to make these modules more general by getting
+them to read data from a JSON file, I found the <em>silofication</em> of these firm walls between modules resulted in
+unnecessary complexity.
+
+So I changed my index.html to:
+
+```html
+  <script src="image.js"></script>
+  <script src="sound.js"></script>
+  <script src="state-loop.js"></script>
+  <script src="game1.js"></script>
+```
+
+Note the client file must be loaded after its modules.
+
+Part of my motivation for this was wanting to move data such as the sound and image files to a JSON file
+to make it easy to change the facade of the game.
 
 The guts of the application in game1.js consists of this infinite loop:
 

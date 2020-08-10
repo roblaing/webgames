@@ -1,40 +1,27 @@
 /**
  * @file Module holding audio and image data and functions
- * @module image
  */
+
+const images = {};
 
 /**
  * A dictionary of images whose keys are the same as Sprite types
  * @constant {Object} images
  */
-const images = { "background": new Image()
-               , "debris": new Image()
-               , "spaceship": new Image()
-               , "asteroid": new Image()
-               , "explosion": new Image()
-               , "missile": new Image()
-               };
-
-images["background"].src = "./images/nebula_blue.f2014.png";
-images["debris"].src = "./images/debris2_blue.png";
-images["spaceship"].src = "./images/double_ship.png";
-images["asteroid"].src = "./images/asteroid_blue.png";
-images["missile"].src = "./images/shot2.png";
-images["explosion"].src = "./images/explosion_alpha.png";
 
 /**
  * [Canvas API]{@link https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API}
  * @constant {HTMLCanvasElement} canvas
 */
-window.canvas = document.querySelector("#board");
-window.canvas.width = 800;
-window.canvas.height = 600;
+const canvas = document.querySelector("#board");
+const BASE_WIDTH = canvas.width; // set in index.html
+const BASE_HEIGHT = canvas.height;
 
 /**
  * [Canvas's context]{@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D}
  * @constant {CanvasRenderingContext2D} ctx
  */
-const ctx = window.canvas.getContext("2d");
+const ctx = canvas.getContext("2d");
 
 /**
  * Uses five of CanvasRenderingContext2D's many methods
@@ -43,30 +30,29 @@ const ctx = window.canvas.getContext("2d");
  * @returns {undefined} Causes side-effect of drawing image
  */
 function draw(sprite) {
-  // guard for when image not loaded yet
-  if (images[sprite.type] === undefined || !images[sprite.type].complete) {
-    return;
+  if (images[sprite.type] !== undefined) {
+    images[sprite.type].then(image => {
+      ctx.save();
+      ctx.translate(sprite.xCentre, sprite.yCentre);
+      ctx.rotate(sprite.angle);
+      ctx.drawImage(image, sprite.column * sprite.width, sprite.row * sprite.height,
+        sprite.width, sprite.height,
+        -(window.state.scale * sprite.width)/2, -(window.state.scale * sprite.height)/2,
+        window.state.scale * sprite.width, window.state.scale * sprite.height);
+      ctx.restore();
+    });
   }
-  ctx.save();
-  ctx.translate(sprite.xCentre, sprite.yCentre);
-  ctx.rotate(sprite.angle);
-  ctx.drawImage(images[sprite.type], sprite.column * sprite.width, sprite.row * sprite.height,
-      sprite.width, sprite.height,
-      -(window.state.scale * sprite.width)/2, -(window.state.scale * sprite.height)/2,
-      window.state.scale * sprite.width, window.state.scale * sprite.height);
-  ctx.restore();
 }
 
 function clearScene() {
-  ctx.clearRect(0, 0, window.canvas.width, window.canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 function paintScene(imageName) {
-  const image = images[imageName];
-  if (image === undefined || !image.complete) {
-    return;
+  if (images[imageName] !== undefined) {
+    images[imageName].then(image =>
+      ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvas.width, canvas.height));
   }
-  ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, window.canvas.width, window.canvas.height);
 }
 
 function scaleText() {
@@ -85,14 +71,14 @@ function writeText() {
  * @returns {float} Amount to multiply the sizes of images
  * @param {pixels} windowWidth -- originally hardwired to window.innerWidth
  * @param {pixels} windowHeight -- originally hardwired to window.innerHeight
- * @param {pixels} baseWidth -- originally hardwired to backgroundImage.width
- * @param {pixels} baseHeight -- originally hardwired to backgroundImage.height
+ * @param {pixels} BASE_WIDTH -- originally hardwired to backgroundImage.width
+ * @param {pixels} BASE_HEIGHT -- originally hardwired to backgroundImage.height
  */
 function getScale(baseWidth, baseHeight) {
   if (window.innerHeight > window.innerWidth) { // portrait
     return window.innerWidth/baseWidth;         // maximise width
   }
-  return window.innerHeight/baseHeight;         // maximise height
+  return window.innerHeight/baseWidth;         // maximise height
 }
 
 /**
@@ -102,16 +88,16 @@ function getScale(baseWidth, baseHeight) {
  * @param {Object} state -- changes scale and updates sprites and missiles positions
  * @param {pixels} windowWidth -- originally hardwired to window.innerWidth
  * @param {pixels} windowHeight -- originally hardwired to window.innerHeight
- * @param {pixels} baseWidth -- originally hardwired to backgroundImage.width
- * @param {pixels} baseHeight -- originally hardwired to backgroundImage.height
+ * @param {pixels} BASE_WIDTH -- originally hardwired to backgroundImage.width
+ * @param {pixels} BASE_HEIGHT -- originally hardwired to backgroundImage.height
  */
-function resizeListener(baseWidth, baseHeight, event) {
+function resizeListener(event) {
   const oldScale = window.state.scale;
-  window.state.scale = getScale(baseWidth, baseHeight);
-  window.canvas.width = window.state.scale * baseWidth;
-  window.canvas.height = window.state.scale * baseHeight;
-  window.state.width = window.canvas.width;
-  window.state.height = window.canvas.height;
+  window.state.scale = getScale(BASE_WIDTH, BASE_HEIGHT);
+  canvas.width = window.state.scale * BASE_WIDTH;
+  canvas.height = window.state.scale * BASE_HEIGHT;
+  window.state.width = canvas.width;
+  window.state.height = canvas.height;
   scaleText(window.state.scale);
   window.state.sprites.forEach(function (sprite) {
     sprite.xCentre *= window.state.scale/oldScale;
@@ -135,5 +121,5 @@ function drawState() {
   paintScene("debris");
 }
 
-export { resizeListener, clearScene, drawState };
+// export { resizeListener, clearScene, drawState };
 

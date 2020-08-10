@@ -10,59 +10,65 @@ One of Eddi Woo's excellent youtube lessons <a href="https://www.youtube.com/wat
 What is the basic building block of all mathematics? (A surprising answer!)</a> explains that sets and
 what operations hold between elements of a given set form the foundation of the subject.
 
-This used to be called <em>calculus</em>, which has become synonymous with "the calculus of infinitesimals", 
-thereby robbing language of an important concept which is possibly why the HTDP authors used <em>arithmetic</em> 
-for the same concept.
-
-I prefer <em>calculus of images</em> since we can actually also use images to do differentiation and integration.
+A reason HTDP started with <em>arithmetic</em> of various types was because it lead to <em>algebra</em>
+where things are assigned to variables, which can be done with images &mash; though that requires different
+thinking to most <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial">canvas tutorials</a>
+which don't encourage thinking of images as being akin to integers, strings and other atomic types.
 
 <h3>What is the type of an image?</h3>
 
-JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/Image">Image Object</a> is
-the natural choice, but it took quite a bit of frustration to figure out how to get functions to return this object
-instead of drawing on the canvas. It involved trip down the rabbit hole of ImageData and other extraneous stuff, 
-but I eventually found what I wanted was 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL">toDataURL</a> which stores
-the object as a png bitmap (for some reason, keeping drawings in vector format would require third party libraries).
 
-Images are not created in the actual canvas, but in a hidden doodling area:
+Instead of drawing things on a screen, the idea is that functions like circle, square etc return something to
+pass functions like overlay, underlay, above, and beside which in turn return something that can be drawn.
+
+Figuring out what should be returned lead into a maze whose dead ends included ImageData and Image Obects themselves.
+Finally, I reached the enlightenment that what should be returned is a 
+<a href="https://javascript.info/promise-basics">promise</a>.
+
+To draw what is returned from what Racket calls 
+<a href="https://docs.racket-lang.org/teachpack/2htdpimage.html#%28def._%28%28lib._2htdp%2Fimage..rkt%29._image~3f%29%29">
+image?</a> requires <em>then</em> chaining:
 
 ```javascript
-const shadowCanvas = document.createElement("canvas");
-const shadowCtx = shadowCanvas.getContext("2d");
+circle(20, "solid", "red")
+.then(image => ctx.drawImage(image, 0, 0));
 ```
 
-An image creation function follows these steps:
+Though a little ugly and alien at first, it sidesteps many other complexities of web application development.
 
-<ol>
-  <li>The bounding box &mdash; maximum width and height of the given shape &mdash; is calcuated. On gotcha is
-for stroked shapes, the width of the line needs to be added to these.</li>
-  <li>The shadow canvas is sized to this box</li>
-  <li>shadowCtx.clearRect(0, 0, width, height);</li>
-  <li>The shape gets drawn on the shadowCtx using some of the 
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">CanvasRenderingContext2D's</a>
-many, many methods</li>
-  <li>image.src = shadowCanvas.toDataURL(); return image;</li>
-</ol>
+<h3>What operations can be done on images?</h3>
 
-<h3>What operations can be done on an image?</h3>
-
-So now that we have some kinde of <em>atoms</em> which can be allocated to literals to build things out of, 
-how can we assemble things out of them?
+Much as summing a list of integers would return a new integer, the basic idea here is that functions that consume
+any number of images returns a new image. (Due to the nitty-gritty of JavaScript, in the same way that the basic
+image creation functions return promises containing the image, these functions similarly have promises as an
+outer wrapper).
 
 Again, here I'm going to use <a href="https://docs.racket-lang.org/teachpack/2htdpimage-guide.html">HTDP</a> as a guide
 and translate it's examples to JavaScript.
 
 ```javascript
-above(createTriangle(40, "solid", "red"), createRectangle(40, 30, "solid" "black"));
+above(triangle(40, "solid", "red"), rectangle(40, 30, "solid" "black"));
 ```
 
-should create a simple picture of a house. Note there are no co-ordinates, the above function hides all the maths.
+creates a simple picture of a house. 
+
+<img src="house1.png" />
+
+Note there are no co-ordinates, the above function hides all the maths.
 
 This function was my introduction to JavaScript's relatively new 
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters">funName(...args)</a>
 syntax which allows a function to take any number of parameters and converts them into a list.
 
+
+The next step was to emulate 2htdpimage's beside operator, which only needed slight addaption of the above operator:
+
+```javascript
+above( beside(triangle(40, "solid", "red"), triangle(40, "solid", "red"))
+     , rectangle(80, 30, "solid", "black"));
+```
+
+<img src="house2.png" />
 
 <h2>Drawing traditional maths graphs</h2>
 

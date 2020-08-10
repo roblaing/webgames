@@ -64,8 +64,11 @@ big ball of mud</a>, the heart of good design is to compose things out of smalle
 designed can then be re-used in other projects.</p>
 <p>In software, each of these <em>design units</em> is a separate file. For this game, I split the design
 into one <em>main</em> script and three modules.</p>
-<p>The main script, game1.js, is the file called by index.html, and to use JavaScript's relatively recent (2015) support of
-<a href="https://en.wikipedia.org/wiki/Modular_programming">modular programming</a>, it needs
+<h3>My lost love of JavaScript's module system</h3>
+<p>This learning project lead down quite a lot of passages which at first seemed very promising, but I subsequenly
+decided were blind alleys.</p>
+<p>One of them was and to use JavaScript's relatively recent (2015) support of
+<a href="https://en.wikipedia.org/wiki/Modular_programming">modular programming</a>, needing
 <code>type=&quot;module&quot;</code> added:</p>
 <pre class="prettyprint source lang-html"><code>  &lt;script type=&quot;module&quot; src=&quot;game1.js&quot;>&lt;/script>
 </code></pre>
@@ -73,19 +76,7 @@ into one <em>main</em> script and three modules.</p>
 CORS errors if any of its JavaScript files are <code>type=&quot;module&quot;</code>.</p>
 <p>I found it confusing that the client that loads modules gets labeled a module, and that the modules themselves
 are not listed in the html file, and it took some cursing and frustration to figure this out.</p>
-<p>These units are related to unit testing, and one of my goals in this exercise was to learn a JavaScript testing framework,
-and I somewhat arbitrarily settled on <a href="https://jasmine.github.io/">Jasmine</a>, which was initially extremely frustrating.</p>
-<p>Two traps lay in wait for me with the game1.js file:</p>
-<ol>
-  <li>The html file Jasmine loads &mdash; its default name is SpecRunner.html &mdash; is not the same as my index.html
-with the canvas object and other elements. This meant Jasmine set canvas to null which broke the rest of the code, and
-this couldn't be fixed with mocking, or spying as Jasmine calls it, because it happens before the test code is run. </li>
-  <li>The main file starts an infinite loop, which in turn freezes Jasmine.</li>
-</ol>
-<p>This makes the main file which attaches listeners to html elements and launches the animation loop untestable —
-at least at my skill level.</p>
-<p>But this isn't serious since all the functions which need testing are moved to three modules which the main file
-accesses thus:</p>
+<p>Anyways, the game1.js got all it needed from the three module files like this:</p>
 <pre class="prettyprint source lang-javascript"><code>import { resizeListener, clearScene, drawState } from &quot;./image.js&quot;;
 import { playSound } from &quot;./sound.js&quot;;
 import { initState, updateState, uiListener } from &quot;./state-loop.js&quot;;
@@ -95,6 +86,18 @@ import { initState, updateState, uiListener } from &quot;./state-loop.js&quot;;
 hide all the horrors of the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API">Web Audio API</a>
 in one file, exposed to the client as just one function, and similarly the horrors of the
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial">canvas</a> in another.</p>
+<p>Doing it like this turned into a good exercise on the power of encapsulation and information hiding. Unfortunately, it
+also made testing and documenting way harder. Furthemore, when I wanted to make the game more data driven, I found
+the <em>silofication</em> of these firm walls between modules did more harm than good.</p>
+<p>So I changed my index.html to:</p>
+<pre class="prettyprint source lang-html"><code>  &lt;script src=&quot;image.js&quot;>&lt;/script>
+  &lt;script src=&quot;sound.js&quot;>&lt;/script>
+  &lt;script src=&quot;state-loop.js&quot;>&lt;/script>
+  &lt;script src=&quot;game1.js&quot;>&lt;/script>
+</code></pre>
+<p>Note the client file must be loaded after its modules.</p>
+<p>Part of my motivation for this was wanting to move data such as the sound and image files to a JSON file
+to make it easy to change the facade of the game.</p>
 <p>The guts of the application in game1.js consists of this infinite loop:</p>
 <pre class="prettyprint source lang-javascript"><code>function animationLoop() {
   clearScene();
@@ -241,7 +244,7 @@ I decided to refactor my code.</p>
 but is one I use a lot.</p>
 <a href="http://rmurphey.com/blog/2009/10/15/using-objects-to-organize-your-code">
 Object Literals</a> are comma separated key-value pairs between curly brackets which differ from
-to traditional OOP classes in that they don't require instantiation using the <em>new</em> operator. 
+traditional OOP classes in that they don't require instantiation using the <em>new</em> operator. 
 <p>A quirk of mine — which result in warnings
 from <a href="https://www.jslint.com/">jslint</a> and <a href="https://jshint.com/">jshint</a> is addressing
 values stored in object literals as <code>images[&quot;missile&quot;]</code> rather than <code>images.missile</code>. This is
@@ -683,16 +686,295 @@ with <code>window.addEventListener(&quot;unload&quot;,...</code> rather than a f
 
 
 
+
+
+
+<section>
+
+<header>
+    
+        <h2>image.js</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description">Module holding audio and image data and functions</div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>sound.js</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description">Module simplifying JavaScript's audio to a public interface of an images dictionary and playSound function</div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="sound.js.html">sound.js</a>, <a href="sound.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>state-loop.js</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description">Module that updates state according to clock ticks and user input</div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="state-loop.js.html">state-loop.js</a>, <a href="state-loop.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-image.html">image</a></li><li><a href="module-sound.html">sound</a></li><li><a href="module-state-loop.html">state-loop</a></li></ul><h3>Namespaces</h3><ul><li><a href="module-state-loop-Sprite.html">Sprite</a></li></ul><h3>Global</h3><ul><li><a href="global.html#animationLoop">animationLoop</a></li><li><a href="global.html#state">state</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Sprite.html">Sprite</a></li></ul><h3>Global</h3><ul><li><a href="global.html#animationLoop">animationLoop</a></li><li><a href="global.html#canvas">canvas</a></li><li><a href="global.html#createAsteroid">createAsteroid</a></li><li><a href="global.html#createMissile">createMissile</a></li><li><a href="global.html#createSpaceship">createSpaceship</a></li><li><a href="global.html#ctx">ctx</a></li><li><a href="global.html#draw">draw</a></li><li><a href="global.html#getScale">getScale</a></li><li><a href="global.html#images">images</a></li><li><a href="global.html#inputStates">inputStates</a></li><li><a href="global.html#nextTick">nextTick</a></li><li><a href="global.html#playSound">playSound</a></li><li><a href="global.html#resizeListener">resizeListener</a></li><li><a href="global.html#state">state</a></li><li><a href="global.html#uiListener">uiListener</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Sat Aug 08 2020 19:01:11 GMT+0200 (South Africa Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Mon Aug 10 2020 17:47:45 GMT+0200 (South Africa Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

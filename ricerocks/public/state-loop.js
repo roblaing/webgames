@@ -1,6 +1,5 @@
 /**
  * @file Module that updates state according to clock ticks and user input
- * @module state-loop
  */
 
 /**
@@ -82,8 +81,8 @@ function random_distance(sprite, r2, ratio) {
   let y2;
   let d;
   do {
-    x2 = Math.random() * (window.canvas.width + 1);
-    y2 = Math.random() * (window.canvas.height + 1);
+    x2 = Math.random() * (canvas.width + 1);
+    y2 = Math.random() * (canvas.height + 1);
     d = Math.hypot(x2 - x1, y2 - y1);
   } while (d < minDistance);
   return [x2, y2];
@@ -106,8 +105,8 @@ function createSpaceship() {
          , height: 90
          , row: 0
          , column: 0
-         , xCentre: window.canvas.width/2
-         , yCentre: window.canvas.height/2
+         , xCentre: canvas.width/2
+         , yCentre: canvas.height/2
          , xDelta: 0
          , yDelta: 0
          , radius: 35
@@ -209,15 +208,15 @@ function nextTick(sprite) { // best to bring whole object
   sprite.angle += sprite.angleDelta;
   // space is toroidal
   if (sprite.xCentre < 0) {
-    sprite.xCentre = window.canvas.width;
+    sprite.xCentre = canvas.width;
   }
-  if (sprite.xCentre > window.canvas.width) {
+  if (sprite.xCentre > canvas.width) {
     sprite.xCentre = 0;
   }
   if (sprite.yCentre < 0) {
-    sprite.yCentre = window.canvas.height;
+    sprite.yCentre = canvas.height;
   }
-  if (sprite.yCentre > window.canvas.height) {
+  if (sprite.yCentre > canvas.height) {
     sprite.yCentre = 0;
   }
   // specific to type updates
@@ -263,7 +262,7 @@ function nextTick(sprite) { // best to bring whole object
     case "explosion":
       sprite.column = Math.floor((sprite.tick/sprite.lifespan) * 24);
       if ((sprite.lifespan - 1) === sprite.tick) {
-        unexplode(sprite, window.state.sprites[0], window.canvas.width, window.canvas.height, window.state.scale);
+        unexplode(sprite, window.state.sprites[0], canvas.width, canvas.height, window.state.scale);
       }
       sprite.tick++;
       return;
@@ -354,5 +353,5 @@ function updateState() {
   window.state.missiles = window.state.missiles.filter((missile) => missile.tick < missile.lifespan);
 }
 
-export { initState, updateState, uiListener };
+// export { initState, updateState, uiListener };
 

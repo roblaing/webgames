@@ -26,7 +26,9 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>/**
+            <pre class="prettyprint source linenums"><code>"use strict";
+
+/**
  * This is a translation of a Racket package, partly done to learn JavaScript's module conventions.
  * @file image
  * @see [HTDP image package]{@link https://docs.racket-lang.org/teachpack/2htdpimage.html}
@@ -45,6 +47,147 @@ const lineStyle = { "solid": 0.0
                   , "short-dash": 0.0 
                   , "dot-dash": 0.0
                   }
+
+/**
+ * (above i1 i2 is ...) → image? Constructs an image by placing all of the argument images in a vertical row, 
+ * aligned along their centers.
+ * @function above
+ */ 
+function above(...images) {
+  let width;
+  let height;
+  let x;
+  let y;
+  let image = new Image();
+  return Promise.all(images)
+  .then(values => {
+    width = Math.max(...values.map(img => img.width));
+    height = values.map(img => img.height).reduce((a, b) => a + b, 0);
+    shadowCanvas.width = width;
+    shadowCanvas.height = height;
+    shadowCtx.clearRect(0, 0, width, height);
+    y = 0;
+    for (let idx = 0; idx &lt; values.length; idx++ ) {
+      x = (width/2) - (values[idx].width/2);
+      shadowCtx.drawImage(values[idx], x, y)
+      y += values[idx].height;
+    }
+    image.src = shadowCanvas.toDataURL();
+    return new Promise(function(resolve, reject) {
+      image.addEventListener("load", (event) => resolve(image));
+    });
+  });
+}
+
+/**
+ * (beside i1 i2 is ...) → image? Constructs an image by placing all of the argument images in a horizontal row, 
+ * aligned along their centers.
+ * @function beside
+ */
+function beside(...images) {
+  let width;
+  let height;
+  let x;
+  let y;
+  let image = new Image();
+  return Promise.all(images)
+  .then(values => {
+    width = values.map(img => img.width).reduce((a, b) => a + b, 0);
+    height = Math.max(...values.map(img => img.height));
+    shadowCanvas.width = width;
+    shadowCanvas.height = height;
+    shadowCtx.clearRect(0, 0, width, height);
+    x = 0;
+    for (let idx = 0; idx &lt; values.length; idx++ ) {
+      y = (height/2) - (values[idx].height/2);
+      shadowCtx.drawImage(values[idx], x, y)
+      x += values[idx].width;
+    }
+    image.src = shadowCanvas.toDataURL();
+    return new Promise(function(resolve, reject) {
+      image.addEventListener("load", (event) => resolve(image));
+    });
+  });
+}
+
+/**
+ * (beside/align y-place i1 i2 is ...) → image?
+ * Constructs an image by placing all of the argument images in a horizontal row, 
+ * lined up as indicated by the y-place argument. 
+ * @function besideAlign
+ */
+
+/**
+ * (overlay i1 i2 is ...) → image? 
+ * The first argument goes on top of the second argument, 
+ * which goes on top of the third argument, etc. The images are all lined up on their centers.
+ * @function overlay
+ */
+function overlay(...images) {
+  let width;
+  let height;
+  let x;
+  let y;
+  let image = new Image();
+  return Promise.all(images)
+  .then(values => {
+    width = Math.max(...values.map(img => img.width));
+    height = Math.max(...values.map(img => img.height));
+    shadowCanvas.width = width;
+    shadowCanvas.height = height;
+    shadowCtx.clearRect(0, 0, width, height);
+    for (let idx = values.length - 1; idx >= 0; idx-- ) {
+      x = (width/2) - (values[idx].width/2);
+      y = (height/2) - (values[idx].height/2);
+      shadowCtx.drawImage(values[idx], x, y)
+    }
+    image.src = shadowCanvas.toDataURL();
+    return new Promise(function(resolve, reject) {
+      image.addEventListener("load", (event) => resolve(image));
+    });
+  });
+}
+
+function underlay(...images) {
+  let width;
+  let height;
+  let x;
+  let y;
+  let image = new Image();
+  return Promise.all(images)
+  .then(values => {
+    width = Math.max(...values.map(img => img.width));
+    height = Math.max(...values.map(img => img.height));
+    shadowCanvas.width = width;
+    shadowCanvas.height = height;
+    shadowCtx.clearRect(0, 0, width, height);
+    for (let idx = 0; idx &lt; values.length; idx++ ) {
+      x = (width/2) - (values[idx].width/2);
+      y = (height/2) - (values[idx].height/2);
+      shadowCtx.drawImage(values[idx], x, y)
+    }
+    image.src = shadowCanvas.toDataURL();
+    return new Promise(function(resolve, reject) {
+      image.addEventListener("load", (event) => resolve(image));
+    });
+  });
+}
+
+
+/**
+ * (place-image image x y scene) → image?
+ * @function placeImage
+ */ 
+
+function placeImage(promise, centreX, centreY, scene) {
+  promise.then(image => {
+    const x = centreX - image.width/2;
+    const y = centreY - image.height/2;
+    ctx.drawImage(image, x, y);
+  });
+}
+
+// auxiliaries for createShape functions
 
 function fillShape(color) {
   shadowCtx.fillStyle = color;
@@ -65,93 +208,7 @@ function strokeShape(penOrColor) {
   shadowCtx.stroke();
 }
 
-/**
- * (place-image image x y scene) → image?
- * @function placeImage
- */ 
-
-function placeImage(image, centreX, centreY, scene) {
-  const x = image.width/2 - centreX;
-  const y = image.height/2 - centreY;
-  if (image.complete) {
-    ctx.drawImage(image, centreX, centreY);
-  } else {
-    image.addEventListener("load", function() {
-      ctx.drawImage(image, centreX, centreY);
-    });
-  }
-}
-
-/**
- * (circle radius mode color) → image? or (circle radius outline-mode pen-or-color) → image?
- * @see [MDN arc]{@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/arc}
- * @function createCircle
- * @returns {Shape}
- * @param {Number} radius - not negative.
- * @param {("solid"|"outline"|0..255)} mode - solid=255, outline=0, inbetween transparency
- * @param {Pen|Color} penOrColor - a Pen or Color type
- * ctx.lineCap = "butt" || "round" || "square";
- * ctx.lineJoin = "bevel" || "round" || "miter";
- * @returns {Image}
- */
-function createCircle(radius, mode, penOrColor) {
-  const image = new Image();
-  let width = 2 * radius;
-  let height = width;
-  if (penOrColor.hasOwnProperty("width")) {
-    width += penOrColor.width;
-    height += penOrColor.width;
-  } else {
-    width += 1;
-    height += 1;
-  } 
-  shadowCanvas.width = width;
-  shadowCanvas.height = height;
-  shadowCtx.clearRect(0, 0, width, height);
-  shadowCtx.beginPath();
-  shadowCtx.arc(width/2, height/2, radius, 0, 2*Math.PI);
-  switch (mode) {
-    case "solid": fillShape(penOrColor);
-    case "outline": strokeShape(penOrColor);
-  }
-  image.src = shadowCanvas.toDataURL();
-  return image;
-}
-
-/**
- * (rectangle width height mode color) → image?
- * @see [MDN arc]{@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rect}
- */
-function createRectangle(width, height, mode, penOrColor) {
-  const image = new Image();
-  if (penOrColor.hasOwnProperty("width")) {
-    width += penOrColor.width;
-    height += penOrColor.width;
-  } else {
-    width += 1;
-    height += 1;
-  } 
-  shadowCanvas.width = width;
-  shadowCanvas.height = height;
-  shadowCtx.clearRect(0, 0, width, height);
-  shadowCtx.beginPath();
-  shadowCtx.rect(0, 0, width, height);   // only difference
-  switch (mode) {
-    case "solid": fillShape(penOrColor);
-    case "outline": strokeShape(penOrColor);
-  }
-  image.src = shadowCanvas.toDataURL();
-  return image;
-}
-
-/**
- * (triangle side-length mode color) → image? Constructs a upward-pointing equilateral triangle.
- * @see [MDN arc]{@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rect}
- */
-function createTriangle(side, mode, penOrColor) {
-  const image = new Image();
-  let width = side;
-  let height = side * Math.sin(Math.PI/3);
+function setupShape(width, height, penOrColor) {
   let padding;
   if (penOrColor.hasOwnProperty("width")) {
     padding = penOrColor.width;
@@ -164,6 +221,77 @@ function createTriangle(side, mode, penOrColor) {
   shadowCanvas.height = height;
   shadowCtx.clearRect(0, 0, width, height);
   shadowCtx.beginPath();
+  return [width, height];
+}
+
+/**
+ * (circle radius mode color) → image? or (circle radius outline-mode pen-or-color) → image?
+ * @see [MDN arc]{@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/arc}
+ * @function createCircle
+ * @returns {Shape}
+ * @param {Number} radius - not negative.
+ * @param {("solid"|"outline"|0..255)} mode - solid=255, outline=0, inbetween transparency
+ * @param {Pen|Color} penOrColor - a Pen or Color type
+ * ctx.lineCap = "butt" || "round" || "square";
+ * ctx.lineJoin = "bevel" || "round" || "miter";
+ * @returns {promise}
+ */
+function circle(radius, mode, penOrColor) {
+  const image = new Image();
+  let width = 2 * radius;
+  let height = width;
+  [width, height] = setupShape(width, height, penOrColor)
+  shadowCtx.arc(width/2, height/2, radius, 0, 2*Math.PI);
+  switch (mode) {
+    case "solid": fillShape(penOrColor);
+    case "outline": strokeShape(penOrColor);
+  }
+  image.src = shadowCanvas.toDataURL();
+  return new Promise(function(resolve, reject) {
+    image.addEventListener("load", (event) => resolve(image));
+  });
+}
+
+/**
+ * (rectangle width height mode color) → image?
+ * @see [MDN arc]{@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rect}
+ */
+function rectangle(width, height, mode, penOrColor) {
+  const image = new Image();
+  [width, height] = setupShape(width, height, penOrColor)
+  shadowCtx.rect(0, 0, width, height);   // only difference
+  switch (mode) {
+    case "solid": fillShape(penOrColor);
+    case "outline": strokeShape(penOrColor);
+  }
+  image.src = shadowCanvas.toDataURL();
+  return new Promise(function(resolve, reject) {
+    image.addEventListener("load", (event) => resolve(image));
+  });
+}
+
+/**
+ * (square side-len mode color) → image?
+ */
+function square(sideLength, mode, penOrColor) {
+  return rectangle(sideLength, sideLength, mode, penOrColor);
+}
+
+/**
+ * (triangle side-length mode color) → image? Constructs a upward-pointing equilateral triangle.
+ * @see [MDN arc]{@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rect}
+ */
+function triangle(side, mode, penOrColor) {
+  const image = new Image();
+  let padding;
+  if (penOrColor.hasOwnProperty("width")) {
+    padding = penOrColor.width;
+  } else {
+    padding = 1;
+  }
+  let width = side;
+  let height = side * Math.sin(Math.PI/3);
+  [width, height] = setupShape(width, height, penOrColor)
   shadowCtx.moveTo(padding/2, height - (padding/2));
   shadowCtx.lineTo(width/2, (padding/2));
   shadowCtx.lineTo(width - (padding/2), height - (padding/2));
@@ -173,74 +301,11 @@ function createTriangle(side, mode, penOrColor) {
     case "outline": strokeShape(penOrColor);
   }
   image.src = shadowCanvas.toDataURL();
-  return image;
+  return new Promise(function(resolve, reject) {
+    image.addEventListener("load", (event) => resolve(image));
+  });
 }
 
-const redSolidCircle = createCircle(20, "solid", "red");
-const circleOutline = createCircle(20, "outline", { "color": "black" 
-                                                  , "width": 2
-                                                  , "style": "solid"
-                                                  , "cap": "butt"
-                                                  , "join": "miter"
-                                                  });
-
-const blackBox = createRectangle(40, 30, "solid", "black");
-const redTriangle = createTriangle(40, "solid", "red");
-
-placeImage(redTriangle, canvas.width/2, canvas.height/2, null);
-// placeImage(blackBox, canvas.width/2, canvas.height/2, null);
-
-// placeImage(redSolidCircle, canvas.width/2, canvas.height/2, null);
-// placeImage(circleOutline, canvas.width/2, canvas.height/2, null);
-
-
-
-/**
- * (struct color (red green blue alpha)...
- * @typedef {(String|Object)}} Color
- * @property {0..255} red - byte
- * @property {0..255} green - byte
- * @property {0..255} blue - byte
- * @property {0..255} alpha - transparency
- */
-
-/**
- * (struct pen (color width style cap join)...
- * @typedef {Object} Pen
- * @property {Color} color
- * @property {0..255} width
- * @property {("solid"|"dot"|"long-dash"|"short-dash"|"dot-dash")} style
- * @property {("round"|"projecting"|"butt")} cap
- * @property {("round"|"bevel"|"miter")} join
- */
-
-/*
-// red square
-ctx.beginPath();
-ctx.rect(20, 40, 50, 50);
-ctx.fillStyle = "#FF0000";
-ctx.fill();
-ctx.closePath();
-
-
-ctx.beginPath();
-ctx.rect(160, 10, 100, 40);
-ctx.strokeStyle = "rgba(0, 0, 255, 0.5)";
-ctx.stroke();
-ctx.closePath();
-*/
-
-// above
-
-// beside
-
-// overlayAlign
-
-
-/*
-export { circle
-       };
-*/
 </code></pre>
         </article>
     </section>
@@ -251,13 +316,13 @@ export { circle
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#createCircle">createCircle</a></li><li><a href="global.html#createRectangle">createRectangle</a></li><li><a href="global.html#createTriangle">createTriangle</a></li><li><a href="global.html#graphF">graphF</a></li><li><a href="global.html#placeImage">placeImage</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#above">above</a></li><li><a href="global.html#beside">beside</a></li><li><a href="global.html#besideAlign">besideAlign</a></li><li><a href="global.html#createCircle">createCircle</a></li><li><a href="global.html#graphF">graphF</a></li><li><a href="global.html#overlay">overlay</a></li><li><a href="global.html#placeImage">placeImage</a></li><li><a href="global.html#rectangle">rectangle</a></li><li><a href="global.html#square">square</a></li><li><a href="global.html#triangle">triangle</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Sun Aug 09 2020 19:02:17 GMT+0200 (South Africa Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Mon Aug 10 2020 20:42:49 GMT+0200 (South Africa Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

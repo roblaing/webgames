@@ -1,0 +1,17 @@
+{
+	"images": {
+		"background": "./images/nebula_blue.f2014.png",
+		"debris": "./images/debris2_blue.png",
+		"spaceship": "./images/double_ship.png",
+		"asteroid": "./images/asteroid_blue.png",
+		"explosion": "./images/explosion_alpha.png",
+		"missile": "./images/shot2.png"
+	},
+	"sounds": {
+		"background": "./sounds/soundtrack.ogg",
+		"thrust": "./sounds/thrust.ogg",
+		"missile": "./sounds/missile.ogg",
+		"explosion": "./sounds/explosion.ogg"
+	}
+}
+
