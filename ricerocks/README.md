@@ -517,6 +517,10 @@ playSound("missile");
 
 <h3>Graphics</h3>
 
+One subtledy with making the images promises to be called via .then chains rather than directly was the writing for
+lives and scores vanished. The reason was the order that the background got rendered was no longer predictable, so
+the writeText() function had to be called from within the paintScene(imageName) then block.
+
 One of the advantages of modularity I discovered here is it that it improves testability, which I find fairly tricky
 in a game like this.
 

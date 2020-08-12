@@ -1,12 +1,22 @@
 "use strict";
 
-/*	
-underlay(circle(6, "solid", "yellow"), square(4, "solid", "orange"))
+line(30, -30, "red")
+.then(image => ctx.drawImage(image, 0, 0));
+
+/*
+overlay(rectangle(60, 100, 127, "rgb(0, 255, 0)"),
+        rectangle(100, 60, 127, "rgb(0, 0, 255)"))
 .then(image => ctx.drawImage(image, 0, 0));
 */
 
-circle(20, "solid", "red")
+/*	
+underlay(circle(6, "solid", "yellow"), square(4, "solid", "orange"))
 .then(image => ctx.drawImage(image, 0, 0));
+
+
+ellipse(30, 60, 100, "blue")
+.then(image => ctx.drawImage(image, 0, 0));
+*/
 
 /*
 above( beside(triangle(40, "solid", "red"), triangle(30, "solid", "red"))
@@ -33,25 +43,6 @@ placeImage(triangle, canvas.width/2, canvas.height/2, null);
 // placeImage(circleOutline, canvas.width/2, canvas.height/2, null);
 
 // console.log(above(blackBox, redTriangle));
-
-/**
- * (struct color (red green blue alpha)...
- * @typedef {(String|Object)}} Color
- * @property {0..255} red - byte
- * @property {0..255} green - byte
- * @property {0..255} blue - byte
- * @property {0..255} alpha - transparency
- */
-
-/**
- * (struct pen (color width style cap join)...
- * @typedef {Object} Pen
- * @property {Color} color
- * @property {0..255} width
- * @property {("solid"|"dot"|"long-dash"|"short-dash"|"dot-dash")} style
- * @property {("round"|"projecting"|"butt")} cap
- * @property {("round"|"bevel"|"miter")} join
- */
 
 /*
 // red square

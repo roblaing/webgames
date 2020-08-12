@@ -39,16 +39,10 @@ fetch("ricerocks.json")
       image.addEventListener("load", () => resolve(image));
     });
   });
-  /* Needs be fixed with promises
   Object.keys(data.sounds).forEach(sound => {
-    sounds[sound] = audioCtx.createBufferSource();
+    sounds[sound] = audioCtx.createBufferSource(); // is already a promise
     loadSound(data.sounds[sound], sounds[sound]);
-    // should be moved to promise
-    sounds["background"].loop = true;
-    sounds["background"].connect(audioCtx.destination);
-    sounds["background"].start();
   });
-  */
 });
 
 window.addEventListener("DOMContentLoaded", setup);

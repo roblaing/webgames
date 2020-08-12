@@ -11,9 +11,9 @@ What is the basic building block of all mathematics? (A surprising answer!)</a> 
 what operations hold between elements of a given set form the foundation of the subject.
 
 A reason HTDP started with <em>arithmetic</em> of various types was because it lead to <em>algebra</em>
-where things are assigned to variables, which can be done with images &mash; though that requires different
+where things are assigned to variables, which can be done with images &mdash; though that requires different
 thinking to most <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial">canvas tutorials</a>
-which don't encourage thinking of images as being akin to integers, strings and other atomic types.
+which don't treat images as being akin to integers, strings and other atomic types.
 
 <h3>What is the type of an image?</h3>
 
@@ -82,12 +82,6 @@ is the top left corner. Is is easily moved to wherever we want the center to be 
 The second gotcha is the computer graphics convention is for down to be positive and up negative, so
 the sign of y needs to be flipped (ie -y).
 
-Lets start by defining the function I wish I had, which would let me 
-
-```javascript
-
-
-```
 
 Return values <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/createImageData">
 
@@ -95,6 +89,9 @@ Return values <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRe
 https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/createImageData
 
 <h3>Canvas co-ordiants -> Cartesian co-ordinates</h3>
+
+A gotcha with 'rgba(255, 0, 0, 0.5)' is the alpha value is a value between 0 and 1, not 0 and 255 as the other
+three values.
 
 <h2>Colour Calculations</h2>
 

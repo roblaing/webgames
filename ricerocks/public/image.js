@@ -37,8 +37,8 @@ function draw(sprite) {
       ctx.rotate(sprite.angle);
       ctx.drawImage(image, sprite.column * sprite.width, sprite.row * sprite.height,
         sprite.width, sprite.height,
-        -(window.state.scale * sprite.width)/2, -(window.state.scale * sprite.height)/2,
-        window.state.scale * sprite.width, window.state.scale * sprite.height);
+        -(state.scale * sprite.width)/2, -(state.scale * sprite.height)/2,
+        state.scale * sprite.width, state.scale * sprite.height);
       ctx.restore();
     });
   }
@@ -50,19 +50,11 @@ function clearScene() {
 
 function paintScene(imageName) {
   if (images[imageName] !== undefined) {
-    images[imageName].then(image =>
-      ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvas.width, canvas.height));
+    images[imageName].then(image => {
+      ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvas.width, canvas.height);
+      writeText();
+    });
   }
-}
-
-function scaleText() {
-  ctx.fillStyle = "white";
-  ctx.font = window.state.scale * 22 + "px monospace";
-}
-
-function writeText() {
-  ctx.fillText(`Lives ${window.state.lives}`, window.state.scale * 50, window.state.scale * 50);
-  ctx.fillText(`Score ${window.state.score}`, window.state.scale * 680, window.state.scale * 50);
 }
 
 /**
@@ -81,45 +73,50 @@ function getScale(baseWidth, baseHeight) {
   return window.innerHeight/baseWidth;         // maximise height
 }
 
-/**
- * The resizeListener event handler
- * @function resizeListener
- * @returns {undefined} Mutates the scale attribute of
- * @param {Object} state -- changes scale and updates sprites and missiles positions
- * @param {pixels} windowWidth -- originally hardwired to window.innerWidth
- * @param {pixels} windowHeight -- originally hardwired to window.innerHeight
- * @param {pixels} BASE_WIDTH -- originally hardwired to backgroundImage.width
- * @param {pixels} BASE_HEIGHT -- originally hardwired to backgroundImage.height
- */
-function resizeListener(event) {
-  const oldScale = window.state.scale;
-  window.state.scale = getScale(BASE_WIDTH, BASE_HEIGHT);
-  canvas.width = window.state.scale * BASE_WIDTH;
-  canvas.height = window.state.scale * BASE_HEIGHT;
-  window.state.width = canvas.width;
-  window.state.height = canvas.height;
-  scaleText(window.state.scale);
-  window.state.sprites.forEach(function (sprite) {
-    sprite.xCentre *= window.state.scale/oldScale;
-    sprite.yCentre *= window.state.scale/oldScale;
-    sprite.xDelta  *= window.state.scale/oldScale;
-    sprite.yDelta  *= window.state.scale/oldScale;
-  });
-  window.state.missiles.forEach(function (sprite) {
-    sprite.xCentre *= window.state.scale/oldScale;
-    sprite.yCentre *= window.state.scale/oldScale;
-    sprite.xDelta  *= window.state.scale/oldScale;
-    sprite.yDelta  *= window.state.scale/oldScale;
-  });
+function scaleText() {
+  ctx.fillStyle = "white";
+  ctx.font = `${state.scale * 22}px monospace`;
+}
+
+function writeText() {
+  ctx.fillText(`Lives ${state.lives}`, state.scale * 50, state.scale * 50);
+  ctx.fillText(`Score ${state.score}`, state.scale * 680, state.scale * 50);
 }
 
 function drawState() {
   paintScene("background");
-  window.state.sprites.forEach((sprite) => draw(sprite));
-  window.state.missiles.forEach((missile) => draw(missile));
-  writeText();
+  state.sprites.forEach((sprite) => draw(sprite));
+  state.missiles.forEach((missile) => draw(missile));
   paintScene("debris");
 }
+
+/**
+ * The resizeListener event handler
+ * @function resizeListener
+ * @returns {undefined} Mutates the scale attribute of
+ */
+function resizeListener(event) {
+  const oldScale = state.scale;
+  state.scale = getScale(BASE_WIDTH, BASE_HEIGHT);
+  canvas.width = state.scale * BASE_WIDTH;
+  canvas.height = state.scale * BASE_HEIGHT;
+  state.width = canvas.width;
+  state.height = canvas.height;
+  scaleText(state.scale);
+  state.sprites.forEach(function (sprite) {
+    sprite.xCentre *= state.scale/oldScale;
+    sprite.yCentre *= state.scale/oldScale;
+    sprite.xDelta  *= state.scale/oldScale;
+    sprite.yDelta  *= state.scale/oldScale;
+  });
+  state.missiles.forEach(function (sprite) {
+    sprite.xCentre *= state.scale/oldScale;
+    sprite.yCentre *= state.scale/oldScale;
+    sprite.xDelta  *= state.scale/oldScale;
+    sprite.yDelta  *= state.scale/oldScale;
+  });
+}
+
 
 // export { resizeListener, clearScene, drawState };
 

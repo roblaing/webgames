@@ -157,7 +157,7 @@ aligned along their centers.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="image.js.html">image.js</a>, <a href="image.js.html#line23">line 23</a>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line39">line 39</a>
     </li></ul></dd>
     
 
@@ -246,7 +246,7 @@ aligned along their centers.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="image.js.html">image.js</a>, <a href="image.js.html#line54">line 54</a>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line70">line 70</a>
     </li></ul></dd>
     
 
@@ -336,7 +336,7 @@ lined up as indicated by the y-place argument.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="image.js.html">image.js</a>, <a href="image.js.html#line85">line 85</a>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line101">line 101</a>
     </li></ul></dd>
     
 
@@ -372,7 +372,7 @@ lined up as indicated by the y-place argument.
     
 
     
-    <h4 class="name" id="createCircle"><span class="type-signature"></span>createCircle<span class="signature">(radius, mode, penOrColor)</span><span class="type-signature"> &rarr; {Shape|promise}</span></h4>
+    <h4 class="name" id="circle"><span class="type-signature"></span>circle<span class="signature">(radius, mode, penOrColor)</span><span class="type-signature"> &rarr; {Shape|promise}</span></h4>
     
 
     
@@ -477,7 +477,7 @@ lined up as indicated by the y-place argument.
 <span class="param-type"><a href="global.html#Pen">Pen</a></span>
 |
 
-<span class="param-type">Color</span>
+<span class="param-type"><a href="global.html#Color">Color</a></span>
 
 
             
@@ -530,7 +530,7 @@ ctx.lineJoin = "bevel" || "round" || "miter";</td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="image.js.html">image.js</a>, <a href="image.js.html#line199">line 199</a>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line226">line 226</a>
     </li></ul></dd>
     
 
@@ -596,6 +596,94 @@ ctx.lineJoin = "bevel" || "round" || "miter";</td>
 </dl>
 </li>
     </ul>
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="ellipse"><span class="type-signature"></span>ellipse<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    (ellipse width height mode color) → image?
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line256">line 256</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -813,6 +901,189 @@ ctx.lineJoin = "bevel" || "round" || "miter";</td>
     
 
     
+    <h4 class="name" id="line"><span class="type-signature"></span>line<span class="signature">(x1, y1)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Constructs an image representing a line segment that connects the points (0,0) to (x1,y1).
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>x1</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">pixel</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">end point from 0 (or start point to 0 if negative)</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>y1</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">pixel</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">end point from 0 (or start point to 0 if negative)</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line278">line 278</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>line(30, -30, "red") </code></pre>
+
+
+
+        
+            
+
+    
+
+    
     <h4 class="name" id="overlay"><span class="type-signature"></span>overlay<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
@@ -867,7 +1138,7 @@ which goes on top of the third argument, etc. The images are all lined up on the
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="image.js.html">image.js</a>, <a href="image.js.html#line92">line 92</a>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line108">line 108</a>
     </li></ul></dd>
     
 
@@ -955,7 +1226,7 @@ which goes on top of the third argument, etc. The images are all lined up on the
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="image.js.html">image.js</a>, <a href="image.js.html#line149">line 149</a>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line165">line 165</a>
     </li></ul></dd>
     
 
@@ -1043,7 +1314,7 @@ which goes on top of the third argument, etc. The images are all lined up on the
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="image.js.html">image.js</a>, <a href="image.js.html#line231">line 231</a>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line314">line 314</a>
     </li></ul></dd>
     
 
@@ -1138,7 +1409,95 @@ which goes on top of the third argument, etc. The images are all lined up on the
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="image.js.html">image.js</a>, <a href="image.js.html#line248">line 248</a>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line338">line 338</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="transparencyFillShape"><span class="type-signature"></span>transparencyFillShape<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    A gotcha here is htdp uses a 0..255 byte range whereas JavaScript a 0.0..1.0 range
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line186">line 186</a>
     </li></ul></dd>
     
 
@@ -1226,7 +1585,7 @@ which goes on top of the third argument, etc. The images are all lined up on the
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="image.js.html">image.js</a>, <a href="image.js.html#line256">line 256</a>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line346">line 346</a>
     </li></ul></dd>
     
 
@@ -1270,6 +1629,78 @@ which goes on top of the third argument, etc. The images are all lined up on the
         <h3 class="subsection-title">Type Definitions</h3>
 
         
+                
+<h4 class="name" id="Color">Color</h4>
+
+
+
+
+<div class="description">
+    Can be a CSS permitted color: keyword, rgb, rgba or hsl
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">String</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line16">line 16</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
                 
 <h4 class="name" id="Pen">Pen</h4>
 
@@ -1328,7 +1759,7 @@ which goes on top of the third argument, etc. The images are all lined up on the
             <td class="type">
             
                 
-<span class="param-type">Color</span>
+<span class="param-type"><a href="global.html#Color">Color</a></span>
 
 
             
@@ -1493,203 +1924,7 @@ which goes on top of the third argument, etc. The images are all lined up on the
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="main.js.html">main.js</a>, <a href="main.js.html#line46">line 46</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-            
-                
-<h4 class="name" id="%7D">}</h4>
-
-
-
-
-<div class="description">
-    (struct color (red green blue alpha)...
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">String</span>
-|
-
-<span class="param-type">Object</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-    <h5 class="subsection-title">Properties:</h5>
-
-    
-
-<table class="props">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>red</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">0..255</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">byte</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>green</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">0..255</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">byte</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>blue</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">0..255</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">byte</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>alpha</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">0..255</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">transparency</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="main.js.html">main.js</a>, <a href="main.js.html#line37">line 37</a>
+        <a href="image.js.html">image.js</a>, <a href="image.js.html#line21">line 21</a>
     </li></ul></dd>
     
 
@@ -1719,13 +1954,13 @@ which goes on top of the third argument, etc. The images are all lined up on the
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#above">above</a></li><li><a href="global.html#beside">beside</a></li><li><a href="global.html#besideAlign">besideAlign</a></li><li><a href="global.html#createCircle">createCircle</a></li><li><a href="global.html#graphF">graphF</a></li><li><a href="global.html#overlay">overlay</a></li><li><a href="global.html#placeImage">placeImage</a></li><li><a href="global.html#rectangle">rectangle</a></li><li><a href="global.html#square">square</a></li><li><a href="global.html#triangle">triangle</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#above">above</a></li><li><a href="global.html#beside">beside</a></li><li><a href="global.html#besideAlign">besideAlign</a></li><li><a href="global.html#circle">circle</a></li><li><a href="global.html#ellipse">ellipse</a></li><li><a href="global.html#graphF">graphF</a></li><li><a href="global.html#line">line</a></li><li><a href="global.html#overlay">overlay</a></li><li><a href="global.html#placeImage">placeImage</a></li><li><a href="global.html#rectangle">rectangle</a></li><li><a href="global.html#square">square</a></li><li><a href="global.html#transparencyFillShape">transparencyFillShape</a></li><li><a href="global.html#triangle">triangle</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Mon Aug 10 2020 20:42:50 GMT+0200 (South Africa Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Tue Aug 11 2020 12:10:36 GMT+0200 (South Africa Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

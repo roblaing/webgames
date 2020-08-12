@@ -13,6 +13,22 @@ const shadowCanvas = document.createElement("canvas");
 const shadowCtx = shadowCanvas.getContext("2d");
 shadowCtx.globalCompositeOperation = "copy";
 
+/**
+ * Can be a CSS permitted color: keyword, rgb, rgba or hsl
+ * @typedef {String} Color
+ */
+
+/**
+ * (struct pen (color width style cap join)...
+ * @typedef {Object} Pen
+ * @property {Color} color
+ * @property {0..255} width
+ * @property {("solid"|"dot"|"long-dash"|"short-dash"|"dot-dash")} style
+ * @property {("round"|"projecting"|"butt")} cap
+ * @property {("round"|"bevel"|"miter")} join
+ */
+
+
 const lineStyle = { "solid": 0.0
                   , "dot": 0.0
                   , "long-dash": 0.0
@@ -167,6 +183,17 @@ function fillShape(color) {
   shadowCtx.closePath();
 }
 
+/**
+ * A gotcha here is htdp uses a 0..255 byte range whereas JavaScript a 0.0..1.0 range
+ * @function transparencyFillShape
+ */
+function transparencyFillShape(color, alphaByte) {
+  const oldAlpha = shadowCtx.globalAlpha;
+  shadowCtx.globalAlpha = alphaByte/255;
+  fillShape(color);
+  shadowCtx.globalAlpha = oldAlpha;
+}
+
 function strokeShape(penOrColor) {
   if (typeof penOrColor === "string") {
     shadowCtx.strokeStyle = penOrColor;
@@ -199,7 +226,7 @@ function setupShape(width, height, penOrColor) {
 /**
  * (circle radius mode color) → image? or (circle radius outline-mode pen-or-color) → image?
  * @see [MDN arc]{@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/arc}
- * @function createCircle
+ * @function circle
  * @returns {Shape}
  * @param {Number} radius - not negative.
  * @param {("solid"|"outline"|0..255)} mode - solid=255, outline=0, inbetween transparency
@@ -217,6 +244,8 @@ function circle(radius, mode, penOrColor) {
   switch (mode) {
     case "solid": fillShape(penOrColor);
     case "outline": strokeShape(penOrColor);
+    default: // 0...255
+      transparencyFillShape(penOrColor, mode);
   }
   image.src = shadowCanvas.toDataURL();
   return new Promise(function(resolve, reject) {
@@ -225,16 +254,86 @@ function circle(radius, mode, penOrColor) {
 }
 
 /**
+ * (ellipse width height mode color) → image?
+ * @function ellipse
+ */
+function ellipse(width, height, mode, penOrColor) {
+  const image = new Image();
+  const x = width/2;
+  const y = height/2;
+  [width, height] = setupShape(width, height, penOrColor)
+  shadowCtx.ellipse(x, y, x, y, 0, 0, 2*Math.PI);
+  switch (mode) {
+    case "solid": fillShape(penOrColor);
+    case "outline": strokeShape(penOrColor);
+    default: // 0...255
+      transparencyFillShape(penOrColor, mode);
+  }
+  image.src = shadowCanvas.toDataURL();
+  return new Promise(function(resolve, reject) {
+    image.addEventListener("load", (event) => resolve(image));
+  });
+}
+
+/**
+ * Constructs an image representing a line segment that connects the points (0,0) to (x1,y1).
+ * @function line
+ * @param {pixel} x1 - end point from 0 (or start point to 0 if negative)
+ * @param {pixel} y1 - end point from 0 (or start point to 0 if negative)
+ * @returns {Promise}
+ * @example
+ * line(30, -30, "red") 
+ */
+function line(x1, y1, penOrColor) {
+  const image = new Image();
+  let width = x1;
+  let height = y1;
+  let x0 = 0;
+  let y0 = 0;
+  if (x1 < 0) {
+    x0 = -x1;
+    x1 = 0;
+  }
+  if (y1 < 0) {
+    y0 = -y1;
+    y1 = 0;
+  }
+  if (typeof penOrColor === "string") {
+    penOrColor = {"color": penOrColor, "width": 1, "style": "solid", "cap": "butt", "join": "miter"};
+  }
+  [width, height] = setupShape(width, height, penOrColor)
+  shadowCtx.moveTo(x0 + penOrColor.width, y0 + penOrColor.width);
+  shadowCtx.lineTo(x1 - penOrColor.width, y1 - penOrColor.width);
+  strokeShape(penOrColor);
+  image.src = shadowCanvas.toDataURL();
+  return new Promise(function(resolve, reject) {
+    image.addEventListener("load", (event) => resolve(image));
+  });
+}
+
+/**
+ * (text string font-size color) → image?
+ * Constructs an image that draws the given string, using the font size and color.
+ * @function text
+ */
+function text(string, fontSize, color) {
+  shadowCtx.font = `${fontSize}px serif`;
+}
+
+/**
  * (rectangle width height mode color) → image?
  * @see [MDN arc]{@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rect}
+ * @function rectangle
  */
 function rectangle(width, height, mode, penOrColor) {
   const image = new Image();
   [width, height] = setupShape(width, height, penOrColor)
-  shadowCtx.rect(0, 0, width, height);   // only difference
+  shadowCtx.rect(0, 0, width, height);
   switch (mode) {
     case "solid": fillShape(penOrColor);
     case "outline": strokeShape(penOrColor);
+    default: // 0...255
+      transparencyFillShape(penOrColor, mode);
   }
   image.src = shadowCanvas.toDataURL();
   return new Promise(function(resolve, reject) {
@@ -271,6 +370,8 @@ function triangle(side, mode, penOrColor) {
   switch (mode) {
     case "solid": fillShape(penOrColor);
     case "outline": strokeShape(penOrColor);
+    default: // 0...255
+      transparencyFillShape(penOrColor, mode);
   }
   image.src = shadowCanvas.toDataURL();
   return new Promise(function(resolve, reject) {

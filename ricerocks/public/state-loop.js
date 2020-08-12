@@ -8,13 +8,13 @@
  * @constant {Object} state
  * @property {Sprite[]} sprites - spaceship and 12 asteroids in list
  */
-window.state = { "sprites": []
-               , "missiles": []
-               , "lives": 3
-               , "score": 0
-               , "scale": 1.0
-               , "noise": null
-               };
+const state = { "sprites": []
+              , "missiles": []
+              , "lives": 3
+              , "score": 0
+              , "scale": 1.0
+              , "noise": null
+              };
 
 /**
  * Local object used by handlers to message the loop
@@ -62,13 +62,13 @@ const MISSILE_SPEED = 4;
 
 function collisions(sprite1, type) {
   if (type === "missile") {
-    return window.state.missiles.filter((sprite2) => sprite2.type === type &&
+    return state.missiles.filter((sprite2) => sprite2.type === type &&
       Math.hypot(sprite1.xCentre - sprite2.xCentre, sprite1.yCentre - sprite2.yCentre) <
-        (window.state.scale * (sprite1.radius + sprite2.radius)));
+        (state.scale * (sprite1.radius + sprite2.radius)));
   }
-  return window.state.sprites.filter((sprite2) => sprite2.type === type &&
+  return state.sprites.filter((sprite2) => sprite2.type === type &&
     Math.hypot(sprite1.xCentre - sprite2.xCentre, sprite1.yCentre - sprite2.yCentre) <
-      (window.state.scale * (sprite1.radius + sprite2.radius)));
+      (state.scale * (sprite1.radius + sprite2.radius)));
 }
 
 // Duplicated from game1.js, check if can be obtained by self.random_distance
@@ -76,7 +76,7 @@ function random_distance(sprite, r2, ratio) {
   const x1 = sprite.xCentre + sprite.xDelta;
   const y1 = sprite.yCentre + sprite.yDelta;
   const r1 = sprite.radius;
-  const minDistance = ratio * window.state.scale * (r1 + r2);
+  const minDistance = ratio * state.scale * (r1 + r2);
   let x2;
   let y2;
   let d;
@@ -123,8 +123,8 @@ function createSpaceship() {
  * @returns {Sprite} Selects random start (not on top of spaceship), speed and rotation
  */
 function createAsteroid() {
-  let [x, y] = random_distance(window.state.sprites[0], 40, 1.5);
-  const velocity = window.state.scale * (Math.random() - 0.5);
+  let [x, y] = random_distance(state.sprites[0], 40, 1.5);
+  const velocity = state.scale * (Math.random() - 0.5);
   const direction = Math.random() * 2 * Math.PI;
   return { type: "asteroid"
          , width: 90
@@ -149,16 +149,16 @@ function createAsteroid() {
  * @returns {Sprite} Missile shot from spaceship, lives 2 seconds (120 ticks)
  */
 function createMissile() {
-  let spaceship = window.state.sprites[0];
+  let spaceship = state.sprites[0];
   return { type: "missile"
          , width: 10
          , height: 10
          , row: 0
          , column: 0
-         , xCentre: spaceship.xCentre + (window.state.scale * spaceship.height/2 * Math.cos(spaceship.angle))
-         , yCentre: spaceship.yCentre + (window.state.scale * spaceship.height/2 * Math.sin(spaceship.angle))
-         , xDelta: spaceship.xDelta + (window.state.scale * MISSILE_SPEED * Math.cos(spaceship.angle))
-         , yDelta: spaceship.yDelta + (window.state.scale * MISSILE_SPEED * Math.sin(spaceship.angle))
+         , xCentre: spaceship.xCentre + (state.scale * spaceship.height/2 * Math.cos(spaceship.angle))
+         , yCentre: spaceship.yCentre + (state.scale * spaceship.height/2 * Math.sin(spaceship.angle))
+         , xDelta: spaceship.xDelta + (state.scale * MISSILE_SPEED * Math.cos(spaceship.angle))
+         , yDelta: spaceship.yDelta + (state.scale * MISSILE_SPEED * Math.sin(spaceship.angle))
          , radius: 3
          , angle: spaceship.angle
          , angleDelta: 0
@@ -233,19 +233,19 @@ function nextTick(sprite) { // best to bring whole object
       }
       if (inputStates.isUp) {
         sprite.column = 1;
-        sprite.xDelta = sprite.xDelta + (window.state.scale * THRUST_SPEED * Math.cos(sprite.angle));
-        sprite.yDelta = sprite.yDelta + (window.state.scale * THRUST_SPEED * Math.sin(sprite.angle));
+        sprite.xDelta = sprite.xDelta + (state.scale * THRUST_SPEED * Math.cos(sprite.angle));
+        sprite.yDelta = sprite.yDelta + (state.scale * THRUST_SPEED * Math.sin(sprite.angle));
       } else {
         sprite.column = 0;
       }
       hitlist = collisions(sprite, "asteroid");
       if (hitlist.length > 0) {
         if (inputStates.isThrust === true) {
-          window.state.noise = "thrustStop";
+          state.noise = "thrustStop";
           inputStates.isThrust = false;
         }
-        window.state.noise = "explosion";
-        window.state.lives--;
+        state.noise = "explosion";
+        state.lives--;
         explode(sprite, 30);
         hitlist.forEach((sprite2) => explode(sprite2, 120));
       }
@@ -253,8 +253,8 @@ function nextTick(sprite) { // best to bring whole object
     case "asteroid":
       hitlist = collisions(sprite, "missile");
       if (hitlist.length > 0) {
-        window.state.noise = "explosion";
-        window.state.score++;
+        state.noise = "explosion";
+        state.score++;
         hitlist[0].tick = hitlist[0].lifespan; // only the first missile kills and gets killed
         explode(sprite, 60);
       }
@@ -262,7 +262,7 @@ function nextTick(sprite) { // best to bring whole object
     case "explosion":
       sprite.column = Math.floor((sprite.tick/sprite.lifespan) * 24);
       if ((sprite.lifespan - 1) === sprite.tick) {
-        unexplode(sprite, window.state.sprites[0], canvas.width, canvas.height, window.state.scale);
+        unexplode(sprite, state.sprites[0], canvas.width, canvas.height, state.scale);
       }
       sprite.tick++;
       return;
@@ -284,11 +284,11 @@ function turnRight(bool) {
 function burnRocket(bool) {
   inputStates.isUp = bool;
   if (inputStates.isUp && !inputStates.isThrust) {
-    window.state.noise = "thrustStart";
+    state.noise = "thrustStart";
     inputStates.isThrust = true;
   }
   if (!inputStates.isUp && inputStates.isThrust) {
-    window.state.noise = "thrustStop";
+    state.noise = "thrustStop";
     inputStates.isThrust = false;
   }
 }
@@ -296,12 +296,12 @@ function burnRocket(bool) {
 function fireMissile(bool) {
   inputStates.isSpace = bool;
   if (inputStates.isSpace && inputStates.isLoaded) {
-    window.state.missiles.push(createMissile());
-    window.state.sprites[0].xDelta = window.state.sprites[0].xDelta
-      + (window.state.scale * RECOIL * Math.cos(window.state.sprites[0].angle));
-    window.state.sprites[0].yDelta = window.state.sprites[0].yDelta
-      + (window.state.scale * RECOIL * Math.sin(window.state.sprites[0].angle));
-    window.state.noise = "missile";
+    state.missiles.push(createMissile());
+    state.sprites[0].xDelta = state.sprites[0].xDelta
+      + (state.scale * RECOIL * Math.cos(state.sprites[0].angle));
+    state.sprites[0].yDelta = state.sprites[0].yDelta
+      + (state.scale * RECOIL * Math.sin(state.sprites[0].angle));
+    state.noise = "missile";
     inputStates.isLoaded = false;
   }
   if (!inputStates.isSpace) {
@@ -341,16 +341,16 @@ function uiListener(event) {
 }
 
 function initState() {
-  window.state.sprites[0] = createSpaceship();
+  state.sprites[0] = createSpaceship();
   for (let idx = 1; idx <= 13; idx++) {
-    window.state.sprites[idx] = createAsteroid();
+    state.sprites[idx] = createAsteroid();
   }
 }
 
 function updateState() {
-  window.state.sprites.forEach((sprite) => nextTick(sprite));
-  window.state.missiles.forEach((missile) => nextTick(missile));
-  window.state.missiles = window.state.missiles.filter((missile) => missile.tick < missile.lifespan);
+  state.sprites.forEach((sprite) => nextTick(sprite));
+  state.missiles.forEach((missile) => nextTick(missile));
+  state.missiles = state.missiles.filter((missile) => missile.tick < missile.lifespan);
 }
 
 // export { initState, updateState, uiListener };

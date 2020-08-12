@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><h1>GDL -> JSON</h1>
+<p>I started writing a JSONic Prolog in JavaScript, but decided it would be way easier to focus on neatening up
+messaging between a JavaScript <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebSocket">websocket</a>
+and a SWI-Prolog <a href="https://www.swi-prolog.org/pldoc/man?section=websocket">websocket</a>.</p>
+<p>My gameserver.pl script starts with</p>
+<pre class="prettyprint source lang-prolog"><code>:- use_module(library(http/websocket)).
+:- use_module(library(http/http_unix_daemon)).
+
+:- initialization http_daemon.
+</code></pre>
+<p>The <a href="https://github.com/SWI-Prolog/packages-http/blob/master/http_unix_daemon.pl">http_unix_daemon</a> library
+lets me fire up by server with something like</p>
+<pre class="prettyprint source lang-bash"><code>swipl gameserver.pl --port=6455 --pidfile=http.pid --workers=4
+</code></pre>
+<p>I picked port number 6455 in honour of the protocol's <a href="https://tools.ietf.org/html/rfc6455">RFC</a>.</p>
+<p>The <em>workers</em> option automatically tells the server to allocate requests to however many cores are available.</p>
+<p>A handler — part of the <a href="https://github.com/SWI-Prolog/packages-http/blob/master/http_dispatch.pl">http_dispatch</a>
+library loaded by ttp_unix_daemon —which I've called loop, is created like so:</p>
+<pre class="prettyprint source lang-prolog"><code>:- http_handler(root(.), http_upgrade_to_websocket(loop, []), [spawn([])]).
+
+loop(Request) :-
+  ...
+  loop(Request).
+</code></pre>
+<p>On the JavaScript side, we create a websocket like so:</p>
+<pre class="prettyprint source lang-javascript"><code>const aiPlayer = new WebSocket('ws://localhost:6455');
+</code></pre>
+<p>The <em>lingua franca</em> is JSON, translated from the
+<a href="http://ggp.stanford.edu/">General Game Playing</a> game description language's
+Lisp-style <em>kif</em> format used by its
+<a href="http://ggp.stanford.edu/gamemaster/gamemaster/showgames.php">many games</a> available.</p>
+<p>Starting with a simple
+<a href="http://ggp.stanford.edu/gamemaster/games/tictactoe3/tictactoe3.kif">tic-tac-toe</a>
+board in which the moves are obvious to start figuring out the translation of the rules to JSON and writing a
+JavaScript player.</p>
+<h2>Lists > Objects</h2>
+<p>A mistake I made in my original design was to translate</p>
+<pre class="prettyprint source lang-lisp"><code>(init (cell 1 1 x))
+(init (cell 1 2 x))
+(init (cell 1 3 o))
+(init (cell 2 1 b))
+(init (cell 2 2 o))
+(init (cell 2 3 b))
+(init (cell 3 1 b))
+(init (cell 3 2 o))
+(init (cell 3 3 x))
+(init (control white))
+</code></pre>
+<p>into a JSON object tree with &quot;cell&quot; and &quot;control&quot; as dictionary keys. A better way to do it is:</p>
+<pre class="prettyprint source lang-json"><code>{
+  &quot;init&quot;: [ [&quot;cell&quot;, 1, 1, &quot;x&quot;], [&quot;cell&quot;, 1, 2, &quot;x&quot;], [&quot;cell&quot;, 1, 3, &quot;o&quot;]
+          , [&quot;cell&quot;, 2, 1, &quot;b&quot;], [&quot;cell&quot;, 2, 2, &quot;o&quot;], [&quot;cell&quot;, 2, 3, &quot;b&quot;]
+          , [&quot;cell&quot;, 3, 1, &quot;b&quot;], [&quot;cell&quot;, 3, 2, &quot;o&quot;], [&quot;cell&quot;, 3, 3, &quot;x&quot;]
+          , [&quot;control&quot;, &quot;white&quot;]
+          ]
+}
+</code></pre>
+<p>Advantages of this is that Prolog's <code>=..</code> operator makes coversion simple (though
+the double quotes JSON insists on would need to be removed first</p>
+<pre class="prettyprint source lang-prolog"><code>?- maplist(atom_string, L, [&quot;cell&quot;, 1, 1, &quot;X&quot;]), T =.. L.
+L = [cell, '1', '1', 'X'],
+T = cell('1', '1', 'X').
+</code></pre>
+<p>Or, provided &quot;X&quot; is lower case &quot;x&quot;</p>
+<pre class="prettyprint source lang-prolog"><code>?- maplist(term_string, L, [&quot;cell&quot;, 1, 1, &quot;x&quot;]), T =.. L.
+L = [cell, 1, 1, x],
+T = cell(1, 1, x).
+</code></pre>
+<p>The <code>=..</code> is bidirectional, so getting terms back to lists can be done with</p>
+<pre class="prettyprint source lang-prolog"><code>?- cell(1, 1, x) =.. L.
+L = [cell, 1, 1, x].
+</code></pre>
+<p>This makes the json_terms.pl script I taught myself DSL's with fairly unecessary.</p>
+<h2>Matching</h2>
+<p>The trickier part is translating kif's rule syntax to JSON.</p>
+<pre class="prettyprint source lang-lisp"><code>(&lt;= (legal ?w (mark ?x ?y))
+    (true (cell ?x ?y b))
+    (true (control ?w)))
+    
+(&lt;= (legal white noop)
+    (true (control black)))
+    
+(&lt;= (legal black noop)
+    (true (control white)))
+</code></pre>
+<p>Again, I want the value of &quot;legal&quot; to be a nested list. Kif's <code>&lt;=</code> operator splits each rule into
+a head — which in turn has a <code>(legal Role Move)</code> pattern which in JSON could be
+<code>[Role, Move]</code> — and one or more <code>(true Match)</code> where is something to search for in
+the state list.</p>
+<p>Kif's convention of prefixing variables with &quot;?&quot; is simple for JavaScript since we just need
+<code>(var.charAt(0) === &quot;?&quot;)</code> to recognise them, but the question marks need to be stripped and the
+following letter capitalised for Prolog.</p>
+<pre class="prettyprint source lang-json"><code>{
+  &quot;legal&quot;: [ [ [&quot;?w&quot;, [&quot;mark&quot;, &quot;?x&quot;, &quot;?y&quot;]]
+             , [ [&quot;cell&quot;, &quot;?x&quot;, &quot;?y&quot;, &quot;b&quot;]
+               , [&quot;contol&quot;, &quot;?w&quot;]
+               ] 
+             ]
+           , [ [&quot;white&quot;, &quot;noop&quot;]
+             , [ [&quot;control&quot;, &quot;black&quot;] ]
+             ]
+           , [ [&quot;black&quot;, &quot;noop&quot;]
+             , [ [&quot;control&quot;, &quot;white&quot;] ]
+             ]
+           ]
+}
+</code></pre>
+<p>There's a lot of nested lists to get lost in</p>
+<ol>
+  <li>Iterate through list of [Head, Body]
+    <ol>
+      <li>Iterate through Rules in Body
+      <ol>
+        <li>Use each rule as a filter to get matching state bases</li>
+        <li>For each matching base, record which variables have what values, maybe a list of
+        <code>{"?x": 2, "?y": 1}</code> for matching <code>["cell", 2, 1, "b"]</code>. Each of these
+        would need {"?w": "white"} added by the second rule.
+        </li>
+      </ol>
+      </li>
+    </ol>
+  </li>
+</ol></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#matchRule">matchRule</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Wed Aug 12 2020 14:39:09 GMT+0200 (South Africa Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

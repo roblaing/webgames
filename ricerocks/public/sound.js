@@ -9,19 +9,21 @@ const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
  * @typedef {Object} sounds
  * @property {buffer} audioNode - Binary blobs from sound files
  */
-const sounds = { "background": audioCtx.createBufferSource()
-               , "thrust": audioCtx.createBufferSource()
-               , "missile": audioCtx.createBufferSource()
-               , "explosion": audioCtx.createBufferSource()
-               };
-
+const sounds = {};
 let thrustSound = null;
 
 function loadSound(url, audioNode) {
   fetch(url)
   .then((response) => response.arrayBuffer())
   .then((buffer) => audioCtx.decodeAudioData(buffer))
-  .then((decodedData) => audioNode.buffer = decodedData);
+  .then((decodedData) => audioNode.buffer = decodedData)
+  .then(background => {
+    if (audioNode === sounds["background"]) {
+      audioNode.loop = true;
+      audioNode.connect(audioCtx.destination);
+      audioNode.start();
+    }
+  });
 }
 
 function playSound_(audioNode) {
@@ -41,10 +43,10 @@ function playSound_(audioNode) {
  */
 function playSound() {
   // state.noise is undefined if files haven't loaded yet
-  if (window.state.noise === null || window.state.noise === undefined) {
+  if (state.noise === null || state.noise === undefined) {
       return;
   }
-  switch (window.state.noise) {
+  switch (state.noise) {
     case "thrustStart":
       if (thrustSound === null) {
         thrustSound = playSound_(sounds["thrust"]);
@@ -60,18 +62,8 @@ function playSound() {
       sounds["background"].stop();
       break;
     default:
-      playSound_(sounds[window.state.noise]); 
+      playSound_(sounds[state.noise]); 
   }
-  window.state.noise = null;
+  state.noise = null;
 }
-
-loadSound("./sounds/soundtrack.ogg", sounds["background"]);
-loadSound("./sounds/thrust.ogg", sounds["thrust"]);
-loadSound("./sounds/missile.ogg", sounds["missile"]);
-loadSound("./sounds/explosion.ogg", sounds["explosion"]);
-sounds["background"].loop = true;
-sounds["background"].connect(audioCtx.destination);
-sounds["background"].start();
-
-// export { playSound };
 
