@@ -19,7 +19,7 @@ which don't treat images as being akin to integers, strings and other atomic typ
 
 
 Instead of drawing things on a screen, the idea is that functions like circle, square etc return something to
-pass functions like overlay, underlay, above, and beside which in turn return something that can be drawn.
+to be used as inputs for functions like overlay, underlay, above, and beside which in turn return something that can be drawn.
 
 Figuring out what should be returned lead into a maze whose dead ends included ImageData and Image Obects themselves.
 Finally, I reached the enlightenment that what should be returned is a 
@@ -69,6 +69,48 @@ above( beside(triangle(40, "solid", "red"), triangle(40, "solid", "red"))
 ```
 
 <img src="house2.png" />
+
+<h3>Image Rotation</h3>
+
+<dl>
+  <dt>θ</dt><dd>Angle in radians, counterclockwise positive</dd>
+  <dt>(x<sub>0</sub>, y<sub>0</sub>)</dt><dd>Centre of image (point around which rotation is done)</dd>
+  <dt>(x<sub>1</sub>, y<sub>1</sub>)</dt><dd>Pre-rotation co-ordinate</dd>
+  <dt>(x<sub>2</sub>, y<sub>2</sub>)</dt><dd>Post-rotation co-ordinate</dd>
+</dl>
+
+
+```javascript
+function rotate_coordinates(radians, x0, y0, x1, y1) {
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const x2 =  dx*Math.cos(radians) + dy*Math.sin(radians);
+  const y2 = -dx*Math.sin(radians) + dy*Math.cos(radians);
+  return [x2, y4];
+}
+```
+
+x<sub>2</sub>=cos(θ)*(x1−x0)+sin(θ)*(y1−y0)y2=−sin(θ)*(x1−x0)+cos(θ)*(y1−y0)
+
+
+<h3>Image transformation</h3>
+
+Transformation matrix
+
+```javascript
+[ [a, c, e]
+, [b, d, f]
+, [0, 0, 1]
+]
+
+[ [cos(a), -sin(a), 0]
+, [sin(a),  cos(a), 0]
+, [     0,       0, 1]
+]
+
+```javascript
+(rotate 45 (ellipse 60 20 "solid" "olivedrab"))
+```
 
 <h2>Drawing traditional maths graphs</h2>
 

@@ -189,6 +189,45 @@ function underlay(...images) {
   });
 }
 
+/**
+ * (rotate angle image) image?
+ * @function rotate
+ * @param {degree} angle
+ */
+function rotate(angle, image) {
+  const radians = -(angle * Math.PI)/180;
+  const a = Math.cos(radians);
+  const b = Math.sin(radians);
+  const c = -b;
+  const d = a;
+  const e = 0;
+  const f = 0;
+  // let width;
+  // let height;
+  return image.then(img => {
+    const image2 = new Image(); 
+    const x0 = img.width/2;
+    const y0 = img.height/2;
+    const x2 = img.width; // x0 + (x0*a) - (y0*b);
+    const y2 = img.height; //y0 - (y0*b) + (y0*a);
+    console.log(`${img.width} ${img.width*a} ${img.height} ${img.height*b}`);
+    shadowCanvas.width = x2;
+    shadowCanvas.height = y2;
+    shadowCtx.clearRect(0, 0, x2, y2);
+    shadowCtx.save();
+    shadowCtx.translate(x0, y0);
+    shadowCtx.rotate(radians);
+    // shadowCtx.transform(a, b, c, d, e, f);
+    shadowCtx.drawImage(img, -x0, -y0);
+    shadowCtx.restore();
+    image2.src = shadowCanvas.toDataURL();
+    return new Promise(function(resolve, reject) {
+      image2.addEventListener("load", (event) => resolve(image2));
+    });
+  });
+
+
+}
 
 /**
  * (place-image image x y scene) → image?
@@ -242,8 +281,8 @@ function setupShape(width, height, penOrColor) {
   } else {
     padding = 1;
   }
-  width += padding;
-  height += padding;
+  width += 2 * padding;
+  height += 2 * padding;
   shadowCanvas.width = width;
   shadowCanvas.height = height;
   shadowCtx.clearRect(0, 0, width, height);
@@ -270,8 +309,12 @@ function circle(radius, mode, penOrColor) {
   [width, height] = setupShape(width, height, penOrColor)
   shadowCtx.arc(width/2, height/2, radius, 0, 2*Math.PI);
   switch (mode) {
-    case "solid": fillShape(penOrColor);
-    case "outline": strokeShape(penOrColor);
+    case "solid": 
+      fillShape(penOrColor);
+      break;
+    case "outline": 
+      strokeShape(penOrColor);
+      break;
     default: // 0...255
       transparencyFillShape(penOrColor, mode);
   }
@@ -289,11 +332,22 @@ function ellipse(width, height, mode, penOrColor) {
   const image = new Image();
   const x = width/2;
   const y = height/2;
+  let padding;
+  if (penOrColor.hasOwnProperty("width")) {
+    padding = penOrColor.width;
+  } else {
+    padding = 1;
+  }
   [width, height] = setupShape(width, height, penOrColor)
-  shadowCtx.ellipse(x, y, x, y, 0, 0, 2*Math.PI);
+  // ctx.ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle [, anticlockwise]);
+  shadowCtx.ellipse(x + padding, y + padding, x, y, 0, 0, 2*Math.PI);
   switch (mode) {
-    case "solid": fillShape(penOrColor);
-    case "outline": strokeShape(penOrColor);
+    case "solid": 
+      fillShape(penOrColor);
+      break;
+    case "outline": 
+      strokeShape(penOrColor);
+      break;
     default: // 0...255
       transparencyFillShape(penOrColor, mode);
   }
@@ -340,6 +394,28 @@ function line(x1, y1, penOrColor) {
 }
 
 /**
+ * (text string font-size color) → image?
+ * Constructs an image that draws the given string, using the font size and color.
+ * @function text
+ * @example text("Hello", 24, "olive")
+ */
+function text(string, fontSize, color) {
+  const image = new Image();
+  shadowCtx.font = `${fontSize}px sans-serif`;
+  let textMetrics = shadowCtx.measureText(string);
+  shadowCanvas.width = textMetrics.width;
+  shadowCanvas.height = 1.3*fontSize;
+  shadowCtx.clearRect(0, 0, textMetrics.width, fontSize);
+  shadowCtx.fillStyle = color;
+  shadowCtx.font = `${fontSize}px sans-serif`; // needs to be duplicated for some reason
+  shadowCtx.fillText(string, 0, fontSize, textMetrics.width);
+  image.src = shadowCanvas.toDataURL();
+  return new Promise(function(resolve, reject) {
+    image.addEventListener("load", (event) => resolve(image));
+  });
+}
+
+/**
  * (rectangle width height mode color) → image?
  * @see [MDN arc]{@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/rect}
  * @function rectangle
@@ -349,8 +425,12 @@ function rectangle(width, height, mode, penOrColor) {
   [width, height] = setupShape(width, height, penOrColor)
   shadowCtx.rect(0, 0, width, height);
   switch (mode) {
-    case "solid": fillShape(penOrColor);
-    case "outline": strokeShape(penOrColor);
+    case "solid": 
+      fillShape(penOrColor);
+      break;
+    case "outline": 
+      strokeShape(penOrColor);
+      break;
     default: // 0...255
       transparencyFillShape(penOrColor, mode);
   }
@@ -387,8 +467,12 @@ function triangle(side, mode, penOrColor) {
   shadowCtx.lineTo(width - (padding/2), height - (padding/2));
   shadowCtx.lineTo(padding/2, height - (padding/2));
   switch (mode) {
-    case "solid": fillShape(penOrColor);
-    case "outline": strokeShape(penOrColor);
+    case "solid": 
+      fillShape(penOrColor);
+      break;
+    case "outline": 
+      strokeShape(penOrColor);
+      break;
     default: // 0...255
       transparencyFillShape(penOrColor, mode);
   }
@@ -408,13 +492,13 @@ function triangle(side, mode, penOrColor) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#above">above</a></li><li><a href="global.html#beside">beside</a></li><li><a href="global.html#besideAlign">besideAlign</a></li><li><a href="global.html#circle">circle</a></li><li><a href="global.html#ellipse">ellipse</a></li><li><a href="global.html#graphF">graphF</a></li><li><a href="global.html#line">line</a></li><li><a href="global.html#overlay">overlay</a></li><li><a href="global.html#placeImage">placeImage</a></li><li><a href="global.html#rectangle">rectangle</a></li><li><a href="global.html#square">square</a></li><li><a href="global.html#transparencyFillShape">transparencyFillShape</a></li><li><a href="global.html#triangle">triangle</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#above">above</a></li><li><a href="global.html#beside">beside</a></li><li><a href="global.html#besideAlign">besideAlign</a></li><li><a href="global.html#circle">circle</a></li><li><a href="global.html#ellipse">ellipse</a></li><li><a href="global.html#graphF">graphF</a></li><li><a href="global.html#line">line</a></li><li><a href="global.html#overlay">overlay</a></li><li><a href="global.html#placeImage">placeImage</a></li><li><a href="global.html#rectangle">rectangle</a></li><li><a href="global.html#rotate">rotate</a></li><li><a href="global.html#square">square</a></li><li><a href="global.html#text">text</a></li><li><a href="global.html#transparencyFillShape">transparencyFillShape</a></li><li><a href="global.html#triangle">triangle</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Tue Aug 11 2020 12:10:36 GMT+0200 (South Africa Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Tue Aug 18 2020 12:50:33 GMT+0200 (South Africa Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

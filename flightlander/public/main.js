@@ -1,7 +1,17 @@
 "use strict";
 
-line(30, -30, "red")
+// rotate(45 
+
+rotate(45, ellipse(60, 20, "outline", "olivedrab"))
 .then(image => ctx.drawImage(image, 0, 0));
+
+overlay(rotate(90, ellipse(60, 20, "solid", "olivedrab")), rectangle(60, 20, "outline", "blue"))
+.then(image => ctx.drawImage(image, 300, 300));
+
+/*
+text("Goodbye tgfif", 36, "indigo")
+.then(image => ctx.drawImage(image, 0, 0));
+*/
 
 /*
 overlay(rectangle(60, 100, 127, "rgb(0, 255, 0)"),

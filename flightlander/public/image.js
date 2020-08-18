@@ -161,6 +161,46 @@ function underlay(...images) {
   });
 }
 
+/**
+ * (rotate angle image) image?
+ * @function rotate
+ * @param {degree} angle
+ */
+
+function rotate_coordinates(radians, x0, y0, x1, y1) {
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const x2 =   dx*Math.cos(radians) - dy*Math.sin(radians);
+  const y2 =   dx*Math.sin(-radians) + dy*Math.cos(radians);
+  return [x2, y2];
+}
+
+function rotate(angle, image) {
+  const radians = -(angle * Math.PI)/180;
+  return image.then(img => {
+    const image2 = new Image();
+    let [width, height] = rotate_coordinates(radians, img.width/2, img.height/2, img.width, img.height);
+    width *= 2;
+    height *= 2;
+    // const [x0, y0] = rotate_coordinates(radians, img.width/2, img.height/2, 0, 0);
+    console.log(`${img.width} ${width} ${img.height} ${height}`);
+    shadowCanvas.width = width;
+    shadowCanvas.height = height;
+    shadowCtx.clearRect(0, 0, width, height);
+    shadowCtx.save();
+    shadowCtx.translate(width/2, height/2);
+    shadowCtx.rotate(radians);
+    // shadowCtx.transform(a, b, c, d, e, f);
+    shadowCtx.drawImage(img, -img.width/2, -img.height/2);
+    shadowCtx.restore();
+    image2.src = shadowCanvas.toDataURL();
+    return new Promise(function(resolve, reject) {
+      image2.addEventListener("load", (event) => resolve(image2));
+    });
+  });
+
+
+}
 
 /**
  * (place-image image x y scene) → image?
@@ -214,8 +254,8 @@ function setupShape(width, height, penOrColor) {
   } else {
     padding = 1;
   }
-  width += padding;
-  height += padding;
+  width += 2 * padding;
+  height += 2 * padding;
   shadowCanvas.width = width;
   shadowCanvas.height = height;
   shadowCtx.clearRect(0, 0, width, height);
@@ -242,8 +282,12 @@ function circle(radius, mode, penOrColor) {
   [width, height] = setupShape(width, height, penOrColor)
   shadowCtx.arc(width/2, height/2, radius, 0, 2*Math.PI);
   switch (mode) {
-    case "solid": fillShape(penOrColor);
-    case "outline": strokeShape(penOrColor);
+    case "solid": 
+      fillShape(penOrColor);
+      break;
+    case "outline": 
+      strokeShape(penOrColor);
+      break;
     default: // 0...255
       transparencyFillShape(penOrColor, mode);
   }
@@ -261,11 +305,22 @@ function ellipse(width, height, mode, penOrColor) {
   const image = new Image();
   const x = width/2;
   const y = height/2;
+  let padding;
+  if (penOrColor.hasOwnProperty("width")) {
+    padding = penOrColor.width;
+  } else {
+    padding = 1;
+  }
   [width, height] = setupShape(width, height, penOrColor)
-  shadowCtx.ellipse(x, y, x, y, 0, 0, 2*Math.PI);
+  // ctx.ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle [, anticlockwise]);
+  shadowCtx.ellipse(x + padding, y + padding, x, y, 0, 0, 2*Math.PI);
   switch (mode) {
-    case "solid": fillShape(penOrColor);
-    case "outline": strokeShape(penOrColor);
+    case "solid": 
+      fillShape(penOrColor);
+      break;
+    case "outline": 
+      strokeShape(penOrColor);
+      break;
     default: // 0...255
       transparencyFillShape(penOrColor, mode);
   }
@@ -315,9 +370,22 @@ function line(x1, y1, penOrColor) {
  * (text string font-size color) → image?
  * Constructs an image that draws the given string, using the font size and color.
  * @function text
+ * @example text("Hello", 24, "olive")
  */
 function text(string, fontSize, color) {
-  shadowCtx.font = `${fontSize}px serif`;
+  const image = new Image();
+  shadowCtx.font = `${fontSize}px sans-serif`;
+  let textMetrics = shadowCtx.measureText(string);
+  shadowCanvas.width = textMetrics.width;
+  shadowCanvas.height = 1.3*fontSize;
+  shadowCtx.clearRect(0, 0, textMetrics.width, fontSize);
+  shadowCtx.fillStyle = color;
+  shadowCtx.font = `${fontSize}px sans-serif`; // needs to be duplicated for some reason
+  shadowCtx.fillText(string, 0, fontSize, textMetrics.width);
+  image.src = shadowCanvas.toDataURL();
+  return new Promise(function(resolve, reject) {
+    image.addEventListener("load", (event) => resolve(image));
+  });
 }
 
 /**
@@ -330,8 +398,12 @@ function rectangle(width, height, mode, penOrColor) {
   [width, height] = setupShape(width, height, penOrColor)
   shadowCtx.rect(0, 0, width, height);
   switch (mode) {
-    case "solid": fillShape(penOrColor);
-    case "outline": strokeShape(penOrColor);
+    case "solid": 
+      fillShape(penOrColor);
+      break;
+    case "outline": 
+      strokeShape(penOrColor);
+      break;
     default: // 0...255
       transparencyFillShape(penOrColor, mode);
   }
@@ -368,8 +440,12 @@ function triangle(side, mode, penOrColor) {
   shadowCtx.lineTo(width - (padding/2), height - (padding/2));
   shadowCtx.lineTo(padding/2, height - (padding/2));
   switch (mode) {
-    case "solid": fillShape(penOrColor);
-    case "outline": strokeShape(penOrColor);
+    case "solid": 
+      fillShape(penOrColor);
+      break;
+    case "outline": 
+      strokeShape(penOrColor);
+      break;
     default: // 0...255
       transparencyFillShape(penOrColor, mode);
   }
