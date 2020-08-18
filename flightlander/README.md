@@ -84,9 +84,9 @@ above( beside(triangle(40, "solid", "red"), triangle(40, "solid", "red"))
 function rotate_coordinates(radians, x0, y0, x1, y1) {
   const dx = x1 - x0;
   const dy = y1 - y0;
-  const x2 =  dx*Math.cos(radians) + dy*Math.sin(radians);
-  const y2 = -dx*Math.sin(radians) + dy*Math.cos(radians);
-  return [x2, y4];
+  const x2 =   dx*Math.cos(radians) - dy*Math.sin(radians);
+  const y2 =   dx*Math.sin(-radians) + dy*Math.cos(radians);
+  return [x2, y2];
 }
 ```
 
